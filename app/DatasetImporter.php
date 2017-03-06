@@ -83,10 +83,22 @@ class DatasetImporter
             // skip first line (the headers)
             if ($k == 0) continue;
 
+            // remove non-breaking spaces from the value
+            $currentTotal = collect($currentTotal)->map(function($total) {
+
+                $withoutSpaces = str_replace("\xc2\xa0", '', $total);
+
+                if (empty($withoutSpaces)) {
+                    $withoutSpaces = null;
+                }
+
+                return $withoutSpaces;
+            });
+
             if (empty($subjectArea)) {
                 $dataset[$genderSlug] = [
                     'gender' => $gender,
-                    'total' => str_replace(' ', '', $currentTotal),
+                    'total' => $currentTotal,
                     'year'  => $line[0],
                 ];
                 continue;
@@ -97,7 +109,7 @@ class DatasetImporter
                 $dataset[$genderSlug]['children'][$subjectAreaSlug] = [
                     'title' => $subjectArea,
                     'slug'  => StringHelper::slugify($subjectArea),
-                    'total' => str_replace(' ', '', $currentTotal),
+                    'total' => $currentTotal,
                     'level' => 0,
                 ];
                 continue;
@@ -106,7 +118,7 @@ class DatasetImporter
                 $dataset[$genderSlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug] = [
                     'title' => $subjectSubArea,
                     'slug'  => StringHelper::slugify($subjectSubArea),
-                    'total' => str_replace(' ', '', $currentTotal),
+                    'total' => $currentTotal,
                     'level' => 1,
                 ];
             }
@@ -116,7 +128,7 @@ class DatasetImporter
                 $dataset[$genderSlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug]['children'][$subjectGroupSlug] = [
                     'title' => $subjectGroup,
                     'slug'  => StringHelper::slugify($subjectGroup),
-                    'total' => str_replace(' ', '', $currentTotal),
+                    'total' => $currentTotal,
                     'level' => 2,
                 ];
             }
@@ -304,7 +316,6 @@ class DatasetImporter
         collect($this->totalColumnIds)
             ->combine($values)
             ->each(function($value, $columnId) use($total) {
-
                 return TotalValue::firstOrCreate([
                     'total_id'  => $total->id,
                     'column_id' => $columnId,

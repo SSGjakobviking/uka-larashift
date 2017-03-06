@@ -15,8 +15,7 @@ class CreateTotalsTable extends Migration
     {
         Schema::create('totals', function (Blueprint $table) {
             $table->increments('id')->unsigned();
-            $table->integer('relation_id')->unsigned();
-            $table->string('relation_type');
+            $table->morphs('relation');
             $table->integer('year');
             $table->string('gender');
         });

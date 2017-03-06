@@ -21,7 +21,7 @@ class CreateTotalValuesTable extends Migration
             $table->integer('column_id')->unsigned();
             $table->foreign('column_id')->references('id')->on('total_columns')->onDelete('cascade');
             
-            $table->integer('value');
+            $table->integer('value')->nullable();
         });
     }
 

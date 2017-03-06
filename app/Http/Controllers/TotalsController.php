@@ -55,6 +55,7 @@ class TotalsController extends Controller
     {
         return $dataset->groups->map(function($group) {
             return [
+                'id'    => $group->id,
                 'name'  => $group->name,
                 'value' => $group->totals->first()->values->first()->value
             ];
@@ -70,6 +71,7 @@ class TotalsController extends Controller
     {
         $genders = $dataset->totals->groupBy('gender')->map(function($total) {
             return [
+                'id'     => str_slug($total->first()->gender),
                 'gender' => $total->first()->gender,
                 'value'  => $total->first()->values->first()->value,
             ];
@@ -91,6 +93,7 @@ class TotalsController extends Controller
 
         return $values->map(function($total) {
             return [
+                'id'   => $total->column->id,
                 'name' => $total->column->name,
                 'value' => $total->value,
             ];

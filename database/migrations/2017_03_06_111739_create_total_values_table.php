@@ -22,7 +22,6 @@ class CreateTotalValuesTable extends Migration
             $table->foreign('column_id')->references('id')->on('total_columns')->onDelete('cascade');
             
             $table->integer('value');
-            $table->timestamps();
         });
     }
 

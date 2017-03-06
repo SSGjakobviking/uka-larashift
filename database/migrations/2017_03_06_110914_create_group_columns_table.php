@@ -16,7 +16,6 @@ class CreateGroupColumnsTable extends Migration
         Schema::create('group_columns', function (Blueprint $table) {
             $table->increments('id')->unsigned();
             $table->string('name');
-            $table->timestamps();
         });
     }
 

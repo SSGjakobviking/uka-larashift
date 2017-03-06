@@ -25,7 +25,6 @@ class CreateGroupsTable extends Migration
             $table->foreign('column_id')->references('id')->on('group_columns');
 
             $table->string('name');
-            $table->timestamps();
         });
     }
 

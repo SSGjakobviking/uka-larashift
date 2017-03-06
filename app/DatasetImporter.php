@@ -86,7 +86,7 @@ class DatasetImporter
             if (empty($subjectArea)) {
                 $dataset[$genderSlug] = [
                     'gender' => $gender,
-                    'total' => $currentTotal,
+                    'total' => str_replace(' ', '', $currentTotal),
                     'year'  => $line[0],
                 ];
                 continue;
@@ -97,7 +97,7 @@ class DatasetImporter
                 $dataset[$genderSlug]['children'][$subjectAreaSlug] = [
                     'title' => $subjectArea,
                     'slug'  => StringHelper::slugify($subjectArea),
-                    'total' => $currentTotal,
+                    'total' => str_replace(' ', '', $currentTotal),
                     'level' => 0,
                 ];
                 continue;
@@ -106,7 +106,7 @@ class DatasetImporter
                 $dataset[$genderSlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug] = [
                     'title' => $subjectSubArea,
                     'slug'  => StringHelper::slugify($subjectSubArea),
-                    'total' => $currentTotal,
+                    'total' => str_replace(' ', '', $currentTotal),
                     'level' => 1,
                 ];
             }
@@ -116,7 +116,7 @@ class DatasetImporter
                 $dataset[$genderSlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug]['children'][$subjectGroupSlug] = [
                     'title' => $subjectGroup,
                     'slug'  => StringHelper::slugify($subjectGroup),
-                    'total' => $currentTotal,
+                    'total' => str_replace(' ', '', $currentTotal),
                     'level' => 2,
                 ];
             }

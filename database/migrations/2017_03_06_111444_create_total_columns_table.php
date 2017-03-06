@@ -16,7 +16,6 @@ class CreateTotalColumnsTable extends Migration
         Schema::create('total_columns', function (Blueprint $table) {
             $table->increments('id')->unsigned();
             $table->string('name');
-            $table->timestamps();
         });
     }
 

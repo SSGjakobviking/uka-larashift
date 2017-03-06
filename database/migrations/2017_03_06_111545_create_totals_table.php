@@ -19,7 +19,6 @@ class CreateTotalsTable extends Migration
             $table->string('relation_type');
             $table->integer('year');
             $table->string('gender');
-            $table->timestamps();
         });
     }
 

@@ -32,3 +32,5 @@ Auth::routes();
 Route::get('/home', 'HomeController@index');
 
 Route::get('parse', 'DatasetController@parse');
+
+Auth::routes();

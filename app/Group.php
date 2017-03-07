@@ -43,7 +43,7 @@ class Group extends Model
      */
     public function children()
     {
-        return $this->hasMany(Group::class, 'parent_id')->orderBy('order');
+        return $this->hasMany(Group::class, 'parent_id');
     }
 
     /**

@@ -33,7 +33,7 @@ class Dataset extends Model
      */
     public function groups()
     {
-        return $this->hasMany(Group::class, 'dataset_id')->where('parent_id', null)->orderBy('order');
+        return $this->hasMany(Group::class, 'dataset_id')->where('parent_id', null);
     }
 
     /**

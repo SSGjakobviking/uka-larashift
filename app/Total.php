@@ -32,6 +32,6 @@ class Total extends Model
      */
     public function values()
     {
-        return $this->hasMany(TotalValue::class)->orderBy('order');
+        return $this->hasMany(TotalValue::class);
     }
 }

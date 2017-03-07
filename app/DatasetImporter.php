@@ -35,23 +35,7 @@ class DatasetImporter
         $csvData = collect($csv->setOffset(1)->fetchAll());
         $headers = $csvData[0];
 
-        $data = [
-            'id'            => 1,
-            'title'         => 'Antal registrerade studenter',
-            'description'   => 'Mäter antalet registrerade studenter per år.',
-            'slug'          => 'registrerade-studenter',
-            'measurement'   => 'Antal registrerade studenter.',
-            'time_unit'     => 'År',
-            'age_groups'    => ['Antal', '-21 år', '22-24 år', '25-29 år', '30-34 år', '35- år'],
-            'version'       => '1',
-            'year_totals'   => [
-                2003 => 23292,
-                2004 => 43292,
-                2005 => 53292,
-                2006 => 132923,
-                2007 => 33292,
-            ],
-        ];
+        $ageGroups = ['Antal', '-21 år', '22-24 år', '25-29 år', '30-34 år', '35- år'];
 
         // dd($headers);
         // dd($csvData);
@@ -62,7 +46,7 @@ class DatasetImporter
         $subjectGroupTitleSlug= StringHelper::slugify($headers[4]);
         $dataset = [];
 
-        $ignoreHeaders = $data['age_groups'];
+        $ignoreHeaders = $ageGroups;
 
         foreach($csvData as $k => $line) {
             $gender = $line[1];
@@ -87,12 +71,13 @@ class DatasetImporter
             $currentTotal = collect($currentTotal)->map(function($total) {
 
                 $withoutSpaces = str_replace("\xc2\xa0", '', $total);
+                $withoutCommas = str_replace(',', '', $withoutSpaces);
 
-                if (empty($withoutSpaces)) {
-                    $withoutSpaces = null;
+                if (empty($withoutCommas)) {
+                    $withoutCommas = null;
                 }
 
-                return $withoutSpaces;
+                return $withoutCommas;
             });
 
             if (empty($subjectArea)) {
@@ -139,16 +124,6 @@ class DatasetImporter
         $this->data = collect($data);
 
         return $this;
-    }
-
-    /**
-     * Retrieve csv data in a Collection format.
-     * 
-     * @return Collection
-     */
-    public function get()
-    {
-        return $this->data;
     }
 
     /**
@@ -200,13 +175,16 @@ class DatasetImporter
         }
     }
 
-    private function createGroup($datasetId, $genderData, $data, $parent = null)
+    private function createGroup($datasetId, $genderData, $data, $parent = null, $level = -1)
     {
         foreach($data as $item) {
- 
+            if ($item == head($data)) {
+                $level++;
+            }
+
             $currentGroup = Group::firstOrCreate([
                 'dataset_id'    => $datasetId,
-                'column_id'     => GroupColumn::where('name', $this->groupColumns[0])->get()->first()->id,
+                'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'parent_id'     => $parent,
                 'name'          => $item['title'],
             ]);
@@ -221,10 +199,9 @@ class DatasetImporter
             $this->createTotalValues($total, $item['total']);
 
             if (isset($item['children'])) {
-                $this->createGroup($datasetId, $genderData, $item['children'], $currentGroup->id);
+                $this->createGroup($datasetId, $genderData, $item['children'], $currentGroup->id, $level);
                 continue;
             }
- 
         }
 
         return $data;

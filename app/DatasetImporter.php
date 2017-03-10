@@ -175,7 +175,7 @@ class DatasetImporter
         }
     }
 
-    private function createGroup($datasetId, $genderData, $data, $parent = null, $level = -1)
+    private function createGroup($dataset, $genderData, $data, $parent = null, $level = -1)
     {
         foreach($data as $item) {
             if ($item == head($data)) {
@@ -183,23 +183,24 @@ class DatasetImporter
             }
 
             $currentGroup = Group::firstOrCreate([
-                'dataset_id'    => $datasetId,
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'parent_id'     => $parent,
                 'name'          => $item['title'],
             ]);
 
             $total = Total::firstOrCreate([
-                'relation_id'   => $currentGroup->id,
-                'relation_type' => Group::class,
+                'dataset_id'    => $dataset->id,
+                'group_id'      => $currentGroup->id,
                 'year'          => $genderData['year'],
                 'gender'        => $genderData['gender'],
             ]);
 
+            // $dataset->groups()->attach($currentGroup);
+
             $this->createTotalValues($total, $item['total']);
 
             if (isset($item['children'])) {
-                $this->createGroup($datasetId, $genderData, $item['children'], $currentGroup->id, $level);
+                $this->createGroup($dataset, $genderData, $item['children'], $currentGroup->id, $level);
                 continue;
             }
         }
@@ -214,72 +215,16 @@ class DatasetImporter
         foreach($data as $genderData) {
 
             $total = Total::firstOrCreate([
-                'relation_id'   => $dataset->id,
-                'relation_type' => Dataset::class,
+                'dataset_id'    => $dataset->id,
+                'group_id'   => null,
                 'year'          => $genderData['year'],
                 'gender'        =>  $genderData['gender'],
             ]);
 
             $this->createTotalValues($total, $genderData['total']);
-            $this->createGroup($dataset->id, $genderData, $genderData['children']);
-
-            // foreach($genderData['subject_area'] as $subjectArea) {
-  
-            //     $currentSubjectArea = Group::firstOrCreate([
-            //         'dataset_id'    => $dataset->id,
-            //         'column_id'     => GroupColumn::where('name', $this->groupColumns[0])->get()->first()->id,
-            //         'parent_id'     => null,
-            //         'name'          => $subjectArea['title'],
-            //     ]);
-
-            //     $total = Total::create([
-            //         'relation_id'   => $currentSubjectArea->id,
-            //         'relation_type' => Group::class,
-            //         'year'          => $genderData['year'],
-            //         'gender'        =>  $genderData['gender'],
-            //     ]);
-
-            //     $this->createTotalValues($total, $subjectArea['total']);
-
-            //     foreach($subjectArea['subject_subarea'] as $subjectSubarea) {
-
-            //         $currentSubjectSubarea = Group::firstOrCreate([
-            //             'dataset_id'    => $dataset->id,
-            //             'column_id'     => GroupColumn::where('name', $this->groupColumns[1])->get()->first()->id,
-            //             'parent_id'     => $currentSubjectArea->id,
-            //             'name'          => $subjectSubarea['title'],
-            //         ]);
-
-            //         $total = Total::firstOrCreate([
-            //             'relation_id'   => $currentSubjectSubarea->id,
-            //             'relation_type' => Group::class,
-            //             'year'          => $genderData['year'],
-            //             'gender'        =>  $genderData['gender'],
-            //         ]);
-
-            //         $this->createTotalValues($total, $subjectSubarea['total']);
-
-            //         foreach($subjectSubarea['subject_group'] as $subjectGroup) {
-            //             $currentSubjectGroup = Group::firstOrCreate([
-            //                 'dataset_id'    => $dataset->id,
-            //                 'column_id'     => GroupColumn::where('name', $this->groupColumns[2])->get()->first()->id,
-            //                 'parent_id'     => $currentSubjectSubarea->id,
-            //                 'name'          => $subjectGroup['title'],
-            //             ]);
-
-            //             $total = Total::firstOrCreate([
-            //                 'relation_id'   => $currentSubjectGroup->id,
-            //                 'relation_type' => Group::class,
-            //                 'year'          => $genderData['year'],
-            //                 'gender'        =>  $genderData['gender'],
-            //             ]);
-
-            //             $this->createTotalValues($total, $subjectGroup['total']);
-
-            //         }
-            //     }
-            // }
+            $this->createGroup($dataset, $genderData, $genderData['children']);
         }
+
         return $this->data;
     }
 

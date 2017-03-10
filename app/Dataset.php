@@ -27,22 +27,12 @@ class Dataset extends Model
     }
 
     /**
-     * Retrieve all of the associated group models.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    public function groups()
-    {
-        return $this->hasMany(Group::class, 'dataset_id')->where('parent_id', null);
-    }
-
-    /**
      * Retrieve all of the associated total models.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function totals()
     {
-        return $this->morphMany(Total::class, 'relation');
+        return $this->hasMany(Total::class);
     }
 }

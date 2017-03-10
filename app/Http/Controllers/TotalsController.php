@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Dataset;
+use App\Group;
 use App\Indicator;
+use App\Total;
+use App\TotalColumn;
+use App\TotalValue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TotalsController extends Controller
 {
@@ -22,16 +27,23 @@ class TotalsController extends Controller
         // if (is_null($indicator)) {
         //     dd('Indicator doesn\'t exist.');
         // }
-        $gender = 'Totalt';
-        $dataset = Dataset::where('indicator_id', $indicator->id)->first();
+        $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
 
-        $groups = $this->groups($dataset, $year, $gender);
+        $groupInput = ! empty($request->group) ? $request->group : null;
+        
+        $datasetId = Total::where('year', $request->year)->get()->first()->dataset_id;
 
-        $genders = $this->gender($dataset, $year);
+        $dataset = Dataset::where('indicator_id', $indicator->id)
+                    ->where('id', $datasetId)
+                    ->get()->first();
 
-        $totalColumns = $this->totalColumns($dataset);
+        $groups = $this->groups($dataset, $year, $gender, $groupInput);
 
-        $yearlyTotals = $this->yearlyTotals($indicator);
+        $genders = $this->gender($dataset, $year, $groupInput);
+
+        $totalColumns = $this->totalColumns($dataset, $year, $gender);
+
+        $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput);
 
         $data = [
             'indicator' => [
@@ -57,7 +69,7 @@ class TotalsController extends Controller
                 'totals'    => $yearlyTotals,
             ],
         ];
-
+        // var_dump($data);
         return $data;
     }
 
@@ -66,38 +78,22 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function groups($dataset, $year, $gender)
+    private function groups($dataset, $year, $gender = 'Totalt', $groupId)
     {
-        // $totals = $dataset->totals()
-        //             ->where('gender', $gender)->first()
-        //             ->where('year', $year)
-        //             ->where('relation_type', 'App\group');
+        $totals = $dataset->totals()
+                    ->where('year', $year)
+                    ->where('gender', $gender)
+                    ->whereHas('group', function($query) use($groupId) {
+                        $query->where('parent_id', $groupId);
+                    })
+                    ->with(['group', 'values'])
+                    ->get();
 
-        // // foreach($totals as $total) {
-        // //     $id = $total->relation->id;
-        // //     $name = $total->relation->name;
-        // //     $value = $total->values->first()->value;
-        // // }
-        // // $cool = $totals->relation;
-        // $test = $totals->with(['relation' => function($query) {
-        //     $query->where('parent_id', null);
-        // }])->get();
-        // dd($test);
-        // $test = $totals->map(function($total) {
-        //     $group = $total->relation->where('parent_id', null)->get();
-        //     dd($group);
-        //     return [
-        //         'id'    => $group->id,
-        //         'name'  => $group->name,
-        //         'value' => $total->values->first()->value,
-        //     ];
-        // });
-       
-        return $dataset->groups->map(function($group) use ($year) {
+       return $totals->map(function($total) {
             return [
-                'id'    => $group->id,
-                'name'  => $group->name,
-                'value' => $group->totals->first()->values->first()->value
+                'id'    => $total->group->id,
+                'name'  => $total->group->name,
+                'value' => $total->values->first()->value,
             ];
         });
     }
@@ -107,13 +103,21 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function gender($dataset)
+    private function gender($dataset, $year, $groupId)
     {
-        return $dataset->totals->groupBy('gender')->map(function($total) {
+        $totals = Total::where('dataset_id', $dataset->id)
+                    ->with('values')
+                    ->with(['group' => function($query) use($groupId) {
+                        $query->where('parent_id', $groupId);
+                    }])
+                    ->groupBy('gender')
+                    ->get();
+
+        return $totals->map(function($total) {
             return [
-                'id'     => str_slug($total->first()->gender),
-                'gender' => $total->first()->gender,
-                'value'  => $total->first()->values->first()->value,
+                'id'     => str_slug($total->gender),
+                'gender' => $total->gender,
+                'value'  => $total->values->first()->value,
             ];
         });
     }
@@ -124,32 +128,42 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return \Illuminate\Support\Collection
      */
-    private function totalColumns($dataset)
+    private function totalColumns($dataset, $year, $gender)
     {
-        $values = $dataset->totals
-                    ->where('gender', 'Totalt')
-                    ->first()->values;
+        $totals = DB::table('totals')
+            ->select('total_columns.id', 'total_columns.name', 'total_values.value')
+            ->leftJoin('total_values', 'totals.id', 'total_values.total_id')
+            ->leftJoin('total_columns', 'total_values.column_id', 'total_columns.id')
+            ->where('totals.dataset_id', $dataset->id)
+            ->where('totals.year', $year)
+            ->where('totals.gender', $gender)
+            ->groupBy('total_values.column_id')
+            ->get();
 
-        return $values->map(function($total) {
+        return $totals->map(function($total) {
             return [
-                'id'   => $total->column->id,
-                'name' => $total->column->name,
+                'id'   => $total->id,
+                'name' => $total->name,
                 'value' => $total->value,
             ];
         });
     }
 
-    private function yearlyTotals(Indicator $indicator)
+    private function yearlyTotals(Indicator $indicator, $gender, $groupId)
     {
-        $datasets = $indicator->datasets;
-        $gender = 'Totalt';
-        
-        $yearlyTotals = $datasets->map(function($dataset) use($gender) {
-            $totals = $dataset->totals->where('gender', $gender)->first();
+        $datasets = $indicator->datasets()
+                    ->with(['totals' => function($query) use($gender, $groupId) {
+                        $query->where('gender', $gender);
+                        $query->where('group_id', $groupId);
+                    }])
+                    ->get();
+
+        $yearlyTotals = $datasets->map(function($dataset) {
+            $totals = $dataset->totals->first();
 
             return [
                 'year' => $totals->year,
-                'value' => $totals->values()->first()->value,
+                'value' => $totals->values->first()->value,
             ];
         });
         

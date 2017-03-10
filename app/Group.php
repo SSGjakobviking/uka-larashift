@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Group extends Model
 {
     protected $fillable = [
-        'dataset_id',
         'parent_id',
         'column_id',
         'name',
@@ -53,11 +52,23 @@ class Group extends Model
      */
     public function totals()
     {
-        return $this->morphMany(Total::class, 'relation');
+        return $this->hasMany(Total::class);
     }
 
     public function column()
     {
         return $this->hasOne(GroupColumn::class, 'id');
+    }
+
+    public function scopeTopLevel($query, $year, $gender)
+    {
+        return $query->where('parent_id', null)->children();
+            // ->with([
+            //     'totals' => function($query) use($year, $gender) {
+            //         $query->where('gender', $gender)
+            //         ->where('group_id', '!=', null)
+            //         ->where('year', $year);
+            //     }
+            // ]);
     }
 }

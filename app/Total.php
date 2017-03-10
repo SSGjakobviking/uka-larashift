@@ -2,27 +2,23 @@
 
 namespace App;
 
+use App\Group;
 use Illuminate\Database\Eloquent\Model;
 
 class Total extends Model
 {
     protected $fillable = [
-        'relation_id',
-        'relation_type',
+        'dataset_id',
+        'group_id',
         'year',
         'gender',
     ];
 
     public $timestamps = false;
 
-    /**
-     * Retrieve the associated group or dataset model.
-     *
-     * @return \App\Group|\App\Dataset
-     */
-    public function relation()
+    public function dataset()
     {
-        return $this->morphTo();
+        return $this->belongsTo(Dataset::class);
     }
 
     /**
@@ -33,5 +29,10 @@ class Total extends Model
     public function values()
     {
         return $this->hasMany(TotalValue::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
     }
 }

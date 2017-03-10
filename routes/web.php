@@ -14,17 +14,7 @@ use App\DatasetImporter;
 */
 
 Route::get('/', function () {
-    $indicator = App\Indicator::first();
-    // return $indicator->name;
-    $dataset = $indicator->datasets->first();
-
-    $group = $dataset->groups;
-    $firstGroup = $group->first()->totals->first()->values;
-    // $groupsTotal = $group->totals->first()->values->where('column_id', 1);
-    return $group;
-    $total = $dataset->totals->first();
-  
-    return $total->values->first();
+    return 'URL till api: <a href="' . url("api/totals/1/2008") . '">' . url('api/totals/1/2008') . '</a>';
 });
 
 Auth::routes();

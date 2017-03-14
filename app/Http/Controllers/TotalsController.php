@@ -26,7 +26,11 @@ class TotalsController extends Controller
                     ->where('id', $datasetId)
                     ->get()->first();
 
-        $groupColumn = Group::find($groupInput)->column->name;
+        $groupColumn = Group::where('parent_id', $groupInput)->get()->first()->column->name;
+        
+        if (! is_null($groupInput)) {
+            $groupColumn = Group::findOrFail($groupInput)->column->name;
+        }
         // var_dump($groupColumn);
         $groups = $this->groups($dataset, $year, $gender, $groupInput);
 

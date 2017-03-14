@@ -57,7 +57,7 @@ class Group extends Model
 
     public function column()
     {
-        return $this->hasOne(GroupColumn::class, 'id');
+        return $this->belongsTo(GroupColumn::class);
     }
 
     public function scopeTopLevel($query, $year, $gender)

@@ -8,16 +8,17 @@ use Illuminate\Http\Request;
 
 class DatasetController extends Controller
 {
+
     public function parse()
     {
         $path = storage_path('app/uploads/');
         // $file = $path . 'registrerade-studenter-2007-08-v1.csv';
         $file = $path . 'registrerade-studenter-2008-09-v1.csv';
 
-
         $indicator = Indicator::firstOrCreate([
-            'name'         => 'Antal registrerade studenter',
+            'name'          => 'Antal registrerade studenter',
             'description'   => 'Mäter antalet registrerade studenter per år.',
+            'slug'          => 'antal-registrerade-studenter'
             'measurement'   => 'Antal registrerade studenter.',
             'time_unit'     => 'År',
         ]);

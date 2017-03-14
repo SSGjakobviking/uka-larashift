@@ -16,17 +16,6 @@ class TotalsController extends Controller
 
     public function index(Request $request, Indicator $indicator, $year)
     {
-        // $indicatorId = $request->input('indicator');
-
-        // if (empty($indicatorId)) {
-        //     dd('No indicator specified.');
-        // }
-
-        // $indicator = Indicator::find($indicatorId);
-
-        // if (is_null($indicator)) {
-        //     dd('Indicator doesn\'t exist.');
-        // }
         $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
 
         $groupInput = ! empty($request->group) ? $request->group : null;
@@ -36,6 +25,8 @@ class TotalsController extends Controller
         $dataset = Dataset::where('indicator_id', $indicator->id)
                     ->where('id', $datasetId)
                     ->get()->first();
+
+        $groupColumn = Group::where('parent_id', $groupInput)->get()->first()->column->name;
 
         $groups = $this->groups($dataset, $year, $gender, $groupInput);
 
@@ -53,17 +44,27 @@ class TotalsController extends Controller
                 'measurement'   => $indicator->measurement,
             ],
             'groups' => [
-                'column' => 'Ämnesområden',
-                'totals' => $groups
+                [
+                    'column' => $groupColumn,
+                    'totals' => $groups
+                ],
+                [
+                    'column' => 'Kön',
+                    'totals' => $genders,
+                ],
+                [
+                    'column' => 'Åldersgrupper',
+                    'totals' => $totalColumns,
+                ],
             ],
-            'genders' => [
-                'column' => 'Kön',
-                'totals' => $genders,
-            ],
-            'total_columns' => [
-                'column' => 'Åldersgrupper',
-                'totals' => $totalColumns,
-            ],
+            // 'genders' => [
+            //     'column' => 'Kön',
+            //     'totals' => $genders,
+            // ],
+            // 'total_columns' => [
+            //     'column' => 'Åldersgrupper',
+            //     'totals' => $totalColumns,
+            // ],
             'yearly_totals' => [
                 'column'    => 'Tid',
                 'totals'    => $yearlyTotals,

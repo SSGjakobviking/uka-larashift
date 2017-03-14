@@ -16,6 +16,7 @@ class TotalsController extends Controller
 
     public function index(Request $request, Indicator $indicator, $year)
     {
+        $data = [];
         $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
 
         $groupInput = ! empty($request->group) ? $request->group : null;
@@ -25,54 +26,47 @@ class TotalsController extends Controller
         $dataset = Dataset::where('indicator_id', $indicator->id)
                     ->where('id', $datasetId)
                     ->get()->first();
-
-        if (is_null($groupInput)) {
-            $groupColumn = Group::where('parent_id', $groupInput)->get()->first()->column->name;
-        } else {
-            $groupColumn = Group::findOrFail($groupInput)->column->name;
-        }
+        $groupColumn = Group::where('parent_id', $groupInput)->get();
+        // dd($groupColumn);
         // var_dump($groupColumn);
         $groups = $this->groups($dataset, $year, $gender, $groupInput);
 
         $genders = $this->gender($dataset, $year, $groupInput);
 
-        $totalColumns = $this->totalColumns($dataset, $year, $gender);
+        $totalColumns = $this->totalColumns($dataset, $year, $gender, $groupInput);
 
         $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput);
 
-        $data = [
-            'indicator' => [
-                'id'            => $indicator->id,
-                'name'          => $indicator->name,
-                'description'   => $indicator->description,
-                'measurement'   => $indicator->measurement,
-            ],
-            'groups' => [
-                [
-                    'column' => $groupColumn,
-                    'totals' => $groups
-                ],
-                [
-                    'column' => 'Kön',
-                    'totals' => $genders,
-                ],
-                [
-                    'column' => 'Åldersgrupper',
-                    'totals' => $totalColumns,
-                ],
-            ],
-            // 'genders' => [
-            //     'column' => 'Kön',
-            //     'totals' => $genders,
-            // ],
-            // 'total_columns' => [
-            //     'column' => 'Åldersgrupper',
-            //     'totals' => $totalColumns,
-            // ],
-            'yearly_totals' => [
-                'column'    => 'Tid',
-                'totals'    => $yearlyTotals,
-            ],
+        if (! $groupColumn->isEmpty()) {
+            $groupColumn = $groupColumn->first()->column->name;
+
+            $data['groups'][] = [
+                'column' => $groupColumn,
+                'totals' => $groups
+            ];
+        }
+
+
+        $data['indicator'] = [
+            'id'            => $indicator->id,
+            'name'          => $indicator->name,
+            'description'   => $indicator->description,
+            'measurement'   => $indicator->measurement,
+        ];
+
+        $data['groups'][] = [
+            'column' => 'Kön',
+            'totals' => $genders,
+        ];
+        
+        $data['groups'][] = [
+            'column' => 'Åldersgrupper',
+            'totals' => $totalColumns,
+        ];
+
+        $data['yearly_totals'] = [
+            'column'    => 'Tid',
+            'totals'    => $yearlyTotals,
         ];
         // var_dump($data);
         return $data;
@@ -111,10 +105,8 @@ class TotalsController extends Controller
     private function gender($dataset, $year, $groupId)
     {
         $totals = Total::where('dataset_id', $dataset->id)
+                    ->where('group_id', $groupId)
                     ->with('values')
-                    ->with(['group' => function($query) use($groupId) {
-                        $query->where('parent_id', $groupId);
-                    }])
                     ->groupBy('gender')
                     ->get();
 
@@ -133,7 +125,7 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return \Illuminate\Support\Collection
      */
-    private function totalColumns($dataset, $year, $gender)
+    private function totalColumns($dataset, $year, $gender, $groupId)
     {
         $totals = DB::table('totals')
             ->select('total_columns.id', 'total_columns.name', 'total_values.value')
@@ -142,6 +134,7 @@ class TotalsController extends Controller
             ->where('totals.dataset_id', $dataset->id)
             ->where('totals.year', $year)
             ->where('totals.gender', $gender)
+            ->where('totals.group_id', $groupId)
             ->groupBy('total_values.column_id')
             ->get();
 

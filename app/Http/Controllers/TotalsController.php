@@ -26,9 +26,9 @@ class TotalsController extends Controller
                     ->where('id', $datasetId)
                     ->get()->first();
 
-        $groupColumn = Group::where('parent_id', $groupInput)->get()->first()->column->name;
-        
-        if (! is_null($groupInput)) {
+        if (is_null($groupInput)) {
+            $groupColumn = Group::where('parent_id', $groupInput)->get()->first()->column->name;
+        } else {
             $groupColumn = Group::findOrFail($groupInput)->column->name;
         }
         // var_dump($groupColumn);

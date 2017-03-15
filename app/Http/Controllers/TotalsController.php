@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Dataset;
+use App\DynamicTitle;
+use App\Filter;
 use App\Group;
+use App\Helpers\StringHelper;
 use App\Indicator;
 use App\Total;
 use App\TotalColumn;
@@ -17,15 +20,31 @@ class TotalsController extends Controller
     public function index(Request $request, Indicator $indicator, $year)
     {
         $data = [];
+        $config = config('indicator');
+
+        $filters = [
+            'group'     => $request->group,
+            'year'      => $year,
+            'gender'    => $request->gender,
+            'age_group' => $request->age_group,
+        ];
+
+        $filter = new Filter($filters);
+        $dynamicTitle = new DynamicTitle($indicator, $filter);
+
+        // $dynamicTitle = $config['antal-registrerade-studenter']['indicator']['dynamic_title']);
+        // Retrieve filter args
         $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
 
         $groupInput = ! empty($request->group) ? $request->group : null;
         
+        // retrieve dataset id for current year
         $datasetId = Total::where('year', $request->year)->get()->first()->dataset_id;
 
         $dataset = Dataset::where('indicator_id', $indicator->id)
                     ->where('id', $datasetId)
                     ->get()->first();
+
         $groupColumn = Group::where('parent_id', $groupInput)->get();
         // dd($groupColumn);
         // var_dump($groupColumn);
@@ -37,6 +56,14 @@ class TotalsController extends Controller
 
         $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput);
 
+        $data['indicator'] = [
+            'id'            => $indicator->id,
+            'name'          => $dynamicTitle->get(),
+            'description'   => $indicator->description,
+            'measurement'   => $indicator->measurement,
+            'current_year'  => $year,
+        ];
+
         if (! $groupColumn->isEmpty()) {
             $groupColumn = $groupColumn->first()->column->name;
 
@@ -45,14 +72,6 @@ class TotalsController extends Controller
                 'totals' => $groups
             ];
         }
-
-
-        $data['indicator'] = [
-            'id'            => $indicator->id,
-            'name'          => $indicator->name,
-            'description'   => $indicator->description,
-            'measurement'   => $indicator->measurement,
-        ];
 
         $data['groups'][] = [
             'column' => 'Kön',
@@ -106,13 +125,14 @@ class TotalsController extends Controller
     {
         $totals = Total::where('dataset_id', $dataset->id)
                     ->where('group_id', $groupId)
+                    ->where('gender', '!=', 'Totalt')
                     ->with('values')
                     ->groupBy('gender')
                     ->get();
 
         return $totals->map(function($total) {
             return [
-                'id'     => str_slug($total->gender),
+                'id'     => StringHelper::slugify($total->gender),
                 'gender' => $total->gender,
                 'value'  => $total->values->first()->value,
             ];
@@ -134,6 +154,7 @@ class TotalsController extends Controller
             ->where('totals.dataset_id', $dataset->id)
             ->where('totals.year', $year)
             ->where('totals.gender', $gender)
+            ->where('total_columns.name', '!=', 'Antal')
             ->where('totals.group_id', $groupId)
             ->groupBy('total_values.column_id')
             ->get();

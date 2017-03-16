@@ -69,11 +69,17 @@ class TotalsController extends Controller
 
         $totals = new TotalsFormatter();
 
-        $totals->addGroup($groupColumn, $groups);
+        if (! $groups->isEmpty()) {
+            $totals->addGroup($groupColumn, $groups);
+        }
 
-        $totals->addGroup('Kön', $genders);
+        if (! $filter->get()->get('gender')) {
+            $totals->addGroup('Kön', $genders);
+        }
 
-        $totals->addGroup('Åldersgrupper', $totalColumns);
+        if (! $filter->get()->get('age_group')) {
+            $totals->addGroup('Åldersgrupper', $totalColumns);
+        }
 
         $totals->add('Tid', $yearlyTotals);
 

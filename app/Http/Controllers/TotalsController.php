@@ -22,7 +22,7 @@ class TotalsController extends Controller
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
-        $config = config('indicator');
+        $config = config('indicator')[$indicator->slug];
 
         // Retrieve filter args
         $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
@@ -53,9 +53,10 @@ class TotalsController extends Controller
                     ->get()->first();
 
         $groupColumn = Group::where('parent_id', $groupInput)->get();
-
+        
         if (! $groupColumn->isEmpty()) {
             $groupColumn = $groupColumn->first()->column->name;
+            $groupColumn = $config['group_columns'][StringHelper::slugify($groupColumn)];
         }
 
         $groups = $this->groups($dataset, $year, $gender, $groupInput, $age_group, $filter);

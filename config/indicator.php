@@ -13,6 +13,12 @@ return [
         //     ],
         // ],
 
+        'group_columns' => [
+            'amnesomrade' => 'Ämnesområden',
+            'amnesdelsomrade' => 'Ämnesdelsområden',
+            'amnesgrupp' => 'Ämnesgrupp',
+        ],
+
         'dynamic_title' => [
             'default'   => 'Antal{gender} registrerade studenter{age_group}{group} {year}',
             'group'     => 'inom',

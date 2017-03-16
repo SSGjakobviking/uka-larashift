@@ -27,6 +27,7 @@ class TotalsController extends Controller
         // Retrieve filter args
         $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
         $groupInput = ! empty($request->group) ? $request->group : null;
+        $age_group = ! empty($request->age_group) ? $request->age_group : 1;
         $year = $request->year;
 
         $filters = [
@@ -57,13 +58,13 @@ class TotalsController extends Controller
             $groupColumn = $groupColumn->first()->column->name;
         }
 
-        $groups = $this->groups($dataset, $year, $gender, $groupInput, $filter);
+        $groups = $this->groups($dataset, $year, $gender, $groupInput, $age_group, $filter);
 
-        $genders = $this->gender($dataset, $year, $groupInput, $filter);
+        $genders = $this->gender($dataset, $year, $groupInput, $age_group, $filter);
 
         $totalColumns = $this->totalColumns($dataset, $year, $gender, $groupInput, $filter);
 
-        $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput, $filter);
+        $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput, $age_group, $filter);
 
         $totals = new TotalsFormatter();
 
@@ -105,7 +106,7 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function groups($dataset, $year, $gender = 'Totalt', $groupId, $filter)
+    private function groups($dataset, $year, $gender = 'Totalt', $groupId, $ageGroup, $filter)
     {
         $totals = $dataset->totals()
                     ->where('year', $year)
@@ -116,11 +117,11 @@ class TotalsController extends Controller
                     ->with(['group', 'values'])
                     ->get();
 
-       return $totals->map(function($total) use($filter) {
+       return $totals->map(function($total) use($filter, $ageGroup) {
             return [
                 'id'    => $total->group->id,
                 'name'  => $total->group->name,
-                'value' => $total->values->first()->value,
+                'value' => $total->values[$ageGroup-1]->value,
                 'url'   => $filter->updateUrl(['group' => $total->group->id]),
             ];
         });
@@ -131,7 +132,7 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function gender($dataset, $year, $groupId, $filter)
+    private function gender($dataset, $year, $groupId, $ageGroup, $filter)
     {
         $totals = Total::where('dataset_id', $dataset->id)
                     ->where('group_id', $groupId)
@@ -140,11 +141,11 @@ class TotalsController extends Controller
                     ->groupBy('gender')
                     ->get();
 
-        return $totals->map(function($total) use($filter) {
+        return $totals->map(function($total) use($ageGroup, $filter) {
             return [
                 'id'     => StringHelper::slugify($total->gender),
                 'gender' => $total->gender,
-                'value'  => $total->values->first()->value,
+                'value'  => $total->values[$ageGroup-1]->value,
                 'url'   => $filter->updateUrl(['gender' => $total->gender]),
             ];
         });
@@ -175,12 +176,12 @@ class TotalsController extends Controller
                 'id'   => $total->id,
                 'name' => $total->name,
                 'value' => $total->value,
-                'url'   => $filter->updateUrl(['age_groups' => $total->id]),
+                'url'   => $filter->updateUrl(['age_group' => $total->id]),
             ];
         });
     }
 
-    private function yearlyTotals(Indicator $indicator, $gender, $groupId, $filter)
+    private function yearlyTotals(Indicator $indicator, $gender, $groupId, $ageGroup, $filter)
     {
         $datasets = $indicator->datasets()
                     ->with(['totals' => function($query) use($gender, $groupId) {
@@ -189,12 +190,12 @@ class TotalsController extends Controller
                     }])
                     ->get();
 
-        $yearlyTotals = $datasets->map(function($dataset) use($indicator, $filter) {
+        $yearlyTotals = $datasets->map(function($dataset) use($indicator, $ageGroup, $filter) {
             $totals = $dataset->totals->first();
 
             return [
                 'year' => $totals->year,
-                'value' => $totals->values->first()->value,
+                'value' => $totals->values[$ageGroup-1]->value,
                 'url'   => $filter->updateUrl(['year' => $totals->year]),
             ];
         });

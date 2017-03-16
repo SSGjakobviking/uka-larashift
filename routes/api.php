@@ -21,7 +21,7 @@ Route::group(['middleware' => 'api'], function() {
 
     Route::get('indicators', 'IndicatorController@index');
 
-    Route::get('totals/{indicator}/{year}', 'TotalsController@index');
+    Route::get('totals/{indicator}', 'TotalsController@index')->name('totals');
 });
 
 // Route::group(['prefix' => 'indicator-groups', 'middleware' => 'api'], function() {

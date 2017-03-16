@@ -3,14 +3,89 @@
 namespace App;
 
 use App\Indicator;
+use App\Helpers\UrlHelper;
 
 class Filter
 {
     protected $filters;
 
-    public function __construct(array $filters)
+    protected $indicator;
+
+    protected $year;
+
+    protected $filterUrl;
+
+    public function __construct(array $filters, $indicator, $year)
     {
-        $this->filters = collect($filters);
+        $this->filters   = collect($filters);
+        $this->indicator = $indicator;
+        $this->year      = $year;
+    }
+
+    /**
+     * Generates a string with the passed query vars from the api.
+     * 
+     * @param  App/Indicator $indicator
+     * @param  integer $year
+     * @return string
+     */
+    public function url()
+    {
+        $queryString = UrlHelper::queryString($this->get()->toArray());
+        $url = $this->base($this->indicator);
+
+        if (! empty($queryString)) {
+            $url .= $queryString;
+        }
+
+        return $url;
+    }
+
+    /**
+     * Retrieve totals base url.
+     * 
+     * @param  App\Indicator $indicator
+     * @param  integer $year
+     * @return string
+     */
+    public function base($indicator = null)
+    {
+        if (is_null($indicator)) {
+            $indicator = $this->indicator;
+        }
+
+        return route('totals', ['indicator' => $indicator->id]);
+    }
+
+    public function updateUrl(array $group)
+    {
+        return $this->replaceQueryParams($this->url(), $group);
+    }
+
+    public function replaceQueryParams($url, $params)
+    {
+        $query = parse_url($url, PHP_URL_QUERY);
+        parse_str($query, $oldParams);
+
+        if (empty($oldParams)) {
+            return rtrim($url, '?') . '?' . http_build_query($params);
+        }
+
+        $params = array_merge($oldParams, $params);
+
+        return preg_replace('#\?.*#', '?' . http_build_query($params), $url);
+    }
+
+    /**
+     * Retrieves all of the filters.
+     * 
+     * @return Collection
+     */
+    public function get()
+    {
+        $filters = $this->removeEmpty();
+
+        return $filters;
     }
 
     /**
@@ -30,14 +105,18 @@ class Filter
     }
 
     /**
-     * Retrieves all of the filters.
+     * Retrieves the current filter with exclude posibility.
      * 
-     * @return Collection
+     * @param  string $exclude
+     * @return Illuminate\Support\Collection
      */
-    public function get()
+    public function skip($exclude = null)
     {
-        $filters = $this->removeEmpty();
-
-        return $filters;
+        if (! is_null($exclude)) {
+            return $this->get()->forget($exclude);
+        }
+        
+        return $this->get();
     }
+
 }

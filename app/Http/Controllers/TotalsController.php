@@ -7,88 +7,97 @@ use App\DynamicTitle;
 use App\Filter;
 use App\Group;
 use App\Helpers\StringHelper;
+use App\Helpers\UrlHelper;
 use App\Indicator;
 use App\Total;
 use App\TotalColumn;
 use App\TotalValue;
+use App\TotalsFormatter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TotalsController extends Controller
 {
 
-    public function index(Request $request, Indicator $indicator, $year)
+    public function index(Request $request, Indicator $indicator)
     {
         $data = [];
         $config = config('indicator');
 
+        // Retrieve filter args
+        $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
+        $groupInput = ! empty($request->group) ? $request->group : null;
+        $year = $request->year;
+
         $filters = [
-            'group'     => $request->group,
             'year'      => $year,
+            'group'     => $request->group,
             'gender'    => $request->gender,
             'age_group' => $request->age_group,
         ];
 
-        $filter = new Filter($filters);
+        $filter = new Filter($filters, $indicator, $year);
+
+        $filterUrl = $filter->url();
+
         $dynamicTitle = new DynamicTitle($indicator, $filter);
 
-        // $dynamicTitle = $config['antal-registrerade-studenter']['indicator']['dynamic_title']);
-        // Retrieve filter args
-        $gender = ! empty($request->gender) ? $request->gender : 'Totalt';
-
-        $groupInput = ! empty($request->group) ? $request->group : null;
+        $data['indicator'] = $this->indicatorData($indicator, $dynamicTitle, $year);
         
         // retrieve dataset id for current year
-        $datasetId = Total::where('year', $request->year)->get()->first()->dataset_id;
+        $datasetId = Total::where('year', $year)->get()->first()->dataset_id;
 
         $dataset = Dataset::where('indicator_id', $indicator->id)
                     ->where('id', $datasetId)
                     ->get()->first();
 
         $groupColumn = Group::where('parent_id', $groupInput)->get();
-        // dd($groupColumn);
-        // var_dump($groupColumn);
-        $groups = $this->groups($dataset, $year, $gender, $groupInput);
 
-        $genders = $this->gender($dataset, $year, $groupInput);
+        if (! $groupColumn->isEmpty()) {
+            $groupColumn = $groupColumn->first()->column->name;
+        }
 
-        $totalColumns = $this->totalColumns($dataset, $year, $gender, $groupInput);
+        $groups = $this->groups($dataset, $year, $gender, $groupInput, $filter);
 
-        $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput);
+        $genders = $this->gender($dataset, $year, $groupInput, $filter);
 
-        $data['indicator'] = [
+        $totalColumns = $this->totalColumns($dataset, $year, $gender, $groupInput, $filter);
+
+        $yearlyTotals = $this->yearlyTotals($indicator, $gender, $groupInput, $filter);
+
+        $totals = new TotalsFormatter();
+
+        $totals->addGroup($groupColumn, $groups);
+
+        $totals->addGroup('Kön', $genders);
+
+        $totals->addGroup('Åldersgrupper', $totalColumns);
+
+        $totals->add('Tid', $yearlyTotals);
+
+        $totalsData = $totals->get();
+
+        $data = array_merge($data, $totalsData);
+        // var_dump($data);
+        return $data;
+    }
+
+    /**
+     * Formats indicator data.
+     * 
+     * @param  Illuminate\Support\Collection $indicator
+     * @param  Object $dynamicTitle
+     * @return array
+     */
+    private function indicatorData($indicator, $dynamicTitle, $year)
+    {
+        return [
             'id'            => $indicator->id,
             'name'          => $dynamicTitle->get(),
             'description'   => $indicator->description,
             'measurement'   => $indicator->measurement,
             'current_year'  => $year,
         ];
-
-        if (! $groupColumn->isEmpty()) {
-            $groupColumn = $groupColumn->first()->column->name;
-
-            $data['groups'][] = [
-                'column' => $groupColumn,
-                'totals' => $groups
-            ];
-        }
-
-        $data['groups'][] = [
-            'column' => 'Kön',
-            'totals' => $genders,
-        ];
-        
-        $data['groups'][] = [
-            'column' => 'Åldersgrupper',
-            'totals' => $totalColumns,
-        ];
-
-        $data['yearly_totals'] = [
-            'column'    => 'Tid',
-            'totals'    => $yearlyTotals,
-        ];
-        // var_dump($data);
-        return $data;
     }
 
     /**
@@ -96,7 +105,7 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function groups($dataset, $year, $gender = 'Totalt', $groupId)
+    private function groups($dataset, $year, $gender = 'Totalt', $groupId, $filter)
     {
         $totals = $dataset->totals()
                     ->where('year', $year)
@@ -107,11 +116,12 @@ class TotalsController extends Controller
                     ->with(['group', 'values'])
                     ->get();
 
-       return $totals->map(function($total) {
+       return $totals->map(function($total) use($filter) {
             return [
                 'id'    => $total->group->id,
                 'name'  => $total->group->name,
                 'value' => $total->values->first()->value,
+                'url'   => $filter->updateUrl(['group' => $total->group->id]),
             ];
         });
     }
@@ -121,7 +131,7 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function gender($dataset, $year, $groupId)
+    private function gender($dataset, $year, $groupId, $filter)
     {
         $totals = Total::where('dataset_id', $dataset->id)
                     ->where('group_id', $groupId)
@@ -130,11 +140,12 @@ class TotalsController extends Controller
                     ->groupBy('gender')
                     ->get();
 
-        return $totals->map(function($total) {
+        return $totals->map(function($total) use($filter) {
             return [
                 'id'     => StringHelper::slugify($total->gender),
                 'gender' => $total->gender,
                 'value'  => $total->values->first()->value,
+                'url'   => $filter->updateUrl(['gender' => $total->gender]),
             ];
         });
     }
@@ -145,7 +156,7 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return \Illuminate\Support\Collection
      */
-    private function totalColumns($dataset, $year, $gender, $groupId)
+    private function totalColumns($dataset, $year, $gender, $groupId, $filter)
     {
         $totals = DB::table('totals')
             ->select('total_columns.id', 'total_columns.name', 'total_values.value')
@@ -159,16 +170,17 @@ class TotalsController extends Controller
             ->groupBy('total_values.column_id')
             ->get();
 
-        return $totals->map(function($total) {
+        return $totals->map(function($total) use($filter) {
             return [
                 'id'   => $total->id,
                 'name' => $total->name,
                 'value' => $total->value,
+                'url'   => $filter->updateUrl(['age_groups' => $total->id]),
             ];
         });
     }
 
-    private function yearlyTotals(Indicator $indicator, $gender, $groupId)
+    private function yearlyTotals(Indicator $indicator, $gender, $groupId, $filter)
     {
         $datasets = $indicator->datasets()
                     ->with(['totals' => function($query) use($gender, $groupId) {
@@ -177,12 +189,13 @@ class TotalsController extends Controller
                     }])
                     ->get();
 
-        $yearlyTotals = $datasets->map(function($dataset) {
+        $yearlyTotals = $datasets->map(function($dataset) use($indicator, $filter) {
             $totals = $dataset->totals->first();
 
             return [
                 'year' => $totals->year,
                 'value' => $totals->values->first()->value,
+                'url'   => $filter->updateUrl(['year' => $totals->year]),
             ];
         });
         

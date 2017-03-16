@@ -14,7 +14,7 @@ use App\DatasetImporter;
 */
 
 Route::get('/', function () {
-    return 'URL till api: <a href="' . url("api/totals/1/2008") . '">' . url('api/totals/1/2008') . '</a>';
+    return 'URL till api: <a href="' . url("api/totals/1?year=2008") . '">' . url('api/totals/1?year=2008') . '</a>';
 });
 
 Auth::routes();

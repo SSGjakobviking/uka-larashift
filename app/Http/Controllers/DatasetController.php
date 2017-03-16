@@ -18,7 +18,7 @@ class DatasetController extends Controller
         $indicator = Indicator::firstOrCreate([
             'name'          => 'Antal registrerade studenter',
             'description'   => 'Mäter antalet registrerade studenter per år.',
-            'slug'          => 'antal-registrerade-studenter'
+            'slug'          => 'antal-registrerade-studenter',
             'measurement'   => 'Antal registrerade studenter.',
             'time_unit'     => 'År',
         ]);

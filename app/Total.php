@@ -35,4 +35,9 @@ class Total extends Model
     {
         return $this->belongsTo(Group::class);
     }
+
+    public function url(array $filter)
+    {
+       return 'test'; 
+    }
 }

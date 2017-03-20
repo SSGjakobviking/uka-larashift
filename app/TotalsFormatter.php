@@ -4,17 +4,7 @@ namespace App;
 
 class TotalsFormatter
 {
-
-    protected $indicator;
-
-    protected $dataset;
-
-    protected $filter;
-
-    protected $dynamicTitle;
-
-    protected $totals;
-
+    
     protected $data;
 
     public function get()

@@ -22,6 +22,10 @@ class CreateTotalsTable extends Migration
             $table->integer('group_id')->unsigned()->nullable();
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
 
+            $table->integer('university_id')->unsigned();
+            $table->foreign('university_id')->references('id')->on('universities');
+
+            $table->string('term')->nullable();
             $table->integer('year');
             $table->string('gender');
         });

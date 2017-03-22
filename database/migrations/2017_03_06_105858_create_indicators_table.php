@@ -17,6 +17,7 @@ class CreateIndicatorsTable extends Migration
             $table->increments('id')->unsigned();
             $table->string('name');
             $table->text('description');
+            $table->string('slug');
             $table->string('measurement');
             $table->string('time_unit');
             $table->timestamps();

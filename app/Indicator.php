@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Indicator extends Model
 {
 
-    protected $fillable = ['name', 'description', 'measurement', 'time_unit'];
+    protected $fillable = ['name', 'description', 'slug', 'measurement', 'time_unit'];
     
     /**
      * Retrieve all of the associated dataset models.

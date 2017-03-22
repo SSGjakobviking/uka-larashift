@@ -11,9 +11,10 @@ class DatasetController extends Controller
 
     public function parse()
     {
+        
         $path = storage_path('app/uploads/');
         // $file = $path . 'registrerade-studenter-2007-08-v1.csv';
-        $file = $path . 'registrerade-studenter-2008-09-v1.csv';
+        $file = $path . 'registrerade-studenter-2011-12-v1-ny1.csv';
 
         $indicator = Indicator::firstOrCreate([
             'name'          => 'Antal registrerade studenter',
@@ -22,9 +23,9 @@ class DatasetController extends Controller
             'measurement'   => 'Antal registrerade studenter.',
             'time_unit'     => 'År',
         ]);
-
+        
         $dataset = new DatasetImporter($file, $indicator);
-
+        
         // define group columns
         $dataset->groupColumns([
             'Ämnesområde',
@@ -33,12 +34,10 @@ class DatasetController extends Controller
         ]);
 
         $dataset->totalColumns([
-            'Antal',
-            '-21 år',
-            '22-24 år',
-            '25-29 år',
-            '30-34 år',
-            '35- år',
+            '-24',
+            '25-34',
+            '35-',
+            'Total',
         ]);
 
         $dataset->make();

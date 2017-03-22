@@ -14,9 +14,10 @@ return [
         // ],
 
         'group_columns' => [
-            'amnesomrade' => 'Ämnesområden',
-            'amnesdelsomrade' => 'Ämnesdelsområden',
-            'amnesgrupp' => 'Ämnesgrupp',
+            'larosate'          => 'Lärosäten',
+            'amnesomrade'       => 'Ämnesområden',
+            'amnesdelsomrade'   => 'Ämnesdelsområden',
+            'amnesgrupp'        => 'Ämnesgrupp',
         ],
 
         'dynamic_title' => [

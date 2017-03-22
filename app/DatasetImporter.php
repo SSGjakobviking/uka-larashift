@@ -5,6 +5,7 @@ namespace App;
 use App\Dataset;
 use App\Helpers\StringHelper;
 use Illuminate\Support\Facades\Storage;
+use League\Csv\Reader;
 
 class DatasetImporter
 {
@@ -21,6 +22,8 @@ class DatasetImporter
 
     protected $totalColumnIds;
 
+    const UNIVERSITY_DEFAULT = 'Riket';
+
     public function __construct($file, $indicator)
     {
         $this->file = $file;
@@ -31,94 +34,151 @@ class DatasetImporter
 
     private function parse($file)
     {
-        $csv = \League\Csv\Reader::createFromPath($file);
+        $csv = Reader::createFromPath($file);
         $csvData = collect($csv->setOffset(1)->fetchAll());
-        $headers = $csvData[0];
-
-        $ageGroups = ['Antal', '-21 år', '22-24 år', '25-29 år', '30-34 år', '35- år'];
+        $headers = $csv->fetchOne();
 
         // dd($headers);
         // dd($csvData);
         
-        $genderTitleSlug= StringHelper::slugify($headers[1]);
-        $subjectAreaTitleSlug= StringHelper::slugify($headers[2]);
-        $subjectSubAreaTitleSlug= StringHelper::slugify($headers[3]);
-        $subjectGroupTitleSlug= StringHelper::slugify($headers[4]);
+        // $genderTitleSlug= StringHelper::slugify($headers[1]);
+        // $subjectAreaTitleSlug= StringHelper::slugify($headers[2]);
+        // $subjectSubAreaTitleSlug= StringHelper::slugify($headers[3]);
+        // $subjectGroupTitleSlug= StringHelper::slugify($headers[4]);
         $dataset = [];
-
-        $ignoreHeaders = $ageGroups;
+        $totals = [];
 
         foreach($csvData as $k => $line) {
-            $gender = $line[1];
-            $genderSlug = StringHelper::slugify($line[1]);
+            // dd($line);
 
-            $subjectArea = $line[2];
-            $subjectAreaSlug = StringHelper::slugify($line[2]);
+            $term = $line[0];
+            $termSlug = StringHelper::slugify($term);
 
-            $subjectSubArea = $line[3];
-            $subjectSubAreaSlug = StringHelper::slugify($line[3]);
+            $year = $line[1];
+
+            $university = $line[2];
+
+            if (empty($university)) {
+                $university = self::UNIVERSITY_DEFAULT;
+            }
+
+            $universitySlug = StringHelper::slugify($university);
+
+            $subjectArea = $line[3];
+            $subjectAreaSlug = StringHelper::slugify($subjectArea);
+
+            $subjectSubArea = $line[4];
+            $subjectSubAreaSlug = StringHelper::slugify($subjectSubArea);
             
-            $subjectGroup = $line[4];
-            $subjectGroupSlug = StringHelper::slugify($line[4]);
+            $subjectGroup = $line[5];
+            $subjectGroupSlug = StringHelper::slugify($subjectGroup);
 
-            $currentHeader = isset($headers[$k]) ? $headers[$k] : '';
-            $currentTotal = array_slice($line, 5, 6);
+            $gender = $line[6];
+            $genderSlug = StringHelper::slugify($gender);
 
-            // skip first line (the headers)
-            if ($k == 0) continue;
+            $ageGroup = $line[7];
+            
+            $currentTotal = end($line);
 
-            // remove non-breaking spaces from the value
-            $currentTotal = collect($currentTotal)->map(function($total) {
+            if (! isset($dataset[$termSlug])) {
+                $dataset[$termSlug][$genderSlug] = [];
+            }
 
-                $withoutSpaces = str_replace("\xc2\xa0", '', $total);
-                $withoutCommas = str_replace(',', '', $withoutSpaces);
+            $totals[] = $currentTotal;
 
-                if (empty($withoutCommas)) {
-                    $withoutCommas = null;
+            if ($university == self::UNIVERSITY_DEFAULT && empty($subjectArea)) {
+                $dataset[$termSlug][$genderSlug][$universitySlug] = [
+                    'title'  => $university,
+                    'slug'   => $universitySlug,
+                    'term'   => $term,
+                    'gender' => $gender,
+                    'year'  => $year,
+                ];
+
+                if ($ageGroup == 'Total') {
+                    $dataset[$termSlug][$genderSlug][$universitySlug]['totals'] = $totals;
+                    $totals = [];
                 }
 
-                return $withoutCommas;
-            });
+                // if ($k == 3) {
+                //     echo 'test';
+                //     dd($dataset);
+                // }
+                continue;
+            }
 
-            if (empty($subjectArea)) {
-                $dataset[$genderSlug] = [
+            // add university
+            if (! empty($university) && $university != self::UNIVERSITY_DEFAULT && empty($subjectArea)) {
+                $dataset[$termSlug][$genderSlug][$universitySlug] = [
+                    'title' => $university,
+                    'slug'  => $universitySlug,
+                    'term'   => $term,
                     'gender' => $gender,
-                    'total' => $currentTotal,
-                    'year'  => $line[0],
+                    'year'  => $year,
+                    'level' => 0,
                 ];
+
+                // add totals
+                if ($ageGroup == 'Total') {
+                    $dataset[$termSlug][$genderSlug][$universitySlug]['totals'] = $totals;
+                    $totals = [];
+                }
                 continue;
             }
 
             // create subject area entry
             if (! empty($subjectArea) && $subjectSubArea == '') {
-                $dataset[$genderSlug]['children'][$subjectAreaSlug] = [
+                $dataset[$termSlug][$genderSlug][$universitySlug]['children'][$subjectAreaSlug] = [
                     'title' => $subjectArea,
                     'slug'  => StringHelper::slugify($subjectArea),
-                    'total' => $currentTotal,
-                    'level' => 0,
+                    'term'   => $term,
+                    'gender' => $gender,
+                    'year'  => $year,
+                    'level' => 1,
                 ];
+
+                // add totals
+                if ($ageGroup == 'Total') {
+                    $dataset[$termSlug][$genderSlug][$universitySlug]['children'][$subjectAreaSlug]['totals'] = $totals;
+                    $totals = [];
+                }
                 continue;
             } elseif (! empty($subjectSubArea) && empty($subjectGroup)) {
                 // create subject subarea entry
-                $dataset[$genderSlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug] = [
+                $dataset[$termSlug][$genderSlug][$universitySlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug] = [
                     'title' => $subjectSubArea,
                     'slug'  => StringHelper::slugify($subjectSubArea),
-                    'total' => $currentTotal,
-                    'level' => 1,
-                ];
-            }
-
-            // create subject group entry
-            if (! empty($subjectSubArea) && ! empty($subjectGroup)) {
-                $dataset[$genderSlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug]['children'][$subjectGroupSlug] = [
-                    'title' => $subjectGroup,
-                    'slug'  => StringHelper::slugify($subjectGroup),
-                    'total' => $currentTotal,
+                    'term'   => $term,
+                    'gender' => $gender,
+                    'year'  => $year,
                     'level' => 2,
                 ];
+
+                // add totals
+                if ($ageGroup == 'Total') {
+                    $dataset[$termSlug][$genderSlug][$universitySlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug]['totals'] = $totals;
+                    $totals = [];
+                }
+
+            } elseif (! empty($subjectSubArea) && ! empty($subjectGroup)) {
+                $dataset[$termSlug][$genderSlug][$universitySlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug]['children'][$subjectGroupSlug] = [
+                    'title' => $subjectGroup,
+                    'slug'  => StringHelper::slugify($subjectGroup),
+                    'term'   => $term,
+                    'gender' => $gender,
+                    'year'  => $year,
+                    'level' => 3,
+                ];
+
+                // add totals
+                if ($ageGroup == 'Total') {
+                    $dataset[$termSlug][$genderSlug][$universitySlug]['children'][$subjectAreaSlug]['children'][$subjectSubAreaSlug]['children'][$subjectGroupSlug]['totals'] = $totals;
+                    $totals = [];
+                }
+
             }
         }
-
+        dd($dataset['vt']['kvinnor']['beckmans-designhogskola']);
         $data['dataset'] = $dataset;
 
         $this->data = collect($data);
@@ -175,7 +235,7 @@ class DatasetImporter
         }
     }
 
-    private function createGroup($dataset, $genderData, $data, $parent = null, $level = -1)
+    private function createGroup($dataset, $prevData, $data, $parent = null, $level = -1)
     {
         foreach($data as $item) {
             if ($item == head($data)) {
@@ -191,16 +251,16 @@ class DatasetImporter
             $total = Total::firstOrCreate([
                 'dataset_id'    => $dataset->id,
                 'group_id'      => $currentGroup->id,
-                'year'          => $genderData['year'],
-                'gender'        => $genderData['gender'],
+                'term'          => $item['term'],
+                'year'          => $item['year'],
+                'gender'        => $item['gender'],
             ]);
 
             // $dataset->groups()->attach($currentGroup);
-
-            $this->createTotalValues($total, $item['total']);
+            $this->createTotalValues($total, $item['totals']);
 
             if (isset($item['children'])) {
-                $this->createGroup($dataset, $genderData, $item['children'], $currentGroup->id, $level);
+                $this->createGroup($dataset, $prevData, $item['children'], $currentGroup->id, $level);
                 continue;
             }
         }
@@ -211,18 +271,25 @@ class DatasetImporter
     private function createGroups($dataset)
     {
         $data = $this->data['dataset'];
-        
-        foreach($data as $genderData) {
 
-            $total = Total::firstOrCreate([
-                'dataset_id'    => $dataset->id,
-                'group_id'   => null,
-                'year'          => $genderData['year'],
-                'gender'        =>  $genderData['gender'],
-            ]);
+        foreach($data as $term) {
 
-            $this->createTotalValues($total, $genderData['total']);
-            $this->createGroup($dataset, $genderData, $genderData['children']);
+            foreach($term as $group) {
+                #foreach($gender as $group) {
+                $this->createGroup($dataset, $group, $group);
+                #}
+            }
+
+            // $total = Total::firstOrCreate([
+            //     'dataset_id'    => $dataset->id,
+            //     'group_id'      => null,
+            //     'term'          => $genderData['term'],
+            //     'year'          => $genderData['year'],
+            //     'gender'        =>  $genderData['gender'],
+            // ]);
+
+            // $this->createTotalValues($total, $genderData['total']);
+            // $this->createGroup($dataset, $genderData, $genderData['children']);
         }
 
         return $this->data;

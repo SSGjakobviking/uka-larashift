@@ -251,7 +251,7 @@ class TotalsController extends Controller
             $year = $this->yearSuffix($total->year, $total->term);
 
             return [
-                'year' => $total->year,
+                'year' => $this->yearSuffix($total->year, $total->term),
                 'prefix' => $total->term,
                 'value' => $total->values[$ageGroup-1]->value,
                 'url'   => $filter->updateUrl(['year' => $total->year, 'term' => $total->term]),

@@ -118,7 +118,6 @@ class TotalsController extends Controller
             'description'   => $indicator->description,
             'measurement'   => $indicator->measurement,
             'current_year'  => $this->yearSuffix($year, $term),
-            'current_term'  => $term,
         ];
     }
 

@@ -247,7 +247,7 @@ class TotalsController extends Controller
             if ($total->term == 'VT') {
                 $year = $total->year . '-01-01';
             } elseif ($total->term == 'HT') {
-                $year = $total->year . '-08-01';
+                $year = $total->year . '-06-01';
             }
 
             return [

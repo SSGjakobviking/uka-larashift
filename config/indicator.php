@@ -21,7 +21,12 @@ return [
         ],
 
         'dynamic_title' => [
-            'default'   => 'Antal{gender} registrerade studenter{age_group}{group} {university} {year}',
+            'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{term}{year}',
+            'university' => 'vid',
+            'term'      => [
+                'vt'    => 'VT',
+                'ht'    => 'HT',
+            ],
             'group'     => 'inom',
             'gender'    => [
                 'man'       => 'manliga',
@@ -33,7 +38,6 @@ return [
                 '35'    => 'i åldersgruppen 35- år',
                 'antal'    => null,
             ],
-            'university' => 'vid',
         ]
 
     ],

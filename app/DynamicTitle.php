@@ -30,7 +30,7 @@ class DynamicTitle
     public function get()
     {
         $title = $this->title;
-
+        
         // Retrieves nice values from indicator config file for each filter group
         $filters = $this->niceValue($this->filters->get());
 
@@ -71,8 +71,12 @@ class DynamicTitle
                 return $this->leftSpacing($value);
             }
 
-            if ($key == 'university') {
+            if ($key == 'university' && $value != strtolower('riket')) {
                 $university = $this->leftSpacing(University::find($value)->name);
+
+                if (trim(strtolower($university)) == 'riket') {
+                    return false;
+                }
 
                 return $this->leftSpacing($prefix . strtolower($university));
             }

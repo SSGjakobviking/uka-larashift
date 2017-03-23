@@ -35,6 +35,7 @@ class TotalsController extends Controller
 
         $filters = [
             'university' => $university,
+            'term'      => $term,
             'year'      => $year,
             'group'     => $request->group,
             'gender'    => $request->gender,
@@ -183,7 +184,7 @@ class TotalsController extends Controller
     {
         $totals = Total::where('dataset_id', $dataset->id)
                     ->where('group_id', $groupId)
-                    ->where('gender', '!=', 'Totalt')
+                    ->where('gender', '!=', 'Total')
                     ->where('university_id', $university)
                     ->where('term', $term)
                     ->with('values')

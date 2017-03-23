@@ -47,7 +47,7 @@ class TotalsController extends Controller
 
         $dynamicTitle = new DynamicTitle($indicator, $filter);
 
-        $data['indicator'] = $this->indicatorData($indicator, $dynamicTitle, $year);
+        $data['indicator'] = $this->indicatorData($indicator, $dynamicTitle, $year, $term);
         
         // retrieve dataset id for current year
         $datasetId = Total::where('year', $year)->get()->first()->dataset_id;
@@ -107,7 +107,7 @@ class TotalsController extends Controller
      * @param  Object $dynamicTitle
      * @return array
      */
-    private function indicatorData($indicator, $dynamicTitle, $year)
+    private function indicatorData($indicator, $dynamicTitle, $year, $term)
     {
         return [
             'id'            => $indicator->id,
@@ -115,6 +115,7 @@ class TotalsController extends Controller
             'description'   => $indicator->description,
             'measurement'   => $indicator->measurement,
             'current_year'  => $year,
+            'current_term'  => $term,
         ];
     }
 

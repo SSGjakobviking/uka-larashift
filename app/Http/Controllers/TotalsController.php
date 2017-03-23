@@ -20,10 +20,12 @@ use Illuminate\Support\Facades\DB;
 class TotalsController extends Controller
 {
 
+    protected $config;
+
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
-        $config = config('indicator')[$indicator->slug];
+        $this->config = config('indicator')[$indicator->slug];
 
         // Retrieve filter args
         $university = ! empty($request->university) ? $request->university : 1;
@@ -61,7 +63,7 @@ class TotalsController extends Controller
         
         if (! $groupColumn->isEmpty()) {
             $groupColumn = $groupColumn->first()->column->name;
-            $groupColumn = $config['group_columns'][StringHelper::slugify($groupColumn)];
+            $groupColumn = $this->config['group_columns'][StringHelper::slugify($groupColumn)];
         }
 
         $universities = $this->universities($dataset, $year, $term, $gender, $groupInput, $age_group, $filter);
@@ -115,7 +117,7 @@ class TotalsController extends Controller
             'name'          => $dynamicTitle->get(),
             'description'   => $indicator->description,
             'measurement'   => $indicator->measurement,
-            'current_year'  => $year,
+            'current_year'  => $this->yearSuffix($year, $term),
             'current_term'  => $term,
         ];
     }
@@ -246,20 +248,28 @@ class TotalsController extends Controller
         $totals = $datasets->pluck('totals')->flatten();
         $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
 
-            if ($total->term == 'VT') {
-                $year = $total->year . '-01-01';
-            } elseif ($total->term == 'HT') {
-                $year = $total->year . '-06-01';
-            }
+            $year = $this->yearSuffix($total->year, $total->term);
 
             return [
-                'year' => $year,
-                'suffix' => $total->term,
+                'year' => $total->year,
+                'prefix' => $total->term,
                 'value' => $total->values[$ageGroup-1]->value,
                 'url'   => $filter->updateUrl(['year' => $total->year, 'term' => $total->term]),
             ];
         });
         
         return $yearlyTotals;
+    }
+
+    /**
+     * Return year suffix for the specific year + term.
+     * 
+     * @param  integer $year
+     * @param  string $term
+     * @return string
+     */
+    private function yearSuffix($year, $term)
+    {
+        return $year . $this->config['term']['date_suffix'][$term];
     }
 }

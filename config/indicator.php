@@ -12,7 +12,12 @@ return [
         //         ],
         //     ],
         // ],
-
+        'term' => [
+            'date_suffix' => [
+                'VT' => '-01-01',
+                'HT' => '-06-01',
+            ]
+        ],
         'group_columns' => [
             'larosate'          => 'Lärosäten',
             'amnesomrade'       => 'Ämnesområden',

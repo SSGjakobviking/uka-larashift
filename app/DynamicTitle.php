@@ -65,11 +65,18 @@ class DynamicTitle
 
             if ($key == 'age_group') {
                 $ageGroup = TotalColumn::find($value)->name;
+    
                 $value = $prefix[StringHelper::slugify($ageGroup)];
 
                 return $this->leftSpacing($value);
             }
 
+            if ($key == 'university') {
+                $university = $this->leftSpacing(University::find($value)->name);
+
+                return $this->leftSpacing($prefix . strtolower($university));
+            }
+           
             $value = $prefix[StringHelper::slugify($value)];
 
             return $this->leftSpacing($value);

@@ -10,6 +10,7 @@ class Total extends Model
     protected $fillable = [
         'dataset_id',
         'group_id',
+        'university_id',
         'term',
         'year',
         'gender',
@@ -35,5 +36,10 @@ class Total extends Model
     public function group()
     {
         return $this->belongsTo(Group::class);
+    }
+
+    public function university()
+    {
+        return $this->belongsTo(University::class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\University;
 use Illuminate\Database\Eloquent\Model;
 
 class Group extends Model
@@ -70,5 +71,10 @@ class Group extends Model
             //         ->where('year', $year);
             //     }
             // ]);
+    }
+
+    public function universities()
+    {
+        return $this->belongsToMany(University::class, 'university_groups');
     }
 }

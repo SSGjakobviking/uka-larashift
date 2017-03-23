@@ -13,8 +13,7 @@ class DatasetController extends Controller
     {
         
         $path = storage_path('app/uploads/');
-        // $file = $path . 'registrerade-studenter-2007-08-v1.csv';
-        $file = $path . 'registrerade-studenter-2011-12-v1-ny1.csv';
+        $file = $path . 'registrerade-studenter-2015-16-v1-ny.csv';
 
         $indicator = Indicator::firstOrCreate([
             'name'          => 'Antal registrerade studenter',

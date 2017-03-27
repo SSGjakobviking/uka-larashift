@@ -20,15 +20,23 @@ use Illuminate\Support\Facades\DB;
 class TotalsController extends Controller
 {
 
-    protected $config;
+    protected $indicatorConfig;
+
+    protected $universitiesConfig;
+
+    public function __construct()
+    {
+        $this->universitiesConfig = config('universities');
+    }
 
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
-        $this->config = config('indicator')[$indicator->slug];
-
+        $this->indicatorConfig = config('indicator')[$indicator->slug];
+        $universityDefaultId = $this->universitiesConfig['default']['id'];
+        
         // Retrieve filter args
-        $university = ! empty($request->university) ? $request->university : 1;
+        $university = ! empty($request->university) ? $request->university : $universityDefaultId;
         $term = ! empty($request->term) ? $request->term : 'VT';
         $gender = ! empty($request->gender) ? $request->gender : 'Total';
         $groupInput = ! empty($request->group) ? $request->group : null;
@@ -53,18 +61,9 @@ class TotalsController extends Controller
         $data['indicator'] = $this->indicatorData($indicator, $dynamicTitle, $year, $term);
         
         // retrieve dataset id for current year
-        $datasetId = Total::where('year', $year)->get()->first()->dataset_id;
+        $dataset = $this->dataset($indicator, $year);
 
-        $dataset = Dataset::where('indicator_id', $indicator->id)
-                    ->where('id', $datasetId)
-                    ->get()->first();
-
-        $groupColumn = Group::where('parent_id', $groupInput)->get();
-        
-        if (! $groupColumn->isEmpty()) {
-            $groupColumn = $groupColumn->first()->column->name;
-            $groupColumn = $this->config['group_columns'][StringHelper::slugify($groupColumn)];
-        }
+        $groupColumn = $this->groupColumn($groupInput);
 
         $universities = $this->universities($dataset, $year, $term, $gender, $groupInput, $age_group, $filter);
 
@@ -78,7 +77,7 @@ class TotalsController extends Controller
 
         $totals = new TotalsFormatter();
 
-        if ($university == 1) {
+        if ($university == $universityDefaultId) {
             $totals->addGroup('Lärosäten', $universities);
         }
 
@@ -101,6 +100,38 @@ class TotalsController extends Controller
         $data = array_merge($data, $totalsData);
         // var_dump($data);
         return $data;
+    }
+
+    /**
+     * Retrieves current dataset by indicator id and year.
+     * @param  [type] $indicator
+     * @param  [type] $year
+     * @return [type]
+     */
+    private function dataset($indicator, $year)
+    {
+        $datasetId = Total::where('year', $year)->get()->first()->dataset_id;
+
+        return Dataset::where('indicator_id', $indicator->id)
+                    ->where('id', $datasetId)
+                    ->get()->first();
+    }
+
+    /**
+     * Retrieves current group name
+     * @param  integer|null $groupInput
+     * @return string
+     */
+    private function groupColumn($groupInput)
+    {
+        $groupColumn = Group::where('parent_id', $groupInput)->get();
+        
+        if (! $groupColumn->isEmpty()) {
+            $groupColumn = $groupColumn->first()->column->name;
+            $groupColumn = $this->indicatorConfig['group_columns'][StringHelper::slugify($groupColumn)];
+        }
+
+        return $groupColumn;
     }
 
     /**
@@ -269,6 +300,6 @@ class TotalsController extends Controller
      */
     private function yearSuffix($year, $term)
     {
-        return $year . $this->config['term']['date_suffix'][$term];
+        return $year . $this->indicatorConfig['term']['date_suffix'][$term];
     }
 }

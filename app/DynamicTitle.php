@@ -13,11 +13,13 @@ class DynamicTitle
 
     private $title;
 
+    private $config;
+
     public function __construct(Indicator $indicator, Filter $filters)
     {
         $this->indicator = $indicator;
         $this->filters = $filters;
-        $this->config = config('indicator')['antal-registrerade-studenter'];
+        $this->config = config('indicator')[$indicator->slug];
 
         $this->title = $this->config['dynamic_title']['default'];
     }
@@ -32,7 +34,7 @@ class DynamicTitle
         $title = $this->title;
         
         // Retrieves nice values from indicator config file for each filter group
-        $filters = $this->niceValue($this->filters->get());
+        $filters = $this->niceValue($this->filters->all());
 
         // Builds the dynamic string by replacing the placeholders for each group with their filter value
         $title = $this->build($title, $filters);

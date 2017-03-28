@@ -54,11 +54,7 @@ class TotalsController extends Controller
 
         $filter = new Filter($filters, $indicator, $year);
 
-        $filterUrl = $filter->url();
-
-        $dynamicTitle = new DynamicTitle($indicator, $filter);
-
-        $data['indicator'] = $this->indicatorData($indicator, $dynamicTitle, $year, $term);
+        $data['indicator'] = $this->indicatorData($indicator, $filter, $year, $term);
         
         // retrieve dataset id for current year
         $dataset = $this->dataset($indicator, $year);
@@ -85,11 +81,11 @@ class TotalsController extends Controller
             $totals->addGroup($groupColumn, $groups);
         }
 
-        if (! $filter->get()->get('gender')) {
+        if (! $filter->all()->get('gender')) {
             $totals->addGroup('Kön', $genders);
         }
 
-        if (! $filter->get()->get('age_group')) {
+        if (! $filter->all()->get('age_group')) {
             $totals->addGroup('Åldersgrupper', $totalColumns);
         }
 
@@ -98,6 +94,7 @@ class TotalsController extends Controller
         $totalsData = $totals->get();
 
         $data = array_merge($data, $totalsData);
+
         // var_dump($data);
         return $data;
     }
@@ -141,11 +138,11 @@ class TotalsController extends Controller
      * @param  Object $dynamicTitle
      * @return array
      */
-    private function indicatorData($indicator, $dynamicTitle, $year, $term)
+    private function indicatorData($indicator, $filter, $year, $term)
     {
         return [
             'id'            => $indicator->id,
-            'name'          => $dynamicTitle->get(),
+            'name'          => $filter->title(),
             'description'   => $indicator->description,
             'measurement'   => $indicator->measurement,
             'current_year'  => $this->yearSuffix($year, $term),

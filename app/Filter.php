@@ -2,8 +2,9 @@
 
 namespace App;
 
-use App\Indicator;
+use App\DynamicTitle;
 use App\Helpers\UrlHelper;
+use App\Indicator;
 
 class Filter
 {
@@ -31,7 +32,7 @@ class Filter
      */
     public function url()
     {
-        $queryString = UrlHelper::queryString($this->get()->toArray());
+        $queryString = UrlHelper::queryString($this->all()->toArray());
         $url = $this->base($this->indicator);
 
         if (! empty($queryString)) {
@@ -81,7 +82,7 @@ class Filter
      * 
      * @return Collection
      */
-    public function get()
+    public function all()
     {
         $filters = $this->removeEmpty();
 
@@ -113,10 +114,20 @@ class Filter
     public function skip($exclude = null)
     {
         if (! is_null($exclude)) {
-            return $this->get()->forget($exclude);
+            return $this->all()->forget($exclude);
         }
         
-        return $this->get();
+        return $this->all();
+    }
+
+    /**
+     * Retrieve dynamic title based on filter.
+     * 
+     * @return string
+     */
+    public function title()
+    {
+        return (new DynamicTitle($this->indicator, $this))->get();
     }
 
 }

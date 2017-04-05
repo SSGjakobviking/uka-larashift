@@ -22,7 +22,7 @@
     
     <ul class="list-group">
         @foreach($datasets as $dataset)
-            <li class="list-group-item">{{ $dataset->file }}</li>
+            <li class="list-group-item">{{ $dataset->file }} <a href="{{ url('dataset/' . $dataset->id . '/delete') }}" class="text-danger pull-right">Ta bort</a></li>
         @endforeach
     </ul>
 @stop

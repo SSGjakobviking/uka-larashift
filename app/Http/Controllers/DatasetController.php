@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Input;
 class DatasetController extends Controller
 {
 
-    public function create()
-    {
+   public function index()
+   {
         $datasets = Dataset::all();
         return view('dataset.create', ['datasets' => $datasets]);
-    }
+   }
 
     /**
      * Store the uploaded file.
@@ -45,6 +45,13 @@ class DatasetController extends Controller
         }
 
         return redirect()->back()->with('success', 'Din fil har laddats upp!');
+    }
+
+    public function destroy($id)
+    {
+        Dataset::destroy($id);
+
+        return redirect()->back();
     }
 
     public function parse()

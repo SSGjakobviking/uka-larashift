@@ -17,8 +17,11 @@ Route::get('/', 'Auth\LoginController@showLoginForm');
 
 Auth::routes();
 
-Route::get('dataset', 'DatasetController@create');
-Route::post('dataset/store', 'DatasetController@store');
+Route::get('dataset/{id}/delete', 'DatasetController@destroy');
+Route::resource('dataset', 'DatasetController', ['only' => [
+    'index',
+    'store',
+]]);
 
 Route::get('indicator', 'IndicatorController@index');
 

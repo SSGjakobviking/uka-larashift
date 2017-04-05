@@ -9,6 +9,6 @@ class IndicatorController extends Controller
 {
     public function index()
     {
-        return Indicator::all();
+        return view('indicator.index');
     }
 }

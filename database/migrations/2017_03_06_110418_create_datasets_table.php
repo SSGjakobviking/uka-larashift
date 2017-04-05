@@ -15,11 +15,11 @@ class CreateDatasetsTable extends Migration
     {
         Schema::create('datasets', function (Blueprint $table) {
             $table->increments('id')->unsigned();
-            $table->integer('indicator_id')->unsigned();
+            $table->integer('indicator_id')->unsigned()->nullable();
             $table->foreign('indicator_id')->references('id')->on('indicators')->onDelete('cascade');
 
             $table->string('file');
-            $table->integer('version');
+            $table->integer('version')->nullable();
             $table->string('status')->nullable();
             $table->timestamps();
         });

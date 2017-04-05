@@ -12,9 +12,8 @@ class Dataset extends Model
         'file',
         'version',
         'status',
+        'file',
     ];
-
-    public $timestamps = false;
 
     /**
      * Retrieve the associated indicator models.

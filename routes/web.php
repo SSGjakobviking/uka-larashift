@@ -13,14 +13,15 @@ use App\DatasetImporter;
 |
 */
 
-Route::get('/', function () {
-    return 'URL till api: <a href="' . url("api/totals/1?year=2011") . '">' . url('api/totals/1?year=2011') . '</a>';
-});
+Route::get('/', 'Auth\LoginController@showLoginForm');
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index');
+Route::get('dataset', 'DatasetController@create');
+Route::post('dataset/store', 'DatasetController@store');
+
+Route::get('indicator', 'IndicatorController@index');
+
+// Route::get('/home', 'HomeController@index');
 
 Route::get('parse', 'DatasetController@parse');
-
-Auth::routes();

@@ -2,12 +2,50 @@
 
 namespace App\Http\Controllers;
 
-use App\Indicator;
+use App\Dataset;
 use App\DatasetImporter;
+use App\Indicator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
 
 class DatasetController extends Controller
 {
+
+    public function create()
+    {
+        $datasets = Dataset::all();
+        return view('dataset.create', ['datasets' => $datasets]);
+    }
+
+    /**
+     * Store the uploaded file.
+     * 
+     * @param  Request $request
+     * @return [type]
+     */
+    public function store(Request $request)
+    {
+        try {
+            $file = $request->file('file');
+
+            if (! $file) {
+                throw new \Exception('Du måste välja en fil att ladda upp.');
+            }
+
+            $name = $file->getClientOriginalName();
+
+            $file->move(public_path() . '/uploads/', time() . '-' . $name);
+
+            Dataset::create([
+                'indicator_id' => null,
+                'file'          => $name
+            ]);
+        } catch(\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return redirect()->back()->with('success', 'Din fil har laddats upp!');
+    }
 
     public function parse()
     {

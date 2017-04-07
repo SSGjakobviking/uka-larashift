@@ -13,8 +13,8 @@ class DatasetController extends Controller
 
    public function index()
    {
-        $datasets = Dataset::all();
-        return view('dataset.create', ['datasets' => $datasets]);
+        $datasets = Dataset::orderBy('created_at', 'desc')->get();
+        return view('dataset.index', ['datasets' => $datasets]);
    }
 
     /**
@@ -37,6 +37,7 @@ class DatasetController extends Controller
             $file->move(public_path() . '/uploads/', time() . '-' . $name);
 
             Dataset::create([
+                'user_id'       => auth()->user()->id,
                 'indicator_id' => null,
                 'file'          => $name
             ]);

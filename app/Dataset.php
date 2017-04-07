@@ -2,17 +2,18 @@
 
 namespace App;
 
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Dataset extends Model
 {
 
     protected $fillable = [
+        'user_id',
         'indicator_id',
         'file',
         'version',
         'status',
-        'file',
     ];
 
     /**
@@ -33,5 +34,32 @@ class Dataset extends Model
     public function totals()
     {
         return $this->hasMany(Total::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Retrieve published datasets.
+     * 
+     * @param  [type] $query
+     * @return [type]
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    /**
+     * Retrieve datasets set for preview.
+     * 
+     * @param  [type] $query
+     * @return [type]
+     */
+    public function scopePreview($query)
+    {
+        return $query->where('status', 'preview');
     }
 }

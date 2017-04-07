@@ -24,7 +24,9 @@ Route::resource('dataset', 'DatasetController', ['only' => [
 ]]);
 
 Route::get('indicator', 'IndicatorController@index');
+Route::get('indicator/{id}/edit', 'IndicatorController@edit');
+// Route::post('indicator/{id}/dataset', 'IndicatorController@saveDataset');
 
-// Route::get('/home', 'HomeController@index');
+Route::get('/home', 'HomeController@index');
 
 Route::get('parse', 'DatasetController@parse');

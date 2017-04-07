@@ -15,6 +15,10 @@ class CreateDatasetsTable extends Migration
     {
         Schema::create('datasets', function (Blueprint $table) {
             $table->increments('id')->unsigned();
+            
+            $table->integer('user_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users');
+
             $table->integer('indicator_id')->unsigned()->nullable();
             $table->foreign('indicator_id')->references('id')->on('indicators')->onDelete('cascade');
 

@@ -18,3 +18,12 @@ Vue.component('example', require('./components/Example.vue'));
 const app = new Vue({
     el: '#app'
 });
+
+$(document).ready(function() {
+    $('.multiselect').multiselect({
+        buttonText: function(options, select) {
+            return 'Välj dataset';
+        },
+        maxHeight: 200
+    });
+});

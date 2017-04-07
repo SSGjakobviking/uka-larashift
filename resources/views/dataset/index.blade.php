@@ -20,5 +20,5 @@
         <p class="alert alert-success">{{ session()->get('success') }}</p>
     @endif
     
-    @include('dataset.all')
+    @include('dataset.list')
 @stop

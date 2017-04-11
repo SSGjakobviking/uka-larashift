@@ -1,3 +1,9 @@
-.btn {
+input[type="submit"] {
     margin-top: 20px;
+}
+
+.btn-group {
+    & > .btn {
+        margin-top: 20px;
+    }
 }

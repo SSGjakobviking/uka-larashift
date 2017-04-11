@@ -11,6 +11,7 @@ window.$ = window.jQuery = require('jquery');
 
 require('bootstrap-sass');
 require('bootstrap-multiselect');
+window.Dropzone = require('dropzone');
 
 /**
  * Vue is a modern JavaScript library for building interactive web interfaces

@@ -62,4 +62,9 @@ class Dataset extends Model
     {
         return $query->where('status', 'preview');
     }
+
+    public function scopeUnattached($query)
+    {
+        return $query->where('status', null);
+    }
 }

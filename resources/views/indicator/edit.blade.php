@@ -16,9 +16,9 @@
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
         <select class="multiselect" name="dataset_preview" multiple="multiple">
-            <option>Dataset 1</option>
-            <option>Dataset 2</option>
-            <option>Dataset 3</option>
+            @foreach($unAttachedData as $unAttached)
+                <option>{{ $unAttached->file }}</option>
+            @endforeach
         </select>
 
         <input type="submit" class="btn btn-primary" name="save_dataset_preview" value="Lägg till preview">
@@ -36,9 +36,9 @@
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
         <select class="multiselect" name="dataset_production" multiple="multiple">
-            <option>Dataset 1</option>
-            <option>Dataset 2</option>
-            <option>Dataset 3</option>
+            @foreach($unAttachedData as $unAttached)
+                <option>{{ $unAttached->file }}</option>
+            @endforeach
         </select>
 
         <input type="submit" class="btn btn-primary" name="save_dataset_published" value="Lägg till produktion">

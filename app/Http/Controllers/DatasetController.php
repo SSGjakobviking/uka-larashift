@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Input;
 class DatasetController extends Controller
 {
 
+    public function __construct()
+    {
+        $this->middleware('auth', ['except' => [
+            'parse',
+        ]]);
+    }
+
    public function index()
    {
         $datasets = Dataset::orderBy('created_at', 'desc')->get();
@@ -25,31 +32,38 @@ class DatasetController extends Controller
      */
     public function store(Request $request)
     {
-        try {
+        // try {
+
+
+            $this->validate($request, [
+                'file' => 'required|mimes:csv,txt',
+            ]);
+
             $file = $request->file('file');
 
-            if (! $file) {
-                throw new \Exception('Du måste välja en fil att ladda upp.');
-            }
+            $name = time() . '-' . $file->getClientOriginalName();
 
-            $name = $file->getClientOriginalName();
-
-            $file->move(public_path() . '/uploads/', time() . '-' . $name);
+            $file->move(public_path() . '/uploads/', $name);
 
             Dataset::create([
                 'user_id'       => auth()->user()->id,
                 'indicator_id' => null,
                 'file'          => $name
             ]);
-        } catch(\Exception $e) {
-            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
-        }
-
-        return redirect()->back()->with('success', 'Din fil har laddats upp!');
     }
 
+    /**
+     * Deletes a file in the DB And on the server.
+     * 
+     * @param  [type] $id
+     * @return [type]
+     */
     public function destroy($id)
     {
+        $file = Dataset::find($id);
+        
+        unlink(public_path('uploads/' . $file->file));
+
         Dataset::destroy($id);
 
         return redirect()->back();

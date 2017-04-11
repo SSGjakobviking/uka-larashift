@@ -42,8 +42,23 @@ class IndicatorController extends Controller
         ]);
     }
 
-    public function saveDataset(Request $request)
+    public function saveDataset($id, Request $request)
     {
-        dd($request->all());
+        $datasets = $request->input('dataset_preview');
+        $status = 'preview';
+
+        if (! is_null($request->input('dataset_production'))) {
+            $datasets = $request->input('dataset_production');
+            $status = 'published';
+        }
+
+        foreach ($datasets as $datasetId) {
+            Dataset::where('id', $datasetId)->update([
+                'indicator_id' => $id,
+                'status'    => $status,
+            ]);
+        }
+
+        return redirect()->back();
     }
 }

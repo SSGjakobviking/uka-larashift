@@ -20,8 +20,13 @@ class DatasetController extends Controller
 
    public function index()
    {
-        $datasets = Dataset::orderBy('created_at', 'desc')->get();
+        $datasets = Dataset::orderBy('created_at', 'desc')->where('indicator_id', null)->get();
         return view('dataset.index', ['datasets' => $datasets]);
+   }
+
+   public function create()
+   {
+       return view('dataset.create');
    }
 
     /**
@@ -65,6 +70,16 @@ class DatasetController extends Controller
         unlink(public_path('uploads/' . $file->file));
 
         Dataset::destroy($id);
+
+        return redirect()->back();
+    }
+
+    public function unAttach($id)
+    {
+        Dataset::where('id', $id)->update([
+            'indicator_id' => null,
+            'status'       => null,
+        ]);
 
         return redirect()->back();
     }

@@ -2,7 +2,7 @@
 
 @section('content')
     <h1>Indikatorer</h1>
-    
+    <h2>Utbildning på grundnivå och avancerad nivå</h2>
     <table class="table">
         <th>Namn</th>
         <th></th>

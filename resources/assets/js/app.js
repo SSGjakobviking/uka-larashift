@@ -21,13 +21,21 @@ const app = new Vue({
 
 Dropzone.options.datasetForm = {
     acceptedFiles: '.csv'
+    // init: function() {
+    //     this.on("success", function(file, message) {
+    //         console.log('test');
+    //         alert(message);
+    //     });
+    // }
 };
+
 
 // myDropzone.emit("addedfile", mockFile);
 // myDropzone.createThumbnailFromUrl(mockFile, '/your-image.jpg');
 
 $(document).ready(function() {
-    console.log('test');
+    console.log(window.Dropzone);
+
     $('.multiselect').multiselect({
         buttonText: function(options, select) {
             return 'Välj dataset';
@@ -35,4 +43,5 @@ $(document).ready(function() {
         // maxHeight: 200,
         enableFiltering: true
     });
+
 });

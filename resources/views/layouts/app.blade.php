@@ -65,8 +65,8 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
-                                    {{ Auth::user()->name }}
+                                <a href="/users">
+                                    Användare
                                 </a>
                             </li>
                             <li>

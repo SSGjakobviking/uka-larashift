@@ -3,13 +3,14 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,600i,700,700i');
 
 // Variables
-@import "global/variables";
+@import "common/variables";
 
 // Bootstrap
 @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import "node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect";
 @import "node_modules/dropzone/dist/dropzone";
 
-@import "global/errors";
-@import "global/forms";
+@import "common/errors";
+@import "common/forms";
+@import "common/global";
 @import "layout/content";

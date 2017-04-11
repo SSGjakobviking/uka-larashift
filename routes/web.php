@@ -17,16 +17,14 @@ Route::get('/', 'Auth\LoginController@showLoginForm');
 
 Auth::routes();
 
+Route::resource('dataset', 'DatasetController');
 Route::get('dataset/{id}/delete', 'DatasetController@destroy');
-Route::resource('dataset', 'DatasetController', ['only' => [
-    'index',
-    'store',
-]]);
+Route::get('dataset/{id}/unattach', 'DatasetController@unAttach');
 
 // Route::get('indicator', 'IndicatorController@index');
 // Route::get('indicator/{id}/edit', 'IndicatorController@edit');
 Route::resource('indicator', 'IndicatorController');
-// Route::post('indicator/{id}/dataset', 'IndicatorController@saveDataset');
+Route::post('indicator/{id}/dataset', 'IndicatorController@saveDataset');
 
 Route::get('/home', 'HomeController@index');
 

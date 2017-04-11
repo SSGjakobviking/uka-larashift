@@ -2,8 +2,8 @@
 
 @section('content')
     <h1>Dataset</h1>
-
-    @include('forms.dataset')
+    <a href="{{ url('dataset/create') }}" class="pull-right">Ladda upp dataset</a>
+    {{-- @include('forms.dataset') --}}
 
     @include('errors.error')
 

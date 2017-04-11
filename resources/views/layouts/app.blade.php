@@ -35,7 +35,7 @@
                     </button>
 
                     <!-- Branding Image -->
-                    <a class="navbar-brand" href="{{ url('dataset') }}">
+                    <a class="navbar-brand" href="{{ Auth::guest() ?  url('/') : url('dataset') }}">
                         {{ config('app.name', 'Laravel') }}
                         <p>administration</p>
                     </a>
@@ -50,9 +50,9 @@
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav navbar-right">
                         <!-- Authentication Links -->
+
                         @if (Auth::guest())
                             <li><a href="{{ route('login') }}">Login</a></li>
-                            <li><a href="{{ route('register') }}">Register</a></li>
                         @else
                             <li>
                                 <a href="/dataset">

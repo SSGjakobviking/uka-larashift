@@ -7,11 +7,23 @@
 
     <h2>Dataset i testmiljön</h2>
     
-    <ul class="list-group">
+    <table class="table">
+        <th>ID</th>
+        <th>Filnamn</th>
+        <th>Uppladdat av</th>
+        <th>Datum</th>
+        <th></th>
+
         @foreach($previewData as $preview)
-            <li class="list-group-item">{{ $preview->file }} <a href="{{ url('dataset/' . $preview->id . '/unattach') }}" class="text-danger pull-right">Ta bort</a></li>
+            <tr>
+                <td>{{ $preview->id }}</td>
+                <td>{{ $preview->file }}</td>
+                <td>{{ $preview->user->name }}</td>
+                <td>{{ $preview->created_at }}</td>
+                <td><a href="{{ url('dataset/' . $preview->id . '/unattach') }}" class="text-danger pull-right">Ta bort</a></td>
+            </tr>
         @endforeach
-    </ul>
+    </table>
 
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
@@ -27,11 +39,22 @@
 
     <h2>Dataset i produktionsmiljön</h2>
 
-    <ul class="list-group">
+    <table class="table">
+        <th>ID</th>
+        <th>Filnamn</th>
+        <th>Uppladdat av</th>
+        <th>Datum</th>
+        <th></th>
         @foreach($publishedData as $published)
-            <li class="list-group-item">{{ $published->file }} <a href="{{ url('dataset/' . $published->id . '/unattach') }}" class="text-danger pull-right">Ta bort</a></li>
+            <tr>
+                <td>{{ $published->id }}</td>
+                <td>{{ $published->file }}</td>
+                <td>{{ $published->user->name }}</td>
+                <td>{{ $published->created_at }}</td>
+                <td><a href="{{ url('dataset/' . $published->id . '/unattach') }}" class="text-danger pull-right">Ta bort</a></td>
+            </tr>
         @endforeach
-    </ul>
+    </table>
 
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}

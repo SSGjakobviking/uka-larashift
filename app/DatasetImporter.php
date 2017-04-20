@@ -5,17 +5,16 @@ namespace App;
 use App\Dataset;
 use App\Helpers\StringHelper;
 use App\University;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use League\Csv\Reader;
 
 class DatasetImporter
 {
 
-    protected $file;
+    protected $dataset;
 
     protected $data;
-
-    protected $indicatorSlug;
 
     protected $groupColumns;
 
@@ -23,19 +22,20 @@ class DatasetImporter
 
     protected $totalColumnIds;
 
+    protected $user;
+
     const UNIVERSITY_DEFAULT = 'Riket';
 
-    public function __construct($file, $indicator)
+    public function __construct($dataset)
     {
-        $this->file = $file;
-        $this->indicator = $indicator;
-
-        $this->parse($file);
+        $this->dataset = $dataset;
+        Log::info('Start importing...');
+        $this->parse($dataset);
     }
 
-    private function parse($file)
+    private function parse($dataset)
     {
-        $csv = Reader::createFromPath($file);
+        $csv = Reader::createFromPath(public_path('uploads/' . $dataset->file));
         $csvData = collect($csv->setOffset(1)->fetchAll());
         $headers = $csv->fetchOne();
 
@@ -193,13 +193,14 @@ class DatasetImporter
     public function make()
     {
         // dd($this->data);
-        $dataset = $this->createDataset($this->indicator, $this->file);
         
         $this->createGroupColumns($this->groupColumns);
 
         $this->createTotalColumns($this->totalColumns);
 
-        $this->createGroups($dataset);
+        $this->createGroups($this->dataset);
+        
+        $this->updateStatus($this->dataset);
     }
 
     private function createGroupColumns(array $groupColumns)
@@ -332,13 +333,13 @@ class DatasetImporter
             });
     }
 
-    private function createDataset($indicator, $file)
+    private function updateStatus($dataset)
     {
-        return Dataset::firstOrCreate([
-            'indicator_id'  => 1,
-            'file'          => basename($file),
-            'version'       => 1,
-            'status'        => '',
+        error_log('create dataset');
+
+        return Dataset::where('id', $dataset->id)
+        ->update([
+            'status' => null,
         ]);
     }
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Dataset;
 use App\DatasetImporter;
 use App\Indicator;
+use App\Jobs\ImportDataset;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 
@@ -37,9 +39,6 @@ class DatasetController extends Controller
      */
     public function store(Request $request)
     {
-        // try {
-
-
             $this->validate($request, [
                 'file' => 'required|mimes:csv,txt',
             ]);
@@ -50,12 +49,33 @@ class DatasetController extends Controller
 
             $file->move(public_path() . '/uploads/', $name);
 
-            Dataset::create([
+            $dataset = Dataset::create([
                 'user_id'       => auth()->user()->id,
                 'indicator_id' => null,
-                'file'          => $name
+                'status'        => 'processing',
+                'file'          => $name,
             ]);
+
+            $delay = $this->processingDatasetsCount() * 10;
+            
+            $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes($delay));
+
+            dispatch($job);
     }
+
+    public function processingDatasetsCount()
+    {
+        return Dataset::where('status', 'processing')->count();
+    }
+
+    // public function parse()
+    // {
+    //     $dataset = Dataset::where('status', 'processing')->first();
+
+    //     $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(10));
+
+    //     dispatch($job);
+    // }
 
     /**
      * Deletes a file in the DB And on the server.
@@ -82,38 +102,5 @@ class DatasetController extends Controller
         ]);
 
         return redirect()->back();
-    }
-
-    public function parse()
-    {
-        
-        $path = storage_path('app/uploads/');
-        $file = $path . 'registrerade-studenter-2016-17-v1-ny.csv';
-
-        $indicator = Indicator::firstOrCreate([
-            'name'          => 'Antal registrerade studenter',
-            'description'   => 'Mäter antalet registrerade studenter per år.',
-            'slug'          => 'antal-registrerade-studenter',
-            'measurement'   => 'Antal registrerade studenter.',
-            'time_unit'     => 'År',
-        ]);
-        
-        $dataset = new DatasetImporter($file, $indicator);
-        
-        // define group columns
-        $dataset->groupColumns([
-            'Ämnesområde',
-            'Ämnesdelsområde',
-            'Ämnesgrupp',
-        ]);
-
-        $dataset->totalColumns([
-            '-24',
-            '25-34',
-            '35-',
-            'Total',
-        ]);
-
-        $dataset->make();
     }
 }

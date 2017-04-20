@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Dataset;
+use App\Role;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -31,5 +32,10 @@ class User extends Authenticatable
     public function datasets()
     {
         return $this->hasMany(Dataset::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 }

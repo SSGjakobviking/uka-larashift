@@ -213,7 +213,7 @@ class DatasetImporter
     private function createTotalColumns(array $totalColumns)
     {
         foreach($totalColumns as $totalColumn) {
-            $column = totalColumn::firstOrCreate(['name' => $totalColumn]);
+            $column = TotalColumn::firstOrCreate(['name' => $totalColumn]);
             $this->totalColumnIds[] = $column->id;
         }
     }

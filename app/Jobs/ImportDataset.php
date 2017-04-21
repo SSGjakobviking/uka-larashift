@@ -37,7 +37,7 @@ class ImportDataset implements ShouldQueue
         // dd($this->user);
         $path = public_path('uploads/');
 
-        Log::info(date('Y-m-D H:i:s') . ' Started importing dataset: ' . $this->dataset->file);
+        Log::info('Started importing dataset: ' . $this->dataset->file);
 
         $dataset = new DatasetImporter($this->dataset);
         
@@ -57,6 +57,6 @@ class ImportDataset implements ShouldQueue
 
         $dataset->make();
 
-        Log::info(date('Y-m-D H:i:s') . ' Import complete!');
+        Log::info('Import complete!');
     }
 }

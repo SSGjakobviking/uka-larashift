@@ -11278,7 +11278,6 @@ Dropzone.options.datasetForm = {
 // myDropzone.createThumbnailFromUrl(mockFile, '/your-image.jpg');
 
 $(document).ready(function () {
-    console.log(window.Dropzone);
 
     $('.multiselect').multiselect({
         buttonText: function buttonText(options, select) {

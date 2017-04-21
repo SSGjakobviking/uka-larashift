@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Role;
 use App\User;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,6 @@ class UserController extends Controller
     public function index()
     {
         $users = User::with('role')->get();
-        dd($users->toArray());
 
         return view('user.index', ['users' => $users]);
     }
@@ -27,7 +27,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('user.create');
+        $roles = Role::all();
+
+        return view('user.create', ['roles' => $roles]);
     }
 
     /**
@@ -83,6 +85,8 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        User::destroy($id);
+
+        return redirect()->back();
     }
 }

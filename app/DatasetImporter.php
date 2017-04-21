@@ -269,16 +269,6 @@ class DatasetImporter
                     $this->createGroup($dataset, $university['children'], $university['children'], $createdUniversity);
 
                 }
-                // $this->createUniversity($group);
-                // $total = Total::firstOrCreate([
-                //     'dataset_id'    => $dataset->id,
-                //     'group_id'      => null,
-                //     'term'          => $group['term'],
-                //     'year'          => $group['year'],
-                //     'gender'        =>  $group['gender'],
-                // ]);
-
-                // $this->createTotalValues($total, $group['total']);
             }
         }
 
@@ -335,8 +325,6 @@ class DatasetImporter
 
     private function updateStatus($dataset)
     {
-        error_log('create dataset');
-
         return Dataset::where('id', $dataset->id)
         ->update([
             'status' => null,

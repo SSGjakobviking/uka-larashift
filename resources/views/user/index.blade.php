@@ -14,7 +14,8 @@
             <tr>
                 <td>{{ $user->name }}</td>
                 <td>{{ $user->email }}</td>
-                <td>Administratör</td>
+                <td>{{ $user->role->role }}</td>
+                <td><a href="{{ url('users/' . $user->id . '/delete') }}" class="text-danger pull-right">Ta bort</a></td>
             </tr>
         @endforeach
     </table>

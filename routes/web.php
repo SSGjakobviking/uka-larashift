@@ -40,6 +40,7 @@ Route::resource('indicator', 'IndicatorController');
 Route::post('indicator/{id}/dataset', 'IndicatorController@saveDataset');
 
 Route::resource('users', 'UserController');
+Route::get('users/{id}/delete', 'UserController@destroy');
 
 Route::get('/home', 'HomeController@index');
 

@@ -9,6 +9,7 @@ use App\Jobs\ImportDataset;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Log;
 
 class DatasetController extends Controller
 {
@@ -57,8 +58,10 @@ class DatasetController extends Controller
             ]);
 
             $delay = $this->processingDatasetsCount() * 10;
-            
-            $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes($delay));
+            Log::info('Count: ' . $this->processingDatasetsCount());
+            Log::info('Delay: ' . $delay);
+            $job = (new ImportDataset($dataset));
+            #->delay(Carbon::now()->addMinutes($delay));
 
             dispatch($job);
     }

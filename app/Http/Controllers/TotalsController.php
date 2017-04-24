@@ -264,15 +264,16 @@ class TotalsController extends Controller
 
     private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $ageGroup, $filter)
     {
-        $datasets = $indicator->datasets()
-                    ->with(['totals' => function($query) use($university, $gender, $groupId) {
-                        $query->where('gender', $gender);
-                        $query->where('group_id', $groupId);
-                        $query->where('university_id', $university);
+        $totals = Total::with(['dataset' => function($query) use($indicator) {
+                        $query->where('indicator_id', $indicator->id);
                     }])
+                    ->where('gender', $gender)
+                    ->where('group_id', $groupId)
+                    ->where('university_id', $university)
+                    ->orderBy('year')
+                    ->orderBy('term', 'desc')
                     ->get();
 
-        $totals = $datasets->pluck('totals')->flatten();
         $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
 
             $year = $this->yearSuffix($total->year, $total->term);
@@ -284,7 +285,7 @@ class TotalsController extends Controller
                 'url'   => $filter->updateUrl(['year' => $total->year, 'term' => $total->term]),
             ];
         });
-        
+
         return $yearlyTotals;
     }
 

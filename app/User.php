@@ -38,4 +38,13 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function hasRole($name)
+    {
+        if ($this->role->name == $name) {
+            return true;
+        }
+
+        return false;
+    }
 }

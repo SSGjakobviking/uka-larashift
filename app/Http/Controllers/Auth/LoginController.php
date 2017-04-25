@@ -36,4 +36,13 @@ class LoginController extends Controller
     {
         $this->middleware('guest', ['except' => 'logout']);
     }
+
+    public function authenticated()
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('uppgiftslamnare')) {
+            $this->redirectTo = '/dataset/create';
+        }
+    }
 }

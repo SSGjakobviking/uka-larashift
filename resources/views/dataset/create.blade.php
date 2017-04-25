@@ -1,8 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-
-    <a href="{{ url('/dataset') }}">Tillbaka till alla dataset</a>
+    
+    @if (! auth()->user()->hasRole('uppgiftslamnare'))
+        <a href="{{ url('/dataset') }}">Tillbaka till alla dataset</a>
+    @endif
 
     <h1>Uppladdning av dataset</h1>
 

@@ -19,6 +19,10 @@ class DatasetController extends Controller
         $this->middleware('auth', ['except' => [
             'parse',
         ]]);
+
+        $this->middleware('admin', ['except' => [
+            'create',
+        ]]);
     }
 
    public function index()

@@ -35,7 +35,7 @@
                     </button>
 
                     <!-- Branding Image -->
-                    <a class="navbar-brand" href="{{ Auth::guest() ?  url('/') : url('dataset') }}">
+                    <a class="navbar-brand" href="#">
                         {{ config('app.name', 'Laravel') }}
                         <p>administration</p>
                     </a>
@@ -54,11 +54,13 @@
                         @if (Auth::guest())
                             <li><a href="{{ route('login') }}">Login</a></li>
                         @else
+                            @if (! auth()->user()->hasRole('uppgiftslamnare'))
                             <li>
                                 <a href="/dataset">
                                     Dataset
                                 </a>
                             </li>
+                            
                             <li>
                                 <a href="/indicator">
                                     Indikatorer
@@ -69,6 +71,7 @@
                                     Användare
                                 </a>
                             </li>
+                            @endif
                             <li>
                                 <a href="{{ route('logout') }}"
                                     onclick="event.preventDefault();

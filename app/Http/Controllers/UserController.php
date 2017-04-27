@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Role;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
 
 class UserController extends Controller
 {
@@ -68,7 +69,9 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        //
+        $user = User::with('role')->where('id', $id)->get()->first();
+
+        return view('user.edit', ['user' => $user]);
     }
 
     /**
@@ -80,7 +83,26 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        if (trim(Input::get('password')) == '') {
+           $data = Input::except('password');
+           $request->offsetUnset('password');
+        } else {
+           $data = Input::all();
+           $data['password'] = bcrypt($data['password']);
+        }
+
+         $this->validate($request, [
+            'name' => 'required|max:255',
+            'email' => 'required|email|max:255|unique:users,id,' . $id,
+            'password' => 'sometimes|min:6',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        $user->update($data);
+
+        return redirect()->back();
     }
 
     /**

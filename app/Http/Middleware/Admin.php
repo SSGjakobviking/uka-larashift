@@ -15,7 +15,8 @@ class Admin
      */
     public function handle($request, Closure $next)
     {
-        if (auth()->user()->hasRole('uppgiftslamnare')) {
+        $user = auth()->user();
+        if (! $user->hasRole('admin') && ! $user->hasRole('personal')) {
             return redirect('/dataset/create');
         }
 

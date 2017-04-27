@@ -36,23 +36,23 @@
 
                     <!-- Branding Image -->
                     <a class="navbar-brand" href="#">
-                        {{ config('app.name', 'Laravel') }}
+                        {{ config('app.name', 'Laravel') }}-statistik
                         <p>administration</p>
                     </a>
                 </div>
-
+                <div class="user-link">
+                    @if(auth()->check())
+                        <p>Inloggad som <a href="{{ route('users.edit', auth()->user()) }}">{{ auth()->user()->name }}</a></p>
+                    @endif
+                </div>
                 <div class="collapse navbar-collapse" id="app-navbar-collapse">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="nav navbar-nav">
-                        &nbsp;
-                    </ul>
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav navbar-right">
                         <!-- Authentication Links -->
 
                         @if (Auth::guest())
-                            <li><a href="{{ route('login') }}">Login</a></li>
+                            <li><a href="{{ route('login') }}">Logga in</a></li>
                         @else
                             @if (! auth()->user()->hasRole('uppgiftslamnare'))
                             <li>
@@ -76,7 +76,7 @@
                                 <a href="{{ route('logout') }}"
                                     onclick="event.preventDefault();
                                              document.getElementById('logout-form').submit();">
-                                    Logout
+                                    Logga ut
                                 </a>
 
                                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">

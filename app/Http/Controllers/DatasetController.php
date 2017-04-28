@@ -70,30 +70,30 @@ class DatasetController extends Controller
      */
     public function store(Request $request)
     {
-            $this->validate($request, [
-                'file' => 'required|mimes:csv,txt',
-            ]);
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,txt',
+        ]);
 
-            $file = $request->file('file');
+        $file = $request->file('file');
 
-            $name = time() . '-' . $file->getClientOriginalName();
+        $name = time() . '-' . $file->getClientOriginalName();
 
-            $file->move(public_path() . '/uploads/', $name);
+        $file->move(public_path() . '/uploads/', $name);
 
-            $dataset = Dataset::create([
-                'user_id'       => auth()->user()->id,
-                'indicator_id' => null,
-                'status'        => 'processing',
-                'file'          => $name,
-            ]);
+        $dataset = Dataset::create([
+            'user_id'       => auth()->user()->id,
+            'indicator_id' => null,
+            'status'        => 'processing',
+            'file'          => $name,
+        ]);
 
-            $delay = $this->processingDatasetsCount() * 10;
-            Log::info('Count: ' . $this->processingDatasetsCount());
-            Log::info('Delay: ' . $delay);
-            $job = (new ImportDataset($dataset));
-            #->delay(Carbon::now()->addMinutes($delay));
+        $delay = $this->processingDatasetsCount() * 10;
+        Log::info('Count: ' . $this->processingDatasetsCount());
+        Log::info('Delay: ' . $delay);
+        $job = (new ImportDataset($dataset));
+        #->delay(Carbon::now()->addMinutes($delay));
 
-            dispatch($job);
+        dispatch($job);
     }
 
     public function processingDatasetsCount()

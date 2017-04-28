@@ -90,10 +90,11 @@ class DatasetController extends Controller
         $delay = $this->processingDatasetsCount() * 10;
         Log::info('Count: ' . $this->processingDatasetsCount());
         Log::info('Delay: ' . $delay);
-        $job = (new ImportDataset($dataset));
-        #->delay(Carbon::now()->addMinutes($delay));
+        $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(1));
 
         dispatch($job);
+
+        return response()->json(['success' => true]);
     }
 
     public function processingDatasetsCount()

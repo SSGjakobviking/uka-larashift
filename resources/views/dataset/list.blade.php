@@ -41,7 +41,7 @@
             <td>{{ $dataset->user->name }}</td>
             <td>{{ $dataset->created_at->format('Y-m-d H:i:s')  }}</td>
             <td>{{ $dataset->status }}</td>
-            <td><a href="{{ url('dataset', [$dataset->id, 'delete']) }}" class="text-danger pull-right">Ta bort</a></td>
+            <td><a href="{{ url('dataset', [$dataset->id, 'delete']) }}" class="text-danger">Ta bort</a></td>
         </tr>
     @endforeach
 </table>

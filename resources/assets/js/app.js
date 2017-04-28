@@ -85,7 +85,7 @@ $(document).ready(function() {
 
             if (!file.accepted) {
                 this.removeFile(file);
-                $('.dropzone-msg').addClass('alert-danger').html('<p>Kunde inte ladda upp ' + file.name + '.</p><p>Är du säker på att det är en .CSV fil?</p>').css('opacity', 1);
+                $('.dropzone-msg').addClass('alert-danger').html('<p>Kunde inte ladda upp ' + file.name + '.</p><p>Kontrollera att filen har formatet .csv</p>').css('opacity', 1);
             }
         });
     }

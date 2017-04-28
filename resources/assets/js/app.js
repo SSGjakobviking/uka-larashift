@@ -63,9 +63,9 @@ UKA.TagForm = function() {
 
 Dropzone.autoDiscover = false;
 
-// Dropzone.options.datasetForm = {
-//     acceptedFiles: '.csv'
-// };
+Dropzone.options.datasetForm = {
+    acceptedFiles: '.csv'
+};
 
 $(document).ready(function() {
 

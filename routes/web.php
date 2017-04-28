@@ -33,6 +33,8 @@ Route::post('password/reset', 'Auth\ResetPasswordController@reset');
 Route::resource('dataset', 'DatasetController');
 Route::get('dataset/{id}/delete', 'DatasetController@destroy');
 Route::get('dataset/{id}/unattach', 'DatasetController@unAttach');
+Route::post('dataset/addTag', 'DatasetController@addTag');
+Route::post('dataset/deleteTag', 'DatasetController@deleteTag');
 
 // Route::get('indicator', 'IndicatorController@index');
 // Route::get('indicator/{id}/edit', 'IndicatorController@edit');

@@ -94,11 +94,34 @@
         </div>
     </div>
 
+    <script type="text/javascript">
+        var config = {
+            baseUrl: '{{ url('/') }}/'
+        };
+    </script>
+
+    @if(route('dataset.index'))
+        <?php 
+            $tagsWithDataset = App\Tag::has('datasets')->get()->map(function($tag) {
+
+                return [
+                    'id' => $tag->id,
+                    'text' => $tag->name,
+                ];
+            });
+        ?>
+
+        <script type="text/javascript">
+            var tags = JSON.parse('{!! $tagsWithDataset !!}')
+        </script>
+    @endif
+
     <!-- Scripts -->
     <script src="/js/app.js"></script>
 
     @if(config('app.env') == 'local')
         <script src="http://localhost:35729/livereload.js"></script>
     @endif
+
 </body>
 </html>

@@ -6,8 +6,10 @@ use App\Dataset;
 use App\DatasetImporter;
 use App\Indicator;
 use App\Jobs\ImportDataset;
+use App\Tag;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 
@@ -25,10 +27,34 @@ class DatasetController extends Controller
         ]]);
     }
 
-   public function index()
+   public function index(Request $request)
    {
-        $datasets = Dataset::orderBy('created_at', 'desc')->where('indicator_id', null)->get();
-        return view('dataset.index', ['datasets' => $datasets]);
+        $datasets = Dataset::has('tags', '<', 1)
+                            ->orderBy('created_at', 'desc')
+                            ->unAttached()
+                            ->get();
+
+        $filter = $request->filter;
+
+        $tags = Tag::with('datasets')
+                ->has('datasets')
+                ->orderBy('name');
+
+        if ($filter == 'all') {
+            return redirect('dataset');
+        }
+
+        if (! empty($filter)) {
+            $tags->where('id', $filter);
+        }
+
+        $allTags = Tag::all();
+        
+        return view('dataset.index', [
+            'datasets' => $datasets,
+            'tags' => $tags->get(),
+            'allTags' => $allTags,
+        ]);
    }
 
    public function create()
@@ -109,5 +135,31 @@ class DatasetController extends Controller
         ]);
 
         return redirect()->back();
+    }
+
+    public function addTag(Request $request)
+    {
+        $tag = Tag::firstOrCreate(['name' => $request->tag['name']]);
+        $dataset = Dataset::find($request->datasetId);
+
+        if (! $dataset->tags->contains($tag->id)) {
+            $dataset->tags()->attach($tag->id);
+        }
+
+        return $tag;
+    }
+
+    public function deleteTag(Request $request)
+    {
+        $dataset = Dataset::find($request->datasetId);
+        $tag = Tag::where('name', $request->tag['name'])->first();
+
+        if ($tag->datasets->count() == 1) {
+            $tag->delete();
+        }
+
+        $dataset->tags()->detach($tag->id);
+
+        return $tag->name;
     }
 }

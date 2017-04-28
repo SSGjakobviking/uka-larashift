@@ -21,17 +21,49 @@ const app = new Vue({
 
 Dropzone.options.datasetForm = {
     acceptedFiles: '.csv'
-    // init: function() {
-    //     this.on("success", function(file, message) {
-    //         console.log('test');
-    //         alert(message);
-    //     });
-    // }
 };
 
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
 
-// myDropzone.emit("addedfile", mockFile);
-// myDropzone.createThumbnailFromUrl(mockFile, '/your-image.jpg');
+var UKA = UKA || {};
+
+UKA.TagForm = function() {
+
+    function add(datasetId, tag) {
+        update('dataset/addTag', {
+            datasetId: datasetId,
+            tag: tag
+        });
+    }
+
+    function remove(datasetId, tag) {
+        update('dataset/deleteTag', {
+            datasetId: datasetId,
+            tag: tag
+        });
+    }
+
+    function update(action, data) {
+
+        $.ajax({
+            method: 'POST',
+            url: config.baseUrl + action,
+            data: data,
+            success: function(response) {
+                console.log('Success!');
+            }
+        });
+    }
+
+    return {
+        add: add,
+        remove: remove
+    };
+}();
 
 $(document).ready(function() {
 
@@ -41,6 +73,34 @@ $(document).ready(function() {
         },
         // maxHeight: 200,
         enableFiltering: true
+    });
+
+    $(".tags-form").select2({
+        tags: true,
+        placeholder: 'Välj en eller flera taggar',
+        theme: "bootstrap"
+        // data: tags
+    });
+
+    $('.tags-form').on('select2:select', function (evt) {
+        var dataset = $(this).attr('data-dataset-id'),
+            tag = {
+                id: evt.params.data.id,
+                name: evt.params.data.text
+            };
+
+        UKA.TagForm.add(dataset, tag);
+
+    });
+
+    $('.tags-form').on('select2:unselect', function (evt) {
+        var dataset = $(this).attr('data-dataset-id'),
+            tag = {
+                id: evt.params.data.id,
+                name: evt.params.data.text
+            };
+
+        UKA.TagForm.remove(dataset, tag);
     });
 
 });

@@ -11,6 +11,7 @@ window.$ = window.jQuery = require('jquery');
 
 require('bootstrap-sass');
 require('bootstrap-multiselect');
+require('select2');
 window.Dropzone = require('dropzone');
 
 /**

@@ -13,3 +13,30 @@
 span {
     font-size: 12px;
 }
+
+[aria-selected="true"] {
+    display: none;
+}
+
+.table > tbody > .dataset-row {
+    
+    > td {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .btn {
+        visibility: hidden;
+    }
+
+    &:hover {
+        .btn {
+            visibility: visible;
+        }
+    }
+}
+
+.tag-filter {
+    margin-bottom: 30px;
+    width: 40%;
+}

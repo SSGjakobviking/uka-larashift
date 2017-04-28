@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "bootstrap-multiselect": "^0.9.13-1",
-    "dropzone": "^4.3.0"
+    "dropzone": "^4.3.0",
+    "select2": "^4.0.3",
+    "select2-bootstrap-theme": "0.1.0-beta.10"
   }
 }

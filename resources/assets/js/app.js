@@ -19,10 +19,6 @@ const app = new Vue({
     el: '#app'
 });
 
-Dropzone.options.datasetForm = {
-    acceptedFiles: '.csv'
-};
-
 $.ajaxSetup({
     headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -65,7 +61,20 @@ UKA.TagForm = function() {
     };
 }();
 
+Dropzone.autoDiscover = false;
+
+// Dropzone.options.datasetForm = {
+//     acceptedFiles: '.csv'
+// };
+
 $(document).ready(function() {
+
+    if ($('#datasetForm').length > 0) {
+        var myDropzone = new Dropzone("#datasetForm");
+        myDropzone.on("addedfile", function(file) {
+            console.log(file);
+        });
+    }
 
     $('.multiselect').multiselect({
         buttonText: function(options, select) {

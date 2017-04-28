@@ -86,7 +86,7 @@ $(document).ready(function() {
 
     $(".tags-form").select2({
         tags: true,
-        placeholder: 'Välj en eller flera taggar',
+        placeholder: 'Välj en tagg',
         theme: "bootstrap"
         // data: tags
     });

@@ -8,18 +8,21 @@
     <tr>
         <th>ID</th>
         <th>Filnamn</th>
+        <th>Taggar</th>
         <th>Uppladdat av</th>
         <th>Datum</th>
         <th>Status</th>
-        <th></th>
+        <th>Action</th>
     </tr>
+
     @foreach($datasets as $dataset)
         <tr class="dataset-row">
             <td>{{ $dataset->id }}</td>
             <td>
-                <p>{{ $dataset->file }}</p>
-                
 
+                <p><a href="{{ url('uploads', $dataset->file) }}">{{ $dataset->file }}</a></p>
+            </td>
+            <td>
                 <form method="post" action="">
                     {{ csrf_field() }}
                     <select class="tags-form form-control select2-hidden-accessible pull-left" placeholder="Välj en tagg" style="width: 60%;" data-dataset-id="{{ $dataset->id }}" multiple>

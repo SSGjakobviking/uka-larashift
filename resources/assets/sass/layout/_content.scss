@@ -27,6 +27,7 @@ span {
 
     .btn {
         visibility: hidden;
+        margin-left: 20px;
     }
 
     &:hover {
@@ -39,4 +40,8 @@ span {
 .tag-filter {
     margin-bottom: 30px;
     width: 40%;
+}
+
+.select2 {
+    float: left;
 }

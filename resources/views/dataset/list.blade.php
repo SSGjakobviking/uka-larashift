@@ -18,12 +18,11 @@
             <td>{{ $dataset->id }}</td>
             <td>
                 <p>{{ $dataset->file }}</p>
-
-                <a class="btn btn-primary pull-right" href="{{ url('dataset') }}">Spara</a>
+                
 
                 <form method="post" action="">
                     {{ csrf_field() }}
-                    <select class="tags-form form-control select2-hidden-accessible" placeholder="Välj en tagg" style="width: 70%;" data-dataset-id="{{ $dataset->id }}" multiple>
+                    <select class="tags-form form-control select2-hidden-accessible pull-left" placeholder="Välj en tagg" style="width: 60%;" data-dataset-id="{{ $dataset->id }}" multiple>
 
                         @foreach($allTags as $tag)
                             @if(in_array($tag->id, $dataset->tags->pluck('id')->toArray()))
@@ -33,6 +32,7 @@
                             @endif
                         @endforeach
                     </select>
+                    <a class="btn btn-primary pull-left" href="{{ url('dataset') }}">Spara</a>
                 </form>
             </td>
             <td>{{ $dataset->user->name }}</td>

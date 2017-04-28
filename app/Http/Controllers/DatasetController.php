@@ -31,7 +31,8 @@ class DatasetController extends Controller
    {
         $datasets = Dataset::has('tags', '<', 1)
                             ->orderBy('created_at', 'desc')
-                            ->unAttached()
+                            ->where('status', null)
+                            ->orWhere('status', 'processing')
                             ->get();
 
         $filter = $request->filter;

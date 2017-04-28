@@ -9,6 +9,8 @@
     <h1>Uppladdning av dataset</h1>
 
     <p>Endast filformatet CSV stöds.</p>
+
+    <p class="alert dropzone-msg"></p>
     
     @include('forms.dataset')
 

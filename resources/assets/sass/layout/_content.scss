@@ -46,3 +46,8 @@ span {
 .select2 {
     float: left;
 }
+
+.dropzone-msg {
+    opacity: 0;
+    transition: opacity 1s linear;
+}

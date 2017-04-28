@@ -74,6 +74,20 @@ $(document).ready(function() {
         myDropzone.on("addedfile", function(file) {
             console.log(file);
         });
+
+        myDropzone.on("success", function(file) {
+            $('.dropzone-msg').html('').removeClass('alert-danger');
+            $('.dropzone-msg').addClass('alert-success').html('<p>Filuppladdningen lyckades!</p>').css('opacity', 1);
+        });
+
+        myDropzone.on("error", function(file) {
+            $('.dropzone-msg').html('');
+
+            if (!file.accepted) {
+                this.removeFile(file);
+                $('.dropzone-msg').addClass('alert-danger').html('<p>Kunde inte ladda upp ' + file.name + '.</p><p>Är du säker på att det är en .CSV fil?</p>').css('opacity', 1);
+            }
+        });
     }
 
     $('.multiselect').multiselect({

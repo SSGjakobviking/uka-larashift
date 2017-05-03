@@ -88,29 +88,12 @@ class DatasetController extends Controller
             'file'          => $name,
         ]);
 
-        $delay = $this->processingDatasetsCount() * 10;
-        Log::info('Count: ' . $this->processingDatasetsCount());
-        Log::info('Delay: ' . $delay);
         $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(1));
 
         dispatch($job);
 
         return response()->json(['success' => true]);
     }
-
-    public function processingDatasetsCount()
-    {
-        return Dataset::where('status', 'processing')->count();
-    }
-
-    // public function parse()
-    // {
-    //     $dataset = Dataset::where('status', 'processing')->first();
-
-    //     $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(10));
-
-    //     dispatch($job);
-    // }
 
     /**
      * Deletes a file in the DB And on the server.

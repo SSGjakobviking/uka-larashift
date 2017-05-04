@@ -42,7 +42,27 @@ class IndicatorController extends Controller
         ]);
     }
 
+    /**
+     * Saves the dataset with the right status depending on the form being used (preview|production).
+     * 
+     * @param  [type]  $id
+     * @param  Request $request
+     * @return [type]
+     */
     public function saveDataset($id, Request $request)
+    {
+        $this->updateStatus($id, $request);
+
+        return redirect()->back();
+    }
+
+    /**
+     * Checks if the input is added via preview or production form.
+     * 
+     * @param  [type] $request
+     * @return [type]
+     */
+    private function detectStatus($request)
     {
         $datasets = $request->input('dataset_preview');
         $status = 'preview';
@@ -52,13 +72,29 @@ class IndicatorController extends Controller
             $status = 'published';
         }
 
-        foreach ($datasets as $datasetId) {
+        return [
+            'datasets' => $datasets,
+            'status'    => $status,
+        ];
+    }
+
+    /**
+     * Loops through all of the selected datasets and updates their statuses.
+     * 
+     * @param  [type] $id
+     * @param  [type] $request
+     * @return [type]
+     */
+    public function updateStatus($id, $request)
+    {
+
+        $input = $this->detectStatus($request);
+
+        foreach ($input['datasets'] as $datasetId) {
             Dataset::where('id', $datasetId)->update([
                 'indicator_id' => $id,
-                'status'    => $status,
+                'status'    => $input['status'],
             ]);
         }
-
-        return redirect()->back();
     }
 }

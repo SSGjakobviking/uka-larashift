@@ -1,6 +1,11 @@
 <?php
 
+use App\Dataset;
 use App\DatasetImporter;
+use App\Indicator;
+use App\Search;
+use Elasticsearch\ClientBuilder;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,3 +52,18 @@ Route::get('users/{id}/delete', 'UserController@destroy');
 Route::get('/home', 'HomeController@index');
 
 Route::get('parse', 'DatasetController@parse');
+
+Route::get('search', function(Request $request) {
+    $indicator = Indicator::find(1);
+    $id = Dataset::find(75)->id;
+    $client = ClientBuilder::create()->build();
+    $results = null;
+
+    if (! empty($request->q)) {
+        $search = new Search($client, $indicator, $id);
+
+        $results = $search->search($request->q);
+    }
+
+    return view('search.index', ['results' => $results]);
+});

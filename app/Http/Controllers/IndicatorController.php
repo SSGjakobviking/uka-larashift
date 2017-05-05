@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Dataset;
 use App\Indicator;
+use App\Search;
+use App\Total;
+use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IndicatorController extends Controller
 {
@@ -34,6 +38,8 @@ class IndicatorController extends Controller
     {
         $indicator = Indicator::find($id);
 
+        $this->indexDataset($id);
+
         return view('indicator.edit', [
             'indicator' => $indicator,
             'previewData' => Dataset::preview()->get(),
@@ -54,6 +60,28 @@ class IndicatorController extends Controller
         $this->updateStatus($id, $request);
 
         return redirect()->back();
+    }
+
+    private function indexDataset($indicator)
+    {
+        $id = $this->lastPublishedYearDataset($indicator);
+        $client = ClientBuilder::create()->build();
+
+        $search = new Search($client, $indicator, $id);
+        $search->index();
+    }
+
+    private function lastPublishedYearDataset($indicator)
+    {
+        $latest = Total::with('dataset')->whereHas('dataset', function($query) use($indicator) {
+            $query->where('status', 'published');
+            $query->where('indicator_id', $indicator->id);
+        })
+        ->where('gender', 'Total')
+        ->orderBy('year', 'desc')
+        ->first();
+
+        return $latest->dataset_id;
     }
 
     /**

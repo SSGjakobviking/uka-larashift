@@ -27,6 +27,7 @@ class Search {
             'index' => $this->indicator->slug,
             'type'  => 'university,group,gender,age-group',
             'body'  => [
+                'size' => 100,
                 'query' => [
                     'query_string' => [
                         'default_field' => 'name',

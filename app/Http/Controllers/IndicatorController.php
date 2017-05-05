@@ -37,8 +37,11 @@ class IndicatorController extends Controller
     public function edit($id)
     {
         $indicator = Indicator::find($id);
-
-        $this->indexDataset($id);
+        error_log('edit page');
+        if (! empty($_GET['import'])) {
+            error_log('Start import...');
+            $this->indexDataset($id);
+        }
 
         return view('indicator.edit', [
             'indicator' => $indicator,

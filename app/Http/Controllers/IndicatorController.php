@@ -37,11 +37,6 @@ class IndicatorController extends Controller
     public function edit($id)
     {
         $indicator = Indicator::find($id);
-        error_log('edit page');
-        if (! empty($_GET['import'])) {
-            error_log('Start import...');
-            $this->indexDataset($id);
-        }
 
         return view('indicator.edit', [
             'indicator' => $indicator,
@@ -65,26 +60,30 @@ class IndicatorController extends Controller
         return redirect()->back();
     }
 
-    private function indexDataset($indicator)
+    private function indexDataset($indicatorId)
     {
-        $id = $this->lastPublishedYearDataset($indicator);
+        $indicator = Indicator::find($indicatorId);
+        
+        $dataset = $this->lastPublishedDataset($indicator);
+
         $client = ClientBuilder::create()->build();
 
-        $search = new Search($client, $indicator, $id);
+        $search = new Search($client, $indicator, $dataset);
+
         $search->index();
     }
-
-    private function lastPublishedYearDataset($indicator)
+    
+    private function lastPublishedDataset($indicator)
     {
-        $latest = Total::with('dataset')->whereHas('dataset', function($query) use($indicator) {
+        $latest = Total::whereHas('dataset', function($query) use($indicator) {
             $query->where('status', 'published');
             $query->where('indicator_id', $indicator->id);
         })
         ->where('gender', 'Total')
         ->orderBy('year', 'desc')
-        ->first();
+        ->first(['year', 'dataset_id']);
 
-        return $latest->dataset_id;
+        return $latest;
     }
 
     /**
@@ -119,7 +118,13 @@ class IndicatorController extends Controller
     public function updateStatus($id, $request)
     {
 
+        // Retrieve dataset status, preview or production?
         $input = $this->detectStatus($request);
+
+        // Index only production dataset in elasticsearch
+        if ($input['status'] == 'published') {
+            $this->indexDataset($id);
+        }
 
         foreach ($input['datasets'] as $datasetId) {
             Dataset::where('id', $datasetId)->update([

@@ -29,12 +29,12 @@ class DynamicTitle
      * 
      * @return string
      */
-    public function get()
+    public function get($ignore)
     {
         $title = $this->title;
         
         // Retrieves nice values from indicator config file for each filter group
-        $filters = $this->niceValue($this->filters->all());
+        $filters = $this->niceValue($this->filters->all()->forget($ignore));
 
         // Builds the dynamic string by replacing the placeholders for each group with their filter value
         $title = $this->build($title, $filters);
@@ -50,6 +50,7 @@ class DynamicTitle
      */
     private function niceValue($filters)
     {
+
         return $filters->map(function($value, $key) {
 
             // year doesn't need a nice value from the config so we return it directly.
@@ -66,21 +67,28 @@ class DynamicTitle
             }
 
             if ($key == 'age_group') {
+
                 $ageGroup = TotalColumn::find($value)->name;
-    
+
+                // skipp total
+                if ($ageGroup == 'Total') {
+                    return false;
+                }
+
                 $value = $prefix[StringHelper::slugify($ageGroup)];
 
                 return $this->leftSpacing($value);
             }
 
             if ($key == 'university' && $value != strtolower('riket')) {
+    
                 $university = $this->leftSpacing(University::find($value)->name);
 
                 if (trim(strtolower($university)) == 'riket') {
                     return false;
                 }
 
-                return $this->leftSpacing($prefix . strtolower($university));
+                return $this->leftSpacing($prefix . $university);
             }
            
             $value = $prefix[StringHelper::slugify($value)];

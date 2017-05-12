@@ -52,8 +52,10 @@ class TotalsController extends Controller
             'age_group' => $request->age_group,
         ];
 
-        $filter = new Filter($filters, $indicator, $year);
+        // dd($filters);
 
+        $filter = new Filter($filters, $indicator, $year);
+        // dd($filter->title());
         $data['indicator'] = $this->indicatorData($indicator, $filter, $year, $term);
         
         // retrieve dataset id for current year

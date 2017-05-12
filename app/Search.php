@@ -6,6 +6,7 @@ use App\Group;
 use App\TotalColumn;
 use App\University;
 use Elasticsearch\ClientBuilder;
+use Illuminate\Support\Facades\DB;
 
 class Search {
 
@@ -14,77 +15,87 @@ class Search {
     protected $datasetId;
     protected $params;
 
-    public function __construct($client, $indicator, $datasetId)
+    public function __construct($client, $indicator, $dataset)
     {
         $this->client = $client;
         $this->indicator = $indicator;
-        $this->datasetId = $datasetId;
+        $this->dataset = $dataset;
+        $this->groups();
     }
 
     public function search($query)
     {
         $params = [
             'index' => $this->indicator->slug,
-            'type'  => 'university,group,gender,age-group',
+            'type'  => 'university,group,gender,age_group',
             'body'  => [
                 'size' => 100,
                 'query' => [
-                    'query_string' => [
-                        'default_field' => 'name',
-                        'query' => '*' . $query . '*',
+                    'match_phrase_prefix' => [
+                        'name' => $query,
                     ],
                 ],
             ],
         ];
 
-        return $this->responseFormatter($this->client->search($params));
+        $results = $this->client->search($params);
+
+        $results = collect($results['hits']['hits']);
+        $ordered = $this->orderResults($results);
+        // $ordered = $ordered->sortBy('id')->groupBy('parent_id')->collapse();
+        $ordered = $ordered->sortBy('order')->values();
+
+        $results = $results->map(function($item, $key) use($ordered) {
+            $item['_source'] = $ordered[$key];
+            return $item;
+        });
+
+        return $results;
     }
 
-    private function responseFormatter($response)
+    public function orderResults($results)
     {
-        return $response['hits']['hits'];
+        $results = collect($results);
+
+        $results = $results->map(function($item) {
+            return $item['_source'];
+        });
+
+        return $results->sortBy('parent_id');
     }
 
     public function index()
     {
         $index = $this->indicator->slug;
 
-        if (! $this->client->indices()->exists(['index' => $index])) {
+        if (! $this->indexExist($index)) {
             $this->client->indices()->create($this->params());
         }
         
-        $params = ['body' => []];
-        $i = 0;
+        foreach($this->groups() as $type => $group) {
 
-        foreach($this->groups() as $group => $names) {
+            foreach($group as $list) {
+                $document = collect([]);
+                $document = $document->merge($list)->toArray();
+                $document['dataset_id'] = $this->dataset['dataset_id'];
 
-            // dd($group);
-            foreach($names as $name) {
-                $i++;
                 $params['body'][] = [
                     'index' => [
                         '_index' => $index,
-                        '_type' => $group,
-                        '_id' => $i
+                        '_type' => $type,
                     ]
                 ];
 
-                $params['body'][] = [
-                    'name' => $name,
-                ];
-
-                // Every 1000 documents stop and send the bulk request
-                if ($i % 50 == 0) {
-                    $responses = $this->client->bulk($params);
-
-                    // erase the old bulk request
-                    $params = ['body' => []];
-
-                    // unset the bulk response when you are done to save memory
-                    unset($responses);
-                }
-
+                $params['body'][] = $document;
             }
+
+            $responses = $this->client->bulk($params);
+
+            // erase the old bulk request
+            $params = ['body' => []];
+
+            // unset the bulk response when you are done to save memory
+            unset($responses);
         }
 
         // Send the last batch if it exists
@@ -93,19 +104,107 @@ class Search {
         }
     }
 
-    public function remove()
+    /**
+     * Retrieve 
+     * @return [type]
+     */
+    private function groups()
     {
-        
+        $universities = University::get(['id', 'name'])->map(function($item) {
+            $item['order'] = 1;
+            $item['group'] = 'university';
+            return $item;
+        });
+
+        $groups = Group::get(['id', 'parent_id', 'name'])->map(function($item) {
+            $item['order'] = 2;
+            $item['group'] = 'group';
+            return $item;
+        });
+
+        $ageGroup = TotalColumn::get(['id', 'name'])->map(function($item) {
+            $item['order'] = 3;
+            $item['group'] = 'age_group';
+            return $item;
+        });
+
+        $genders = collect([
+                [
+                    'id' => 'Män',
+                    'name' => 'Män',
+                ], [
+                    'id' => 'Kvinnor',
+                    'name' => 'Kvinnor',
+                ]
+            ])->map(function($item) {
+                $item['order'] = 4;
+                $item['group'] = 'gender';
+
+                return $item;
+            });
+
+        return [
+            'university' => $universities,
+            'group' => $groups,
+            'gender' => $genders,
+            'age_group' => $ageGroup,
+        ];
     }
 
+    /**
+     * Check whether index exist or not.
+     * 
+     * @param  string $index
+     * @return boolean
+     */
+    public function indexExist($index)
+    {
+        return $this->client->indices()->exists(['index' => $index]);
+    }
+
+    /**
+     * Removes the whole index.
+     * 
+     * @return [type]
+     */
+    public function remove()
+    {
+        $this->client->indices()->delete(['index' => $this->indicator->slug]);
+    }
+
+    /**
+     * Create default mapping structure array.
+     * 
+     * @return [type]
+     */
     private function params()
     {
-        $params = [
+        return [
             'index' => $this->indicator->slug,
             'body' => [
                 'settings' => [
                     'number_of_shards' => 3,
-                    'number_of_replicas' => 2
+                    'number_of_replicas' => 2,
+                    'analysis' => [
+                        'analyzer' => [
+                            'my_analyzer' => [
+                                'type' => 'custom',
+                                'tokenizer' => 'standard',
+                                'filter' => ['lowercase', 'synonym_filter'],
+                            ],
+                        ],
+                        'filter' => [
+                            'synonym_filter' => [
+                                'type' => 'synonym',
+                                'ignore_case' => true,
+                                'synonyms' => [
+                                    'kvinna, kvinnor, kvinnliga',
+                                    'man, män, manliga',
+                                    'kth, kungl tekniska högskolan',
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'mappings' => [
                     'university' => [
@@ -115,7 +214,7 @@ class Search {
                         'properties' => [
                             'name' => [
                                 'type' => 'text',
-                                'analyzer' => 'standard'
+                                'analyzer' => 'my_analyzer',
                             ],
                         ]
                     ],
@@ -126,7 +225,7 @@ class Search {
                         'properties' => [
                             'name' => [
                                 'type' => 'text',
-                                'analyzer' => 'standard'
+                                'analyzer' => 'my_analyzer',
                             ],
                         ]
                     ],
@@ -135,41 +234,29 @@ class Search {
                             'enabled' => true
                         ],
                         'properties' => [
+                            'id' => [
+                                'type' => 'text',
+                                'analyzer' => 'my_analyzer',
+                            ],
                             'name' => [
                                 'type' => 'text',
-                                'analyzer' => 'standard'
+                                'analyzer' => 'my_analyzer',
                             ],
                         ]
                     ],
-                    'age-group' => [
+                    'age_group' => [
                         '_source' => [
                             'enabled' => true
                         ],
                         'properties' => [
                             'name' => [
                                 'type' => 'text',
-                                'analyzer' => 'standard'
+                                'analyzer' => 'my_analyzer',
                             ],
                         ]
                     ],
                 ]
             ]
-        ];
-
-        return $params;
-    }
-
-    private function groups()
-    {
-        $universities = University::all();
-        $groups = Group::all();
-        $ageGroup = TotalColumn::all();
-
-        return [
-            'university' => $universities->pluck('name')->toArray(),
-            'group' => $groups->pluck('name')->toArray(),
-            'gender' => ['Kvinnor', 'Män'],
-            'age-group' => $ageGroup->pluck('name')->toArray(),
         ];
     }
 

@@ -84,9 +84,7 @@ class Filter
      */
     public function all()
     {
-        $filters = $this->removeEmpty();
-
-        return $filters;
+        return $this->removeEmpty();
     }
 
     /**
@@ -106,28 +104,18 @@ class Filter
     }
 
     /**
-     * Retrieves the current filter with exclude posibility.
-     * 
-     * @param  string $exclude
-     * @return Illuminate\Support\Collection
-     */
-    public function skip($exclude = null)
-    {
-        if (! is_null($exclude)) {
-            return $this->all()->forget($exclude);
-        }
-        
-        return $this->all();
-    }
-
-    /**
      * Retrieve dynamic title based on filter.
      * 
      * @return string
      */
-    public function title()
+    public function title($ignore = [])
     {
-        return (new DynamicTitle($this->indicator, $this))->get();
+        return (new DynamicTitle($this->indicator, $this))->get($ignore);
+    }
+
+    public function titleExclude($key = null)
+    {
+        return $this->title($key);
     }
 
 }

@@ -17,21 +17,9 @@
     <ul class="list-group">
     @if(! empty($results))
         @foreach($results as $result)
-
-            @if($result['_type'] == 'university')
-                <li class="list-group-item"><?php echo highlighter($_GET['q'], 'Antal registrerade studenter vid ' . $result['_source']['name'] ); ?></li>
-            @elseif($result['_type'] == 'group')
-                <li class="list-group-item"><?php echo highlighter($_GET['q'], 'Antal registrerade studenter inom ' . $result['_source']['name']); ?></li>
-            @elseif($result['_type'] == 'gender')
-                @if(strpos($result['_source']['name'], 'ä') !== false)
-                    <li class="list-group-item">Antal manliga registrerade studenter</li>
-                @else
-                    <li class="list-group-item">Antal kvinnliga registrerade studenter</li>
-                @endif
-            @elseif($result['_type'] == 'age-group')
-                <li class="list-group-item">Antal registrerade studenter</li>
+            @if(! empty($result))
+                <li class="list-group-item"><a href="{{ $result->url() }}">{{ $result->titleExclude('year') }}</a></li>
             @endif
-
         @endforeach
     @endif
     </ul>

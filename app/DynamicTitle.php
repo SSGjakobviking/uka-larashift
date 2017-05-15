@@ -55,7 +55,7 @@ class DynamicTitle
 
             // year doesn't need a nice value from the config so we return it directly.
             if ($key == 'year') {
-                return $value;
+                return;
             }
 
             $prefix = $this->config['dynamic_title'][$key];

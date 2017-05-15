@@ -26,7 +26,7 @@ return [
         ],
 
         'dynamic_title' => [
-            'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{term}{year}',
+            'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{year}',
             'university' => 'vid',
             'term'      => [
                 'vt'    => 'VT',

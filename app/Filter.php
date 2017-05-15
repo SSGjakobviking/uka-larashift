@@ -16,11 +16,14 @@ class Filter
 
     protected $filterUrl;
 
-    public function __construct(array $filters, $indicator, $year)
+    protected $children;
+
+    public function __construct(array $filters, $indicator, $year, $children = [])
     {
         $this->filters   = collect($filters);
         $this->indicator = $indicator;
         $this->year      = $year;
+        $this->children  = (array) $children;
     }
 
     /**
@@ -85,6 +88,24 @@ class Filter
     public function all()
     {
         return $this->removeEmpty();
+    }
+
+    /**
+     * Returns group children.
+     * 
+     * @return
+     */
+    public function children()
+    {
+
+        return collect($this->children)->map(function($item) {
+            
+            $filterArgs = [
+                $item['_source']['group'] => $item['_source']['id'],
+                'year' => $this->year,
+            ];
+            return new static($filterArgs, $this->indicator, $this->year, $item['children'] ?? []);
+        });
     }
 
     /**

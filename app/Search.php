@@ -14,6 +14,7 @@ class Search {
     protected $indicator;
     protected $datasetId;
     protected $params;
+    protected $groupChildIds = [];
 
     public function __construct($client, $indicator, $dataset)
     {
@@ -41,27 +42,55 @@ class Search {
         $results = $this->client->search($params);
 
         $results = collect($results['hits']['hits']);
+        
         $ordered = $this->orderResults($results);
-        // $ordered = $ordered->sortBy('id')->groupBy('parent_id')->collapse();
-        $ordered = $ordered->sortBy('order')->values();
 
-        $results = $results->map(function($item, $key) use($ordered) {
-            $item['_source'] = $ordered[$key];
-            return $item;
-        });
+        $grouped = $ordered->groupBy('_source.parent_id');
 
-        return $results;
+        $result = [];
+
+        foreach ($grouped as $group) {
+            $result[] = $this->iterateChildren($grouped, $group);
+        }
+
+        $result = collect(array_filter($result))->collapse();
+
+        return $result;
     }
 
-    public function orderResults($results)
+    private function iterateChildren($collection, $group)
+    {
+        $result = [];
+
+        foreach ($group as $child) {
+            $currentChild = $child['_source']['id'];
+
+            // skip duplicates
+            if (in_array($currentChild, $this->groupChildIds)) continue;
+
+            if ($collection->has($currentChild)) {
+                $child['children'] = $this->iterateChildren($collection, $collection->get($currentChild));
+            }
+
+            $result[] = $child;
+            $this->groupChildIds[] = $currentChild;
+
+        }
+
+        return $result;
+    }
+
+    private function orderResults($results)
     {
         $results = collect($results);
 
-        $results = $results->map(function($item) {
-            return $item['_source'];
+        $results = $results->sortBy(function($item) { // sort by order first
+            return $item['_source']['order'];
+        })->values()->sortBy(function($item) { // sort by id within order groups
+            return $item['_source']['id'];
         });
-
-        return $results->sortBy('parent_id');
+        // dd($results->toArray());
+        return $results;
     }
 
     public function index()

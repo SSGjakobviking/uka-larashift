@@ -16,11 +16,8 @@
 
     <ul class="list-group">
     @if(! empty($results))
-        @foreach($results as $result)
-            @if(! empty($result))
-                <li class="list-group-item"><a href="{{ $result->url() }}">{{ $result->titleExclude('year') }}</a></li>
-            @endif
-        @endforeach
+        
+        @each('search.child', $results, 'result')
     @endif
     </ul>
 @stop

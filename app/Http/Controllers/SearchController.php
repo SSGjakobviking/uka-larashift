@@ -51,7 +51,9 @@ class SearchController extends Controller
                 'year' => $year,
             ];
 
-            return new Filter($filterArgs, $indicator, $year);
+            $children = $result['children'] ?? [];
+
+            return new Filter($filterArgs, $indicator, $year, $children);
         });
     }
 }

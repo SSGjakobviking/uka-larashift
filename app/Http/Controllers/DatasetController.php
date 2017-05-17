@@ -60,7 +60,11 @@ class DatasetController extends Controller
 
    public function create()
    {
-       return view('dataset.create');
+        $dataset = Dataset::first();
+        
+        $job = new ImportDataset($dataset);
+        
+        return view('dataset.create');
    }
 
     /**

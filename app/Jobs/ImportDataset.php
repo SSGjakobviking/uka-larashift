@@ -25,6 +25,7 @@ class ImportDataset implements ShouldQueue
     public function __construct($dataset)
     {
         $this->dataset = $dataset;
+        $this->handle();
     }
 
     /**
@@ -35,7 +36,6 @@ class ImportDataset implements ShouldQueue
     public function handle()
     {
         // dd($this->user);
-        $path = public_path('uploads/');
 
         Log::info('Started importing dataset: ' . $this->dataset->file);
 

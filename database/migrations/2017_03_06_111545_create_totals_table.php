@@ -25,8 +25,7 @@ class CreateTotalsTable extends Migration
             $table->integer('university_id')->unsigned()->nullable();
             $table->foreign('university_id')->references('id')->on('universities');
 
-            $table->string('term')->nullable();
-            $table->integer('year');
+            $table->string('year');
             $table->string('gender');
         });
     }

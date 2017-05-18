@@ -254,13 +254,6 @@ class DatasetImporter
 
                     $createdUniversity = $this->createUniversity($university['title'], $university['slug']);
 
-                    if (count($university['totals']) != 4) {
-                        dump($university);
-                        exit;
-                    }
-
-                    dd($university);
-
                     $this->createTotal($dataset, $createdUniversity, $university);
 
                     $this->createGroup($dataset, $university['children'], $university['children'], $createdUniversity);

@@ -25,7 +25,6 @@ class ImportDataset implements ShouldQueue
     public function __construct($dataset)
     {
         $this->dataset = $dataset;
-        $this->handle();
     }
 
     /**

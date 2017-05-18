@@ -267,7 +267,6 @@ class TotalsController extends Controller
                     ->where('group_id', $groupId)
                     ->where('university_id', $university)
                     ->orderBy('year')
-                    ->orderBy('term', 'desc')
                     ->get();
 
         $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {

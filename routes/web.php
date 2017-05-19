@@ -46,5 +46,3 @@ Route::get('/home', 'HomeController@index');
 
 Route::get('parse', 'DatasetController@parse');
 
-Route::get('search', 'SearchController@index');
-

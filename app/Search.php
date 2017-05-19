@@ -24,7 +24,7 @@ class Search {
         $this->groups();
     }
 
-    public function search($query)
+    public function search($query, $year = null)
     {
         $params = [
             'index' => $this->indicator->slug,
@@ -40,6 +40,11 @@ class Search {
         ];
 
         $results = $this->client->search($params);
+        
+        // no match
+        if ($results['hits']['total'] == 0) {
+            throw new \Exception('Hittade inget som matchade sökordet ' . $query);
+        }
 
         $results = collect($results['hits']['hits']);
         
@@ -50,7 +55,7 @@ class Search {
         $result = [];
 
         foreach ($grouped as $group) {
-            $result[] = $this->iterateChildren($grouped, $group);
+            $result[] = $this->iterateChildren($grouped, $group, $year);
         }
 
         $result = collect(array_filter($result))->collapse();
@@ -58,7 +63,7 @@ class Search {
         return $result;
     }
 
-    private function iterateChildren($collection, $group)
+    private function iterateChildren($collection, $group, $year)
     {
         $result = [];
 
@@ -68,11 +73,24 @@ class Search {
             // skip duplicates
             if (in_array($currentChild, $this->groupChildIds)) continue;
 
+            $filterArgs = [
+                $child['_source']['group'] => $child['_source']['id'],
+                'year' => $year,
+            ];
+
+            $filter = new Filter($filterArgs, $this->indicator, $year, $child);
+
+            $data = [
+                'title' => $filter->title(),
+                'url'   => $filter->url(),
+            ];
+
             if ($collection->has($currentChild)) {
-                $child['children'] = $this->iterateChildren($collection, $collection->get($currentChild));
+                $child['children'] = $this->iterateChildren($collection, $collection->get($currentChild), $year);
+                $data['children'] = $child['children'];
             }
 
-            $result[] = $child;
+            $result[] = $data;
             $this->groupChildIds[] = $currentChild;
 
         }

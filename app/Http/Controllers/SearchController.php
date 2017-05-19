@@ -9,25 +9,35 @@ use App\Search;
 use App\Total;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 
 class SearchController extends Controller
 {
 
-    public function index(Request $request)
+    public function index(Request $request, $indicator, $query)
     {
-        $indicator = Indicator::find(1);
+        $indicator = Indicator::find($indicator);
         $lastPublishedDataset = $this->lastPublishedDataset($indicator);
         $client = ClientBuilder::create()->build();
-        $results = null;
+        $results = [
+            'error' => false,
+        ];
 
         $search = new Search($client, $indicator, $lastPublishedDataset);
 
-        if (! empty($request->q)) {
-            $results = $search->search($request->q);
-            $results = $this->generateFilterUrl($results, $indicator, $lastPublishedDataset['year']);
+        if (! empty($query)) {
+            try {
+                $results['result'] = $search->search($query, $lastPublishedDataset['year']);
+            } catch(\Exception $e) {
+                $results = [
+                    'error' => true,
+                ];
+
+                return Response::json($results, 404);
+            }
         }
 
-        return view('search.index', ['results' => $results]);
+        return $results;
     }
 
     private function lastPublishedDataset($indicator)
@@ -41,19 +51,5 @@ class SearchController extends Controller
         ->first(['year', 'dataset_id']);
 
         return $latest;
-    }
-
-    private function generateFilterUrl($results, $indicator, $year)
-    {
-        return $results->map(function($result) use($indicator, $year) {
-            $filterArgs = [
-                $result['_source']['group'] => $result['_source']['id'],
-                'year' => $year,
-            ];
-
-            $children = $result['children'] ?? [];
-
-            return new Filter($filterArgs, $indicator, $year, $children);
-        });
     }
 }

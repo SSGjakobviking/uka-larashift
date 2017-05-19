@@ -19,9 +19,7 @@ class SearchController extends Controller
         $indicator = Indicator::find($indicator);
         $lastPublishedDataset = $this->lastPublishedDataset($indicator);
         $client = ClientBuilder::create()->build();
-        $results = [
-            'error' => false,
-        ];
+        $results = [];
 
         $search = new Search($client, $indicator, $lastPublishedDataset);
 
@@ -31,6 +29,8 @@ class SearchController extends Controller
             } catch(\Exception $e) {
                 $results = [
                     'error' => true,
+                    'code'  => 404,
+                    'message' => 'Kunde inte hitta en träff med söktermen ' . $query,
                 ];
 
                 return Response::json($results, 404);

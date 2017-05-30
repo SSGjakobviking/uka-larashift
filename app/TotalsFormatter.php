@@ -22,10 +22,19 @@ class TotalsFormatter
 
     public function addGroup($column, $group)
     {
-        $this->data['groups'][] = [
+        // needs refactor
+        $hierarchical = ['Ämnesområden', 'Ämnesdelsområden', 'Ämnesgrupp'];
+
+        $data = [
             'column'    => $column,
             'totals'    => $group,
         ];
+
+        if (in_array($column, $hierarchical)) {
+            $data['top_parent_id'] = GroupColumn::first()->id;
+        }
+
+        $this->data['groups'][] = $data;
     }
 
     private function build()

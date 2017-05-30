@@ -31,7 +31,7 @@ class TotalsFormatter
         ];
 
         if (in_array($column, $hierarchical)) {
-            $data['top_parent_id'] = GroupColumn::first()->id;
+            $data['top_parent_id'] = GroupColumn::orderBy('id')->first()->id;
         }
 
         $this->data['groups'][] = $data;

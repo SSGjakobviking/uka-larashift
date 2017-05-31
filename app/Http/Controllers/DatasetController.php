@@ -88,7 +88,7 @@ class DatasetController extends Controller
             'file'          => $name,
         ]);
 
-        $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(1));
+        $job = new ImportDataset($dataset);
 
         dispatch($job);
 

@@ -40,9 +40,9 @@ class IndicatorController extends Controller
 
         return view('indicator.edit', [
             'indicator' => $indicator,
-            'previewData' => Dataset::preview()->get(),
-            'publishedData' => Dataset::published()->get(),
-            'unAttachedData'    => Dataset::unAttached()->get(),
+            'previewData' => $indicator->datasets()->preview()->get(),
+            'publishedData' => $indicator->datasets()->published()->get(),
+            'unAttachedData'  => Dataset::unAttached()->get(),
         ]);
     }
 

@@ -60,6 +60,27 @@ class DatasetController extends Controller
 
    public function create()
    {
+        $dataset = Dataset::first();
+        
+        $dataset = new DatasetImporter($dataset);
+        
+        // define group columns
+        $dataset->groupColumns([
+            'Ämnesområde',
+            'Ämnesdelsområde',
+            'Ämnesgrupp',
+        ]);
+
+        $dataset->totalColumns([
+            '-24',
+            '25-34',
+            '35-',
+            'Total',
+        ]);
+
+        $dataset->make();
+
+        exit;
        return view('dataset.create');
    }
 

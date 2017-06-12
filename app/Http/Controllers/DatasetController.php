@@ -63,20 +63,6 @@ class DatasetController extends Controller
         $dataset = Dataset::first();
         
         $dataset = new DatasetImporter($dataset);
-        
-        // define group columns
-        $dataset->groupColumns([
-            'Ämnesområde',
-            'Ämnesdelsområde',
-            'Ämnesgrupp',
-        ]);
-
-        $dataset->totalColumns([
-            '-24',
-            '25-34',
-            '35-',
-            'Total',
-        ]);
 
         $dataset->make();
 

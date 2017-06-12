@@ -30,7 +30,7 @@ class DatasetImporter
     {
         $this->dataset = $dataset;
         Log::info('Start importing...');
-        $this->parse($dataset);
+        $this->data = $this->parse($dataset);
     }
 
     public function parse($dataset)
@@ -42,6 +42,16 @@ class DatasetImporter
         $header = collect($csv->fetchOne());
 
         $groups = (clone $header)->splice(2, -3);
+
+        // retrieve hierarchical group columns
+        $groupColumns = $groups->map(function($item) {
+            if (preg_match('/\[(\d+)\]$/', $item)) {
+                return preg_replace('/\[(\d+)\]$/', '', $item);
+            }
+        })->toArray();
+
+        // create group columns
+        $this->groupColumns($groupColumns);
 
         $data = collect($csv->setOffset(1)->fetchAll())
                 ->map(function ($line) use ($header, $groups) {
@@ -128,7 +138,7 @@ class DatasetImporter
         
         $this->createGroupColumns($this->groupColumns);
 
-        $this->createTotalColumns($this->totalColumns);
+        // $this->createTotalColumns($this->totalColumns);
 
         $this->createGroups($this->dataset);
         
@@ -150,18 +160,20 @@ class DatasetImporter
         }
     }
 
-    private function createGroup($dataset, $prevData, $data, $university, $parent = null, $level = -1)
+    private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $parent = null, $level = -1)
     {
-        foreach($data as $item) {
+        foreach($data as $groupName => $item) {
+            $firstInLevel = $data->keys()->first();
 
-            if ($item == head($data)) {
+            // check to see if groupName is in first level
+            if (isset($item['children']) && $firstInLevel == $groupName) {
                 $level++;
             }
 
             $currentGroup = Group::firstOrCreate([
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'parent_id'     => $parent,
-                'name'          => $item['title'],
+                'name'          => $groupName,
             ]);
 
             // attach a group to a university
@@ -171,34 +183,35 @@ class DatasetImporter
             $total = $this->createTotal(
                 $dataset,
                 $university,
-                $item,
+                $year,
+                $gender,
+                $item->get('total'),
                 $currentGroup
             );
 
             if (isset($item['children'])) {
-                $this->createGroup($dataset, $prevData, $item['children'], $university, $currentGroup->id, $level);
+                $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $currentGroup->id, $level);
                 continue;
             }
         }
-
+        
         return $data;
     }
 
     private function createGroups($dataset)
     {
-        $data = $this->data['dataset'];
+        // dd($this->data['Riket'][2014]['Kvinnor']);
+        foreach($this->data as $university => $years) {
 
-        foreach($data as $term) {
+            foreach($years as $year => $genders) {
 
-            foreach($term as $gender) {
+                foreach($genders as $gender => $group) {
 
-                foreach($gender as $university) {
+                    $createdUniversity = $this->createUniversity($university, StringHelper::slugify($university));
 
-                    $createdUniversity = $this->createUniversity($university['title'], $university['slug']);
+                    $this->createTotal($dataset, $createdUniversity, $year, $gender, $group->get('total'));
 
-                    $this->createTotal($dataset, $createdUniversity, $university);
-
-                    $this->createGroup($dataset, $university['children'], $university['children'], $createdUniversity);
+                    $this->createGroup($dataset, $group['children'], $group['children'], $createdUniversity, $year, $gender);
 
                 }
             }
@@ -217,7 +230,7 @@ class DatasetImporter
      * @param  [type] $gender
      * @return [type]
      */
-    private function createTotal($dataset, $university, $item, $group = null)
+    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null)
     {
         if (! is_null($group)) {
             $group = $group->id;
@@ -227,31 +240,34 @@ class DatasetImporter
             'dataset_id'    => $dataset->id,
             'group_id'      => $group,
             'university_id' => $university->id,
-            'year'          => $item['year'],
-            'gender'        => $item['gender'],
+            'year'          => $year,
+            'gender'        => $gender,
         ]);
 
-        $this->createTotalValues($total, $item['totals']);
+        $this->createTotalValues($total, $totals);
 
         return $total;
     }
 
     /**
-     * Inserts the total values into the database
+     * Inserts the total columns and values into the database.
+     * 
      * @param  array $totals
      * @return [type]
      */
-    private function createTotalValues($total, $values)
+    private function createTotalValues($total, $totals)
     {
-        collect($this->totalColumnIds)
-            ->combine($values)
-            ->each(function($value, $columnId) use($total) {
-                return TotalValue::firstOrCreate([
-                    'total_id'  => $total->id,
-                    'column_id' => $columnId,
-                    'value'     => $value,
-                ]);
-            });
+
+        $totals->each(function($value, $column) use($total) {
+            $column = TotalColumn::firstOrCreate(['name' => $column]);
+
+            TotalValue::create([
+                'total_id' => $total->id,
+                'column_id' => $column->id,
+                'value'    => $value,
+            ]);
+
+        });
     }
 
     private function updateStatus($dataset)

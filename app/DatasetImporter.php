@@ -12,18 +12,33 @@ use League\Csv\Reader;
 class DatasetImporter
 {
 
+    /**
+     * The dataset object.
+     * @var App\Dataset
+     */
     protected $dataset;
 
+    /**
+     * This var contains structured parsed csv data.
+     * @var Illuminate\Support\Collection
+     */
     protected $data;
 
+    /**
+     * Stores the group columns
+     * @var App\GroupColumn
+     */
     protected $groupColumns;
 
+    /**
+     * Stores the total columns
+     * @var App\TotalColumn
+     */
     protected $totalColumns;
 
-    protected $totalColumnIds;
-
-    protected $user;
-
+    /**
+     * This is the default "university" / all universities
+     */
     const UNIVERSITY_DEFAULT = 'Riket';
 
     public function __construct($dataset)
@@ -33,14 +48,23 @@ class DatasetImporter
         $this->data = $this->parse($dataset);
     }
 
+    /**
+     * Parses the dataset (csv) and builds a collection with all of the data structured.
+     * 
+     * @param  App\Dataset $dataset
+     * @return Illuminate\Support\Collection
+     */
     public function parse($dataset)
     {
         $filePath = public_path('uploads/' . $dataset->file);
 
         $csv = Reader::createFromPath($filePath)->setDelimiter(';');
 
+        // retrieve the header columns
         $header = collect($csv->fetchOne());
 
+        // retrieve all columns with start pos 2 and end pos -3 
+        // (all columns between university(pos 2) and gender(pos -3) columns are considered groups)
         $groups = (clone $header)->splice(2, -3);
 
         // retrieve hierarchical group columns
@@ -48,26 +72,29 @@ class DatasetImporter
             if (preg_match('/\[(\d+)\]$/', $item)) {
                 return preg_replace('/\[(\d+)\]$/', '', $item);
             }
+
+            return $item;
         })->toArray();
 
         // create group columns
         $this->groupColumns($groupColumns);
 
+        // start parsing the csv here and build the "data" object
         $data = collect($csv->setOffset(1)->fetchAll())
                 ->map(function ($line) use ($header, $groups) {
-                    return $header->combine($line)
+                    return $header->combine($line) // combine csv columns with the current line of values
                             ->map(function($value, $key) {
                                 // return default Lärosäte 'Riket' if Lärosäte is empty
                                 return ($key == 'Lärosäte' && $value == null) ? self::UNIVERSITY_DEFAULT : $value;
                             });
                 })
-                ->groupBy($header->get(1))
+                ->groupBy($header->get(1)) // group by university
                 ->map(function ($university) use ($header, $groups) {
                     return $university
-                        ->groupBy($header->get(0))
-                        ->map(function ($year) use ($header, $groups) {
+                        ->groupBy($header->get(0)) // group by year
+                        ->map(function ($year) use ($header, $groups) { // loop through every year
                             return $year
-                                ->groupBy($header->reverse()->values()->get(2))
+                                ->groupBy($header->reverse()->values()->get(2)) // group by gender (always pos -2 from the end of csv headers)
                                 ->map(function ($gender) use ($groups) {
                                     return $this->doTheTotalThing($groups->first(), $groups, $this->iterateOverGroups($gender, $groups));
                                 });
@@ -77,6 +104,14 @@ class DatasetImporter
         return $data;
     }
 
+    /**
+     * Creates a total/children container for every group.
+     * 
+     * @param  [type] $group
+     * @param  [type] $groups
+     * @param  [type] $children
+     * @return [type]
+     */
     private function doTheTotalThing($group, $groups, $children) {
         $total = $children->has('') ? $children->get('') : $children;
 
@@ -87,8 +122,10 @@ class DatasetImporter
             'children' => $children,
         ]);
 
+        // set group index to true or false depending on if the true is hierarchical
         $response = $response->put('group', (boolean) preg_match('/\[(\d+)\]$/', $group));
 
+        // removes the 'children' index if no children exists in the current group
         if ($groups->isEmpty()) {
             $response->forget('children');
         }
@@ -96,6 +133,13 @@ class DatasetImporter
         return $response;
     }
 
+    /**
+     * Iterates over all groups recursively.
+     * 
+     * @param  Illuminate\Support\Collection $items holds all the csv data
+     * @param  Illuminate\Support\Collection $groups holds all the group columns
+     * @return Illuminate\Support\Collection
+     */
     private function iterateOverGroups($items, $groups) {
         if ($groups->isEmpty()) {
             return $items;
@@ -132,13 +176,14 @@ class DatasetImporter
         $this->totalColumns = $totalColumns;
     }
 
+    /**
+     * Executes the import.
+     * 
+     * @return void
+     */
     public function make()
     {
-        // dd($this->data);
-        
         $this->createGroupColumns($this->groupColumns);
-
-        // $this->createTotalColumns($this->totalColumns);
 
         $this->createGroups($this->dataset);
         
@@ -152,14 +197,19 @@ class DatasetImporter
         }
     }
 
-    private function createTotalColumns(array $totalColumns)
-    {
-        foreach($totalColumns as $totalColumn) {
-            $column = TotalColumn::firstOrCreate(['name' => $totalColumn]);
-            $this->totalColumnIds[] = $column->id;
-        }
-    }
-
+    /**
+     * Creates groups recursively (if group has any children).
+     * 
+     * @param  [type]  $dataset
+     * @param  [type]  $prevData
+     * @param  [type]  $data
+     * @param  [type]  $university
+     * @param  [type]  $year
+     * @param  [type]  $gender
+     * @param  [type]  $parent
+     * @param  integer $level
+     * @return [type]
+     */
     private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $parent = null, $level = -1)
     {
         foreach($data as $groupName => $item) {
@@ -198,6 +248,12 @@ class DatasetImporter
         return $data;
     }
 
+    /**
+     * Loops through our structured csv data and inserts it into the db.
+     * 
+     * @param  App\Dataset $dataset
+     * @return [type]
+     */
     private function createGroups($dataset)
     {
         // dd($this->data['Riket'][2014]['Kvinnor']);
@@ -270,6 +326,12 @@ class DatasetImporter
         });
     }
 
+    /**
+     * Removes the 'processing' status and sets the status to null which means it's ready for use.
+     * 
+     * @param  App\Dataset $dataset
+     * @return App\Dataset
+     */
     private function updateStatus($dataset)
     {
         return Dataset::where('id', $dataset->id)

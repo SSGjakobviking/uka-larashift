@@ -60,7 +60,11 @@ class DatasetController extends Controller
 
    public function create()
    {
-       return view('dataset.create');
+        // $dataset = Dataset::orderBy('id', 'desc')->first();
+        // $dataset = new DatasetImporter($dataset);
+        // $dataset->make();
+        // dd($dataset->toArray());
+        return view('dataset.create');
    }
 
     /**

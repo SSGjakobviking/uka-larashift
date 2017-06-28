@@ -37,6 +37,12 @@ class DatasetImporter
     protected $totalColumns;
 
     /**
+     * Stores the age group
+     * @var array
+     */
+    protected $ageGroups = [];
+
+    /**
      * This is the default "university" / all universities
      */
     const UNIVERSITY_DEFAULT = 'Riket';
@@ -90,6 +96,15 @@ class DatasetImporter
                 })
                 ->groupBy($header->get(1)) // group by university
                 ->map(function ($university) use ($header, $groups) {
+                    
+                    // store age group keys with default value of 0 because of some indicators could be missing
+                    // one age group so we set the default value here.
+                    if (empty($this->ageGroups)) {
+                        $this->ageGroups = $university->groupBy('Åldersgrupp')->mapWithKeys(function($item, $value) {
+                            return [$value => 0];
+                        });
+                    }
+
                     return $university
                         ->groupBy($header->get(0)) // group by year
                         ->map(function ($year) use ($header, $groups) { // loop through every year
@@ -100,7 +115,7 @@ class DatasetImporter
                                 });
                         });
                 });
-
+        dd($data->first()->first());
         return $data;
     }
 
@@ -114,11 +129,14 @@ class DatasetImporter
      */
     private function doTheTotalThing($group, $groups, $children) {
         $total = $children->has('') ? $children->get('') : $children;
-
         $children = $children->forget('');
 
+        $combined = collect($total->pluck('Åldersgrupp'))->combine($total->pluck('Antal'));
+
+        $ageGroupTotals = $combined->union($this->ageGroups)->sort();
+
         $response = collect([
-            'total' => collect($total->pluck('Åldersgrupp'))->combine($total->pluck('Antal')),
+            'total' => $ageGroupTotals,
             'children' => $children,
         ]);
 
@@ -152,6 +170,14 @@ class DatasetImporter
         return $items->map(function ($item, $key) use ($group, $groups) {
             return $key === '' ? $item : $this->doTheTotalThing($group, $groups, $this->iterateOverGroups($item, $groups));
         });
+    }
+
+    private function removeStartChar($item, $char) {
+        if (strpos($item, $char) === 0) {
+            return (string) substr($item, 1, strlen($item));
+        }
+
+        return $item;
     }
 
     /**

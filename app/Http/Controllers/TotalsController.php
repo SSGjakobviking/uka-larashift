@@ -39,7 +39,7 @@ class TotalsController extends Controller
         $university = ! empty($request->university) ? $request->university : $universityDefaultId;
         $gender = ! empty($request->gender) ? $request->gender : 'Total';
         $groupInput = ! empty($request->group) ? $request->group : null;
-        $age_group = ! empty($request->age_group) ? $request->age_group : 4;
+        $age_group = ! empty($request->age_group) ? $request->age_group : TotalColumn::where('name', 'Total')->first()->id;
         $year = $request->year;
 
         $filters = [
@@ -125,7 +125,7 @@ class TotalsController extends Controller
         
         if (! $groupColumn->isEmpty()) {
             $groupColumn = $groupColumn->first()->column->name;
-            $groupColumn = $this->indicatorConfig['group_columns'][StringHelper::slugify($groupColumn)];
+            $groupColumn = isset($this->indicatorConfig['group_columns'][StringHelper::slugify($groupColumn)]) ? $this->indicatorConfig['group_columns'][StringHelper::slugify($groupColumn)] : $groupColumn;
         }
 
         return $groupColumn;
@@ -190,6 +190,7 @@ class TotalsController extends Controller
                         $query->where('parent_id', $groupId);
                     })
                     ->with(['group', 'values'])
+                    // ->with(['group.column', 'values.column']) for later
                     ->get();
 
        return $totals->map(function($total) use($filter, $ageGroup) {
@@ -279,17 +280,5 @@ class TotalsController extends Controller
         });
 
         return $yearlyTotals;
-    }
-
-    /**
-     * Return year suffix for the specific year + term.
-     * 
-     * @param  integer $year
-     * @param  string $term
-     * @return string
-     */
-    private function yearSuffix($year, $term)
-    {
-        return $year . $this->indicatorConfig['term']['date_suffix'][$term];
     }
 }

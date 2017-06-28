@@ -60,7 +60,11 @@ class DatasetController extends Controller
 
    public function create()
    {
-       return view('dataset.create');
+        // $dataset = Dataset::orderBy('id', 'desc')->first();
+        // $dataset = new DatasetImporter($dataset);
+        // $dataset->make();
+        // dd($dataset->toArray());
+        return view('dataset.create');
    }
 
     /**
@@ -88,9 +92,17 @@ class DatasetController extends Controller
             'file'          => $name,
         ]);
 
+<<<<<<< HEAD
         $job = new ImportDataset($dataset);
 
         dispatch($job);
+||||||| merged common ancestors
+        $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(1));
+
+        dispatch($job);
+=======
+        dispatch(new ImportDataset($dataset));
+>>>>>>> develop
 
         return response()->json(['success' => true]);
     }

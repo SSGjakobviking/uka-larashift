@@ -39,20 +39,6 @@ class ImportDataset implements ShouldQueue
         Log::info('Started importing dataset: ' . $this->dataset->file);
 
         $dataset = new DatasetImporter($this->dataset);
-        
-        // define group columns
-        $dataset->groupColumns([
-            'Ämnesområde',
-            'Ämnesdelsområde',
-            'Ämnesgrupp',
-        ]);
-
-        $dataset->totalColumns([
-            '-24',
-            '25-34',
-            '35-',
-            'Total',
-        ]);
 
         $dataset->make();
 

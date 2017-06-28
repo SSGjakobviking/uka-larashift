@@ -60,13 +60,6 @@ class DatasetController extends Controller
 
    public function create()
    {
-        $dataset = Dataset::first();
-        
-        $dataset = new DatasetImporter($dataset);
-
-        $dataset->make();
-
-        exit;
        return view('dataset.create');
    }
 
@@ -95,9 +88,7 @@ class DatasetController extends Controller
             'file'          => $name,
         ]);
 
-        $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(1));
-
-        dispatch($job);
+        dispatch(new ImportDataset($dataset));
 
         return response()->json(['success' => true]);
     }

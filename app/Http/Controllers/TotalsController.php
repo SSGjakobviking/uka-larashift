@@ -83,17 +83,21 @@ class TotalsController extends Controller
         }
 
         if (! $filter->all()->get('gender')) {
-            $totals->addGroup([
-                'column' => 'Kön',
-                'totals' => $genders,
-            ]);
+            if ($genders->isNotEmpty()) {
+                $totals->addGroup([
+                    'column' => 'Kön',
+                    'totals' => $genders,
+                ]);
+            }
         }
 
         if (! $filter->all()->get('age_group')) {
-            $totals->addGroup([
-                'column' => 'Åldersgrupper',
-                'totals' => $totalColumns,
-            ]);
+            if ($totalColumns->isNotEmpty()) {
+                $totals->addGroup([
+                    'column' => 'Åldersgrupper',
+                    'totals' => $totalColumns,
+                ]);
+            }
         }
 
         $totals->add('Tid', $yearlyTotals);
@@ -159,7 +163,7 @@ class TotalsController extends Controller
             return [
                 'id'     => $total->university->slug,
                 'name'   => $total->university->name,
-                'value'  => $total->values[$ageGroup-1]->value,
+                'value'  => $total->values->keyBy('column_id')[$ageGroup]->value,
                 'url'   => $filter->updateUrl(['university' => $total->university_id]),
             ];
         });
@@ -194,7 +198,7 @@ class TotalsController extends Controller
                 return [
                     'id'    => $item->group->id,
                     'name'  => $item->group->name,
-                    'value' => $item->values[$ageGroup-1]->value,
+                    'value' => $item->values->keyBy('column_id')[$ageGroup]->value,
                     'url'   => $filter->updateUrl(['group' => $item->group->id]),
                 ];
             });
@@ -205,16 +209,6 @@ class TotalsController extends Controller
                 'totals' => $allTotals->toArray(),
             ];
         });
-
-        // dd($totals->toArray());
-       // return $totals->map(function($total) use($filter, $ageGroup) {
-       //      return [
-       //          'id'    => $total->group->id,
-       //          'name'  => $total->group->name,
-       //          'value' => $total->values[$ageGroup-1]->value,
-       //          'url'   => $filter->updateUrl(['group' => $total->group->id]),
-       //      ];
-       //  });
     }
 
     /**
@@ -236,7 +230,7 @@ class TotalsController extends Controller
             return [
                 'id'     => StringHelper::slugify($total->gender),
                 'gender' => $total->gender,
-                'value'  => $total->values[$ageGroup-1]->value,
+                'value'  => $total->values->keyBy('column_id')[$ageGroup]->value,
                 'url'   => $filter->updateUrl(['gender' => $total->gender]),
             ];
         });
@@ -288,7 +282,7 @@ class TotalsController extends Controller
 
             return [
                 'year' => $total->year,
-                'value' => $total->values[$ageGroup-1]->value,
+                'value' => $total->values->keyBy('column_id')[$ageGroup]->value,
                 'url'   => $filter->updateUrl(['year' => $total->year]),
             ];
         });

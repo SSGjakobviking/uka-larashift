@@ -31,6 +31,12 @@ class DatasetImporter
     protected $groupColumns;
 
     /**
+     * Stores the total column name (which will always be the last column)
+     * @var [type]
+     */
+    protected $totalColumn;
+
+    /**
      * Stores the total columns
      * @var App\TotalColumn
      */
@@ -68,7 +74,7 @@ class DatasetImporter
 
         // retrieve the header columns
         $header = collect($csv->fetchOne());
-
+        $this->totalColumn = $header->last();
         // retrieve all columns with start pos 2 and end pos -3 
         // (all columns between university(pos 2) and gender(pos -3) columns are considered groups)
         $groups = (clone $header)->splice(2, -3);
@@ -115,7 +121,7 @@ class DatasetImporter
                                 });
                         });
                 });
-        // dd($data->first()->first());
+
         return $data;
     }
 
@@ -131,7 +137,7 @@ class DatasetImporter
         $total = $children->has('') ? $children->get('') : $children;
         $children = $children->forget('');
 
-        $combined = collect($total->pluck('Åldersgrupp'))->combine($total->pluck('Antal'));
+        $combined = collect($total->pluck('Åldersgrupp'))->combine($total->pluck($this->totalColumn));
 
         // merge current age group totals with the default age groups array
         $ageGroupTotals = $combined->union($this->ageGroups);
@@ -139,6 +145,7 @@ class DatasetImporter
         // Union above can mess up the order of age groups
         // so we make sure that Total always is the last item in the array
         $totals = $ageGroupTotals->pull('Total');
+
         $ageGroupTotals->put('Total', $totals);
 
         $response = collect([
@@ -257,10 +264,10 @@ class DatasetImporter
                 'parent_id'     => $parent,
                 'name'          => $groupName,
             ]);
-            
+
             if (isset($item['children']) && $firstInLevel == $groupName) {
                 if ($level === 0) {
-                    $topParentId = $currentGroup->id;
+                    $topParentId = $currentGroup->column->id;
                 }
             }
 
@@ -284,7 +291,7 @@ class DatasetImporter
                 continue;
             }
         }
-        
+
         return $data;
     }
 

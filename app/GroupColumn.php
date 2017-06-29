@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class GroupColumn extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'top_parent_id'];
 
     public $timestamps = false;
 

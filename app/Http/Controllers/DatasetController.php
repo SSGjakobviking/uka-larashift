@@ -92,17 +92,7 @@ class DatasetController extends Controller
             'file'          => $name,
         ]);
 
-<<<<<<< HEAD
-        $job = new ImportDataset($dataset);
-
-        dispatch($job);
-||||||| merged common ancestors
-        $job = (new ImportDataset($dataset))->delay(Carbon::now()->addMinutes(1));
-
-        dispatch($job);
-=======
         dispatch(new ImportDataset($dataset));
->>>>>>> develop
 
         return response()->json(['success' => true]);
     }

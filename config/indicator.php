@@ -1,23 +1,7 @@
 <?php
 
 return [
-    'antal-registrerade-studenter' => [
-
-        // 'groupColumns' => [
-        //     'name' => 'Ämnesområde',
-        //     'child' => [
-        //         'name' => 'Ämnesdelsområde',
-        //         'child' => [
-        //             'name' => 'Ämnesgrupp',
-        //         ],
-        //     ],
-        // ],
-        'term' => [
-            'date_suffix' => [
-                'VT' => '-01-01',
-                'HT' => '-06-01',
-            ]
-        ],
+    'default' => [
         'group_columns' => [
             'larosate'          => 'Lärosäten',
             'amnesomrade'       => 'Ämnesområden',
@@ -28,10 +12,6 @@ return [
         'dynamic_title' => [
             'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{year}',
             'university' => 'vid',
-            'term'      => [
-                'vt'    => 'VT',
-                'ht'    => 'HT',
-            ],
             'group'     => 'inom',
             'gender'    => [
                 'man'       => 'manliga',
@@ -44,6 +24,49 @@ return [
                 'antal'    => null,
             ],
         ]
+    ],
+    'antal-registrerade-studenter' => [
+        'group_columns' => [
+            'larosate'          => 'Lärosäten',
+            'amnesomrade'       => 'Ämnesområden',
+            'amnesdelsomrade'   => 'Ämnesdelsområden',
+            'amnesgrupp'        => 'Ämnesgrupp',
+        ],
 
+        'dynamic_title' => [
+            'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{year}',
+            'university' => 'vid',
+            'group'     => 'inom',
+            'gender'    => [
+                'man'       => 'manliga',
+                'kvinnor'   => 'kvinnliga'
+            ],
+            'age_group' => [
+                '24'    => 'i åldersgruppen -24 år',
+                '25-34'  => 'i åldersgruppen 25-34 år',
+                '35'    => 'i åldersgruppen 35- år',
+                'antal'    => null,
+            ],
+        ]
+    ],
+    'nya-sokande-program' => [
+        // 'group_columns' => [
+        //     'utbildningsform'  => 'Lärosäten',
+        // ],
+        'dynamic_title' => [
+            'default'   => 'Antal{gender} sökande studenter{age_group}{group}{university}{year}',
+            'university' => 'vid',
+            'group'     => 'till',
+            'gender'    => [
+                'man'       => 'manliga',
+                'kvinnor'   => 'kvinnliga'
+            ],
+            'age_group' => [
+                '24'    => 'i åldersgruppen -24 år',
+                '25-34'  => 'i åldersgruppen 25-34 år',
+                '35'    => 'i åldersgruppen 35- år',
+                'antal'    => null,
+            ],
+        ]
     ],
 ];

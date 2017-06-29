@@ -16,7 +16,7 @@ class CreateGroupColumnsTable extends Migration
         Schema::create('group_columns', function (Blueprint $table) {
             $table->increments('id')->unsigned();
             $table->string('name')->unique();
-            $table->integer('level');
+            $table->integer('top_parent_id')->nullable();
         });
     }
 

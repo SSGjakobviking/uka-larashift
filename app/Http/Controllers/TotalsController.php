@@ -32,7 +32,7 @@ class TotalsController extends Controller
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
-        $this->indicatorConfig = config('indicator')[$indicator->slug];
+        $this->indicatorConfig = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
         $universityDefaultId = $this->universitiesConfig['default']['id'];
         
         // Retrieve filter args
@@ -261,9 +261,9 @@ class TotalsController extends Controller
 
     private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $ageGroup, $filter)
     {
-        $totals = Total::whereHas('dataset', function($query) use($indicator) {
+        $totals = Total::with(['dataset' => function($query) use($indicator) {
                         $query->where('indicator_id', $indicator->id);
-                    })
+                    }])
                     ->where('gender', $gender)
                     ->where('group_id', $groupId)
                     ->where('university_id', $university)

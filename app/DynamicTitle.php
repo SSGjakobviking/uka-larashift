@@ -19,8 +19,7 @@ class DynamicTitle
     {
         $this->indicator = $indicator;
         $this->filters = $filters;
-        $this->config = config('indicator')[$indicator->slug];
-
+        $this->config = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
         $this->title = $this->config['dynamic_title']['default'];
     }
 

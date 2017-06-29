@@ -115,7 +115,7 @@ class DatasetImporter
                                 });
                         });
                 });
-        dd($data->first()->first());
+        // dd($data->first()->first());
         return $data;
     }
 
@@ -133,7 +133,13 @@ class DatasetImporter
 
         $combined = collect($total->pluck('Åldersgrupp'))->combine($total->pluck('Antal'));
 
-        $ageGroupTotals = $combined->union($this->ageGroups)->sort();
+        // merge current age group totals with the default age groups array
+        $ageGroupTotals = $combined->union($this->ageGroups);
+
+        // Union above can mess up the order of age groups
+        // so we make sure that Total always is the last item in the array
+        $totals = $ageGroupTotals->pull('Total');
+        $ageGroupTotals->put('Total', $totals);
 
         $response = collect([
             'total' => $ageGroupTotals,
@@ -236,13 +242,13 @@ class DatasetImporter
      * @param  integer $level
      * @return [type]
      */
-    private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $parent = null, $level = -1)
+    private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $parent = null, $level = -1, $topParentId = null)
     {
         foreach($data as $groupName => $item) {
             $firstInLevel = $data->keys()->first();
 
             // check to see if groupName is in first level
-            if (isset($item['children']) && $firstInLevel == $groupName) {
+            if ($firstInLevel == $groupName) {
                 $level++;
             }
 
@@ -251,6 +257,14 @@ class DatasetImporter
                 'parent_id'     => $parent,
                 'name'          => $groupName,
             ]);
+            
+            if (isset($item['children']) && $firstInLevel == $groupName) {
+                if ($level === 0) {
+                    $topParentId = $currentGroup->id;
+                }
+            }
+
+            $currentGroup->column()->update(['top_parent_id' => $topParentId]);
 
             // attach a group to a university
             $university->groups()->attach($currentGroup);
@@ -266,7 +280,7 @@ class DatasetImporter
             );
 
             if (isset($item['children'])) {
-                $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $currentGroup->id, $level);
+                $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $currentGroup->id, $level, $topParentId);
                 continue;
             }
         }

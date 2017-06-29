@@ -1,6 +1,7 @@
 <?php
 
 namespace App;
+use Illuminate\Support\Collection;
 
 class TotalsFormatter
 {
@@ -20,21 +21,26 @@ class TotalsFormatter
         ];
     }
 
-    public function addGroup($column, $group)
+    /**
+     * Adds group of data to the 'groups' item in the total object.
+     * 
+     * @param array $data
+     */
+    public function addGroup(array $data)
     {
-        // needs refactor
-        $hierarchical = ['Ämnesområden', 'Ämnesdelsområden', 'Ämnesgrupp'];
-
-        $data = [
-            'column'    => $column,
-            'totals'    => $group,
-        ];
-
-        if (in_array($column, $hierarchical)) {
-            $data['top_parent_id'] = GroupColumn::orderBy('id')->first()->id;
-        }
-
         $this->data['groups'][] = $data;
+    }
+
+    /**
+     * Adds multiple groups to the 'group' item in the total object.
+     * 
+     * @param Collection $groups
+     */
+    public function addGroups(Collection $groups)
+    {
+        $groups->each(function($group) {
+            $this->addGroup($group);
+        });
     }
 
     private function build()

@@ -59,8 +59,6 @@ class TotalsController extends Controller
         // retrieve dataset id for current year
         $dataset = $this->dataset($indicator, $year);
 
-        $groupColumn = $this->groupColumn($groupInput);
-
         $universities = $this->universities($dataset, $year, $gender, $groupInput, $age_group, $filter);
 
         $groups = $this->groups($dataset, $university, $year, $gender, $groupInput, $age_group, $filter);
@@ -74,19 +72,28 @@ class TotalsController extends Controller
         $totals = new TotalsFormatter();
 
         if ($university == $universityDefaultId) {
-            $totals->addGroup('Lärosäten', $universities);
+            $totals->addGroup([
+                'column' => 'Lärosäten',
+                'totals' => $universities,
+            ]);
         }
 
         if (! $groups->isEmpty()) {
-            $totals->addGroup($groupColumn, $groups);
+            $totals->addGroups($groups);
         }
 
         if (! $filter->all()->get('gender')) {
-            $totals->addGroup('Kön', $genders);
+            $totals->addGroup([
+                'column' => 'Kön',
+                'totals' => $genders,
+            ]);
         }
 
         if (! $filter->all()->get('age_group')) {
-            $totals->addGroup('Åldersgrupper', $totalColumns);
+            $totals->addGroup([
+                'column' => 'Åldersgrupper',
+                'totals' => $totalColumns,
+            ]);
         }
 
         $totals->add('Tid', $yearlyTotals);
@@ -112,23 +119,6 @@ class TotalsController extends Controller
         return Dataset::where('indicator_id', $indicator->id)
                     ->where('id', $datasetId)
                     ->first();
-    }
-
-    /**
-     * Retrieves current group name
-     * @param  integer|null $groupInput
-     * @return string
-     */
-    private function groupColumn($groupInput)
-    {
-        $groupColumn = Group::where('parent_id', $groupInput)->get();
-        
-        if (! $groupColumn->isEmpty()) {
-            $groupColumn = $groupColumn->first()->column->name;
-            $groupColumn = isset($this->indicatorConfig['group_columns'][StringHelper::slugify($groupColumn)]) ? $this->indicatorConfig['group_columns'][StringHelper::slugify($groupColumn)] : $groupColumn;
-        }
-
-        return $groupColumn;
     }
 
     /**
@@ -189,18 +179,42 @@ class TotalsController extends Controller
                     ->whereHas('group', function($query) use($groupId) {
                         $query->where('parent_id', $groupId);
                     })
-                    ->with(['group', 'values'])
-                    // ->with(['group.column', 'values.column']) for later
+                    // ->with(['group', 'values'])
+                    ->with(['group.column', 'values.column'])
                     ->get();
 
-       return $totals->map(function($total) use($filter, $ageGroup) {
+        return $totals->map(function($total) {
+            $total->group_column = $total->group->column->name;
+            $total->top_parent_id = $total->group->column->top_parent_id;
+            return $total;
+        })->groupBy('group_column')
+        ->map(function($total, $groupColumn) use($filter, $ageGroup) {
+
+            $allTotals = $total->map(function($item) use($filter, $ageGroup) {
+                return [
+                    'id'    => $item->group->id,
+                    'name'  => $item->group->name,
+                    'value' => $item->values[$ageGroup-1]->value,
+                    'url'   => $filter->updateUrl(['group' => $item->group->id]),
+                ];
+            });
+
             return [
-                'id'    => $total->group->id,
-                'name'  => $total->group->name,
-                'value' => $total->values[$ageGroup-1]->value,
-                'url'   => $filter->updateUrl(['group' => $total->group->id]),
+                'column' => $groupColumn,
+                'top_parent_id' => $total->first()->top_parent_id,
+                'totals' => $allTotals->toArray(),
             ];
         });
+
+        // dd($totals->toArray());
+       // return $totals->map(function($total) use($filter, $ageGroup) {
+       //      return [
+       //          'id'    => $total->group->id,
+       //          'name'  => $total->group->name,
+       //          'value' => $total->values[$ageGroup-1]->value,
+       //          'url'   => $filter->updateUrl(['group' => $total->group->id]),
+       //      ];
+       //  });
     }
 
     /**

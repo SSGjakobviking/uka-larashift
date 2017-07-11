@@ -16,9 +16,6 @@ class CreateGroupsTable extends Migration
         Schema::create('groups', function (Blueprint $table) {
             $table->increments('id')->unsigned();
 
-            $table->integer('parent_id')->unsigned()->nullable();
-            $table->foreign('parent_id')->references('id')->on('groups')->onDelete('cascade');
-
             $table->integer('column_id')->unsigned();
             $table->foreign('column_id')->references('id')->on('group_columns');
 

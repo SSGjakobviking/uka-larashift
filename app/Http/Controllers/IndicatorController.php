@@ -121,16 +121,16 @@ class IndicatorController extends Controller
         // Retrieve dataset status, preview or production?
         $input = $this->detectStatus($request);
 
-        // Index only production dataset in elasticsearch
-        if ($input['status'] == 'published') {
-            $this->indexDataset($id);
-        }
-
         foreach ($input['datasets'] as $datasetId) {
             Dataset::where('id', $datasetId)->update([
                 'indicator_id' => $id,
                 'status'    => $input['status'],
             ]);
+        }
+
+        // Index only production dataset in elasticsearch
+        if ($input['status'] == 'published') {
+            $this->indexDataset($id);
         }
     }
 }

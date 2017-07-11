@@ -119,7 +119,7 @@ class TotalsController extends Controller
     private function dataset($indicator, $year)
     {
         $datasetId = Total::where('year', $year)->first()->dataset_id;
-
+        // dd($indicator);
         return Dataset::where('indicator_id', $indicator->id)
                     ->where('id', $datasetId)
                     ->first();
@@ -180,10 +180,8 @@ class TotalsController extends Controller
                     ->where('university_id', $university)
                     ->where('year', $year)
                     ->where('gender', $gender)
-                    ->whereHas('group', function($query) use($groupId) {
-                        $query->where('parent_id', $groupId);
-                    })
-                    // ->with(['group', 'values'])
+                    ->where('group_parent_id', $groupId)
+                    ->whereHas('group')
                     ->with(['group.column', 'values.column'])
                     ->get();
 

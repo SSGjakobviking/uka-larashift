@@ -19,11 +19,14 @@ class CreateTotalsTable extends Migration
             $table->integer('dataset_id')->unsigned();
             $table->foreign('dataset_id')->references('id')->on('datasets')->onDelete('cascade');
 
+            $table->integer('university_id')->unsigned()->nullable();
+            $table->foreign('university_id')->references('id')->on('universities');
+
             $table->integer('group_id')->unsigned()->nullable();
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
 
-            $table->integer('university_id')->unsigned()->nullable();
-            $table->foreign('university_id')->references('id')->on('universities');
+            $table->integer('group_parent_id')->unsigned()->nullable();
+            $table->foreign('group_parent_id')->references('id')->on('groups');
 
             $table->string('year');
             $table->string('gender');

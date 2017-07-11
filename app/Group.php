@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Group extends Model
 {
     protected $fillable = [
-        'parent_id',
         'column_id',
         'name',
         'order',

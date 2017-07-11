@@ -9,8 +9,9 @@ class Total extends Model
 {
     protected $fillable = [
         'dataset_id',
-        'group_id',
         'university_id',
+        'group_id',
+        'group_parent_id',
         'term',
         'year',
         'gender',

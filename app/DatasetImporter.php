@@ -261,7 +261,6 @@ class DatasetImporter
 
             $currentGroup = Group::firstOrCreate([
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
-                'parent_id'     => $parent,
                 'name'          => $groupName,
             ]);
 
@@ -283,7 +282,8 @@ class DatasetImporter
                 $year,
                 $gender,
                 $item->get('total'),
-                $currentGroup
+                $currentGroup,
+                $parent
             );
 
             if (isset($item['children'])) {
@@ -333,16 +333,17 @@ class DatasetImporter
      * @param  [type] $gender
      * @return [type]
      */
-    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null)
+    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null, $parentGroup = null)
     {
         if (! is_null($group)) {
             $group = $group->id;
         }
 
-        $total = Total::firstOrCreate([
+        $total = Total::create([
             'dataset_id'    => $dataset->id,
-            'group_id'      => $group,
             'university_id' => $university->id,
+            'group_id'      => $group,
+            'group_parent_id' => $parentGroup,
             'year'          => $year,
             'gender'        => $gender,
         ]);

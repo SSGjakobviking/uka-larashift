@@ -157,39 +157,76 @@ class Search {
      */
     private function groups()
     {
-        $universities = University::get(['id', 'name'])->map(function($item) {
-            $item['order'] = 1;
-            $item['group'] = 'university';
-            return $item;
-        });
+        $dataset = $this->dataset;
+        // $universities = University::get(['id', 'name'])->map(function($item) {
+        //     $item['order'] = 1;
+        //     $item['group'] = 'university';
+        //     return $item;
+        // });
+        $universities = Total::where('dataset_id', $this->dataset->dataset_id)
+                        ->whereHas('university')
+                        ->with('university')
+                        ->groupBy('university_id')
+                        ->get()
+                        ->map(function($item) {
+                            return [
+                                'id' => $item->university->id,
+                                'name' => $item->university->name,
+                                'group' => 'university',
+                                'order' => 1,
+                            ];
+                        });
 
-        $groups = Group::get(['id', 'parent_id', 'name'])->map(function($item) {
-            $item['order'] = 2;
-            $item['group'] = 'group';
-            return $item;
-        });
+        // old groups
+        // $groups = Group::get(['id',  'name'])->map(function($item) {
+        //     $item['order'] = 2;
+        //     $item['group'] = 'group';
+        //     return $item;
+        // });
 
-        $ageGroup = TotalColumn::get(['id', 'name'])->map(function($item) {
-            $item['order'] = 3;
-            $item['group'] = 'age_group';
-            return $item;
-        });
+        $groups = Total::where('dataset_id', $this->dataset->dataset_id)->whereHas('group')
+                    ->with('group')
+                    ->groupBy('group_id')
+                    ->get()
+                    ->map(function($item) {
+                        return [
+                            'parent_id' => $item->group_parent_id,
+                            'id' => $item->group->id,
+                            'name' => $item->group->name,
+                            'group' => 'group',
+                            'order' => 2,
+                        ];
+                    });
 
-        $genders = collect([
-                [
-                    'id' => 'Män',
-                    'name' => 'Män',
-                ], [
-                    'id' => 'Kvinnor',
-                    'name' => 'Kvinnor',
-                ]
-            ])->map(function($item) {
-                $item['order'] = 4;
-                $item['group'] = 'gender';
+        // $ageGroup = TotalColumn::get(['id', 'name'])->map(function($item) {
+        //     $item['order'] = 3;
+        //     $item['group'] = 'age_group';
+        //     return $item;
+        // });
 
-                return $item;
-            });
-
+        $ageGroup = TotalValue::whereHas('total', function($query) use($dataset) {
+                        $query->where('dataset_id', $dataset->dataset_id);
+                    })
+                    ->with('column')
+                    ->whereHas('column', function($query) {
+                        $query->where('name', '!=', 'Total');
+                    })
+                    ->groupBy('column_id')
+                    ->get()
+                    ->map(function($item) {
+                        return [
+                            'id'    => $item->column->id, 
+                            'name'    => $item->column->name, 
+                            'order' => 3,
+                            'group' => 'age_group',
+                        ];
+                    });
+        
+        $genders = Total::where('dataset_id', $this->dataset->dataset_id)
+                    ->where('gender', '!=', 'Total')
+                    ->groupBy('gender')
+                    ->get(['gender']);
+    
         return [
             'university' => $universities,
             'group' => $groups,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Dataset;
+use App\Helpers\DatasetHelper;
 use App\Indicator;
 use App\Search;
 use App\Total;
@@ -64,26 +65,30 @@ class IndicatorController extends Controller
     {
         $indicator = Indicator::find($indicatorId);
         
-        $dataset = $this->lastPublishedDataset($indicator);
+        $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
 
         $client = ClientBuilder::create()->build();
 
-        $search = new Search($client, $indicator, $dataset);
+        $search = new Search($client, $indicator, $lastPublishedDataset);
 
-        $search->index();
-    }
-    
-    private function lastPublishedDataset($indicator)
-    {
-        $latest = Total::whereHas('dataset', function($query) use($indicator) {
-            $query->where('status', 'published');
-            $query->where('indicator_id', $indicator->id);
-        })
-        ->where('gender', 'Total')
-        ->orderBy('year', 'desc')
-        ->first(['year', 'dataset_id']);
+        if ($search->indexExist($indicator->slug)) {
 
-        return $latest;
+            // fetch one document from elasticsearch to retrieve the dataset id
+            $result = $search->one();
+            $currentIndexedDataset = $result['_source']['dataset_id'];
+
+            // remove indexed dataset if it matches with the current unattached dataset.
+            if ($currentIndexedDataset != $lastPublishedDataset->dataset_id) {
+                $search->remove();
+
+                if ($lastPublishedDataset) {
+                    $search->index();
+                }
+            }
+        } else {
+            $search->index();
+        }
+
     }
 
     /**

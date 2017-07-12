@@ -107,10 +107,36 @@ class Search {
         })->values()->sortBy(function($item) { // sort by id within order groups
             return $item['_source']['id'];
         });
-        // dd($results->toArray());
+
         return $results;
     }
 
+    /**
+     * Retrieves dataset_id from the current indicator index so we can check if we need to replace the indexed data with
+     * a new dataset.
+     * 
+     * @return array
+     */
+    public function one()
+    {
+        $params = [
+            'index' => $this->indicator->slug,
+            'type'  => 'university,group,gender,age_group',
+            'body'  => [
+                'size' => 1,
+            ],
+        ];
+
+        $results = $this->client->search($params);
+
+        return $results['hits']['hits'][0];
+    }
+
+    /**
+     * Creates an index in elasticsearch and bulk indexes search data.
+     * 
+     * @return void
+     */
     public function index()
     {
         $index = $this->indicator->slug;
@@ -118,13 +144,13 @@ class Search {
         if (! $this->indexExist($index)) {
             $this->client->indices()->create($this->params());
         }
-        
+
         foreach($this->groups() as $type => $group) {
 
             foreach($group as $list) {
                 $document = collect([]);
                 $document = $document->merge($list)->toArray();
-                $document['dataset_id'] = $this->dataset['dataset_id'];
+                $document['dataset_id'] = $this->dataset->dataset_id;
 
                 $params['body'][] = [
                     'index' => [
@@ -136,7 +162,9 @@ class Search {
                 $params['body'][] = $document;
             }
 
-            $responses = $this->client->bulk($params);
+            if (! empty($params['body'])) {
+                $responses = $this->client->bulk($params);
+            }
 
             // erase the old bulk request
             $params = ['body' => []];
@@ -149,6 +177,7 @@ class Search {
         if (!empty($params['body'])) {
             $responses = $this->client->bulk($params);
         }
+
     }
 
     /**
@@ -163,6 +192,7 @@ class Search {
         //     $item['group'] = 'university';
         //     return $item;
         // });
+
         $universities = Total::where('dataset_id', $this->dataset->dataset_id)
                         ->whereHas('university')
                         ->with('university')
@@ -273,8 +303,19 @@ class Search {
                         'analyzer' => [
                             'my_analyzer' => [
                                 'type' => 'custom',
-                                'tokenizer' => 'standard',
+                                'tokenizer' => 'my_ngram',
                                 'filter' => ['lowercase', 'synonym_filter'],
+                            ],
+                        ],
+                        'tokenizer' => [
+                            'my_ngram' => [
+                                'type' => 'ngram',
+                                'min_gram' => '3',
+                                'max_gram' => '3',
+                                'token_chars' => [
+                                    'letter',
+                                    'digit',
+                                ]
                             ],
                         ],
                         'filter' => [

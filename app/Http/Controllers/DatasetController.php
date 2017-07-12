@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Dataset;
 use App\DatasetImporter;
+use App\Helpers\DatasetHelper;
 use App\Indicator;
 use App\Jobs\ImportDataset;
+use App\Search;
 use App\Tag;
 use Carbon\Carbon;
+use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Input;
@@ -114,12 +117,46 @@ class DatasetController extends Controller
         return redirect()->back();
     }
 
+    /**
+     * Unattach a dataset from the indicator, also removes/adds index if necessary.
+     * 
+     * @param  [type] $id
+     * @return [type]
+     */
     public function unAttach($id)
     {
+        $dataset = Dataset::find($id);
+        $indicator = $dataset->indicator()->first();
+        $client = ClientBuilder::create()->build();
+
         Dataset::where('id', $id)->update([
             'indicator_id' => null,
             'status'       => null,
         ]);
+
+
+        $search = new Search($client, $indicator, $dataset);
+
+        // make sure index exist before attempting to remove the index
+        if ($search->indexExist($indicator->slug)) {
+
+            // fetch one document from elasticsearch to retrieve the dataset id
+            $result = $search->one();
+            $currentIndexedDataset = $result['_source']['dataset_id'];
+
+            // remove indexed dataset if it matches with the current unattached dataset.
+            if ($currentIndexedDataset == $dataset->id) {
+                $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
+                $search->remove();
+                // index the last published dataset if current indexed dataset 
+                // is the one we unattach from the indicator
+                if ($lastPublishedDataset) {
+                    $search = new Search($client, $indicator, $lastPublishedDataset);
+                    $search->index();
+                }
+            }
+        }
+        
 
         return redirect()->back();
     }

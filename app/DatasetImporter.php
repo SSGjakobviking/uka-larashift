@@ -3,15 +3,15 @@
 namespace App;
 
 use App\Dataset;
-use App\Helpers\StringHelper;
 use App\University;
+use League\Csv\Reader;
+use App\Helpers\StringHelper;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use League\Csv\Reader;
 
 class DatasetImporter
 {
-
     /**
      * The dataset object.
      * 
@@ -39,6 +39,13 @@ class DatasetImporter
      * @var [type]
      */
     protected $originalGroupColumns;
+
+    /**
+     * Columns with square brackets.
+     * 
+     * @var [type]
+     */
+    protected $originalGroups;
 
     /**
      * Stores the total column name (which will always be the last column).
@@ -104,11 +111,14 @@ class DatasetImporter
         // create group columns
         $this->groupColumns($groupColumns);
 
+        $this->originalGroups = clone $this->originalGroupColumns;
+
         // start parsing the csv here and build the "data" object
         $data = collect($csv->setOffset(1)->fetchAll())
                 ->map(function ($line) use ($header, $groups) {
                     return $header->combine($line) // combine csv columns with the current line of values
                             ->map(function($value, $key) {
+
                                 // return default Lärosäte 'Riket' if Lärosäte is empty
                                 return ($key == 'Lärosäte' && $value == null) ? self::UNIVERSITY_DEFAULT : $value;
                             });
@@ -129,97 +139,102 @@ class DatasetImporter
                         ->map(function ($year) use ($header, $groups) { // loop through every year
                             return $year
                                 ->groupBy($header->reverse()->values()->get(2)) // group by gender (always pos -2 from the end of csv headers)
-                                ->map(function ($gender) use ($groups) {
-                                    return $this->doTheTotalThing($groups->first(), $groups, $this->iterateOverGroups($gender, $groups));
+                                ->map(function ($gender, $key) use ($groups) {
+                                    return $this->iterateOverGender($gender);
                                 });
                         });
                 });
-        dd($data);
+        
+        dd(
+            $data->get('Riket')->first()->first(), 
+            $data->get('Blekinge tekniska högskola')->first()->first()
+        );
+
         return $data;
     }
 
-    /**
-     * Creates a total/children container for every group.
-     * 
-     * @param  [type] $group
-     * @param  [type] $groups
-     * @param  [type] $children
-     * @return [type]
-     */
-    private function doTheTotalThing($group, $groups, $children) {
-        echo 'TotalThing';
-        $total = $children->has('') ? $children->get('') : $children;
-        // $children = $children->forget('');
-        // if ($children->has('')) {
-        //     dump($children);
-        //     dd('test');
-        // }
-        $ageGroupTotals = collect($total->pluck('Åldersgrupp'))->combine($total->pluck($this->totalColumn));
 
-        // merge current age group totals with the default age groups array
-        // $ageGroupTotals = $combined->union($this->ageGroups);
 
-        // Union above can mess up the order of age groups
-        // so we make sure that Total always is the last item in the array
-        // $totals = $ageGroupTotals->pull('Total');
 
-        // $ageGroupTotals->put('Total', $totals);
 
-        $response = collect([
-            'total' => $ageGroupTotals,
-            'children' => $children,
-        ]);
 
-        // set group index to true or false depending on if the true is hierarchical
-        $response = $response->put('group', (boolean) preg_match('/\[(\d+)\]$/', $group));
 
-        // removes the 'children' index if no children exists in the current group
-        if ($groups->isEmpty()) {
-            $response->forget('children');
+
+
+    public function iterateOverGender($data)
+    {
+        $groups = $this->originalGroups->toBase();
+
+        $collection = $this->iterateOverGroups($data, $groups);
+
+        if ($collection->has('')) {
+            $this->iterateOverTotal($collection->get(''));
         }
 
-        return $response;
+        return $collection;
     }
 
-    /**
-     * Iterates over all groups recursively.
-     * 
-     * @param  Illuminate\Support\Collection $items holds all the csv data
-     * @param  Illuminate\Support\Collection $groups holds all the group columns
-     * @return Illuminate\Support\Collection
-     */
-    private function iterateOverGroups($items, $groups) {
+    public function iterateOverTotal($data)
+    {
+        // CALCULATE THE TOTAL
+        // Total columns - current column index = amount to navigate
+        // 
+        // Total columns: 3, Current column index: 1
+        //      3 - 1 = 2
+        //      ->get('')->get('')
+        //      
+        // Total columns: 4, Current column index: 1
+        //      4 - 1 = 3
+        //      ->get('')->get('')->get('')
+        //      
+        // Total columns: 4, Current column index: 4
+        //      4 - 4 = 0
+        //      DO NOTHING, YOU ARE ALREADY INSIDE TOTAL
+        //      
+        // Total columns: 4, Current column index: 3
+        //      4 - 3 = 1
+        //      ->get('')
+    }
+
+    public function iterateOverGroups($data, $groups, $activeGroup = null)
+    {
+        // Check if we've gone through all of the groups
         if ($groups->isEmpty()) {
-            return $items;
+            // Create a unique groups collection with ALL of the groups available
+            $original = $this->originalGroups->toBase();
+
+            // If the currently active group is NOT the last group available
+            if ($activeGroup !== $original->last()) {
+                // Retrieve all of the remaining groups and set the $groups variable to it
+                // We add +1 to the index to remove the active group from the new groups list
+                $groups = $groups->merge(
+                    $original->splice($original->search($activeGroup) + 1)
+                );
+            } else {
+                // We've reached the end of the line, return the data
+                return $data;
+            }
         }
 
-        $items = $items->groupBy($group = $groups->first());
+        // Pop out the first group from the groups list
+        $group = $groups->shift();
 
-        $groups = $groups->values()->forget(0)->values();
-        // echo 'First dump: ';
-        // dump($items);
+        // Group the data by the popped out group
+        $collection = $data->groupBy($group);
 
-        return $items->map(function ($item, $key) use ($group, $groups, $items) {
-            // check if group exist right before a multi-level group
-            if ($key === ''
-                && count($item) > count($this->ageGroups)
-                && $group === $this->originalGroupColumns->first()) {
-                return $this->doTheTotalThing($group, $groups, $this->iterateOverGroups($item, $groups));
-                // return $item->take(count($this->ageGroups));
-            } elseif ($key === '') {
-                return $item;
-            } else {
-                // dd($item);
-                $iterateOverGroups = $this->iterateOverGroups($item, $groups);
-                // if ($iterateOverGroups->has('')) {
-                //     dump($item);
-                //     dump($groups);
-                //     // dd($iterateOverGroups);
-                // }
-                $this->doTheTotalThing($group, $groups, $iterateOverGroups);
-            }
+        // Loop over each item in the collection
+        return $collection->map(function ($subdata, $category) use ($groups, $group) {
+            // Repeat this whole function for each item
+            return $this->iterateOverGroups($subdata, $groups, $group);
         });
     }
+
+
+
+
+
+
+
 
     private function removeStartChar($item, $char) {
         if (strpos($item, $char) === 0) {

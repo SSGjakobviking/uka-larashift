@@ -63,10 +63,13 @@ class DatasetController extends Controller
 
    public function create()
    {
-        // $dataset = Dataset::orderBy('id', 'desc')->first();
-        // $dataset = new DatasetImporter($dataset);
-        // $dataset->make();
-        // dd($dataset->toArray());
+        $dataset = storage_path('app/testdata-simple.csv');
+        // $dataset = storage_path('app/testdata.csv');
+
+        // $dataset = Dataset::orderBy('id', 'ASC')->first();
+        $dataset = new DatasetImporter($dataset);
+        $dataset->make();
+        dd($dataset->toArray());
         return view('dataset.create');
    }
 

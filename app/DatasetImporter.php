@@ -14,24 +14,35 @@ class DatasetImporter
 
     /**
      * The dataset object.
+     * 
      * @var App\Dataset
      */
     protected $dataset;
 
     /**
-     * This var contains structured parsed csv data.
+     * This var contains structured parsed csv data..
+     * 
      * @var Illuminate\Support\Collection
      */
     protected $data;
 
     /**
-     * Stores the group columns
+     * Stores the group columns.
+     * 
      * @var App\GroupColumn
      */
     protected $groupColumns;
 
     /**
-     * Stores the total column name (which will always be the last column)
+     * Columns with square brackets.
+     * 
+     * @var [type]
+     */
+    protected $originalGroupColumns;
+
+    /**
+     * Stores the total column name (which will always be the last column).
+     * 
      * @var [type]
      */
     protected $totalColumn;
@@ -68,8 +79,8 @@ class DatasetImporter
      */
     public function parse($dataset)
     {
-        $filePath = public_path('uploads/' . $dataset->file);
-
+        // $filePath = public_path('uploads/' . $dataset->file);
+        $filePath = $dataset;
         $csv = Reader::createFromPath($filePath)->setDelimiter(';');
 
         // retrieve the header columns
@@ -78,6 +89,8 @@ class DatasetImporter
         // retrieve all columns with start pos 2 and end pos -3 
         // (all columns between university(pos 2) and gender(pos -3) columns are considered groups)
         $groups = (clone $header)->splice(2, -3);
+
+        $this->originalGroupColumns = $groups;
 
         // retrieve hierarchical group columns
         $groupColumns = $groups->map(function($item) {
@@ -121,7 +134,7 @@ class DatasetImporter
                                 });
                         });
                 });
-
+        dd($data);
         return $data;
     }
 
@@ -134,19 +147,23 @@ class DatasetImporter
      * @return [type]
      */
     private function doTheTotalThing($group, $groups, $children) {
+        echo 'TotalThing';
         $total = $children->has('') ? $children->get('') : $children;
-        $children = $children->forget('');
-
-        $combined = collect($total->pluck('Åldersgrupp'))->combine($total->pluck($this->totalColumn));
+        // $children = $children->forget('');
+        // if ($children->has('')) {
+        //     dump($children);
+        //     dd('test');
+        // }
+        $ageGroupTotals = collect($total->pluck('Åldersgrupp'))->combine($total->pluck($this->totalColumn));
 
         // merge current age group totals with the default age groups array
-        $ageGroupTotals = $combined->union($this->ageGroups);
+        // $ageGroupTotals = $combined->union($this->ageGroups);
 
         // Union above can mess up the order of age groups
         // so we make sure that Total always is the last item in the array
-        $totals = $ageGroupTotals->pull('Total');
+        // $totals = $ageGroupTotals->pull('Total');
 
-        $ageGroupTotals->put('Total', $totals);
+        // $ageGroupTotals->put('Total', $totals);
 
         $response = collect([
             'total' => $ageGroupTotals,
@@ -179,9 +196,28 @@ class DatasetImporter
         $items = $items->groupBy($group = $groups->first());
 
         $groups = $groups->values()->forget(0)->values();
+        // echo 'First dump: ';
+        // dump($items);
 
-        return $items->map(function ($item, $key) use ($group, $groups) {
-            return $key === '' ? $item : $this->doTheTotalThing($group, $groups, $this->iterateOverGroups($item, $groups));
+        return $items->map(function ($item, $key) use ($group, $groups, $items) {
+            // check if group exist right before a multi-level group
+            if ($key === ''
+                && count($item) > count($this->ageGroups)
+                && $group === $this->originalGroupColumns->first()) {
+                return $this->doTheTotalThing($group, $groups, $this->iterateOverGroups($item, $groups));
+                // return $item->take(count($this->ageGroups));
+            } elseif ($key === '') {
+                return $item;
+            } else {
+                // dd($item);
+                $iterateOverGroups = $this->iterateOverGroups($item, $groups);
+                // if ($iterateOverGroups->has('')) {
+                //     dump($item);
+                //     dump($groups);
+                //     // dd($iterateOverGroups);
+                // }
+                $this->doTheTotalThing($group, $groups, $iterateOverGroups);
+            }
         });
     }
 
@@ -261,6 +297,7 @@ class DatasetImporter
 
             $currentGroup = Group::firstOrCreate([
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
+                'parent_id'     => $parent,
                 'name'          => $groupName,
             ]);
 
@@ -282,8 +319,7 @@ class DatasetImporter
                 $year,
                 $gender,
                 $item->get('total'),
-                $currentGroup,
-                $parent
+                $currentGroup
             );
 
             if (isset($item['children'])) {
@@ -333,17 +369,16 @@ class DatasetImporter
      * @param  [type] $gender
      * @return [type]
      */
-    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null, $parentGroup = null)
+    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null)
     {
         if (! is_null($group)) {
             $group = $group->id;
         }
 
-        $total = Total::create([
+        $total = Total::firstOrCreate([
             'dataset_id'    => $dataset->id,
-            'university_id' => $university->id,
             'group_id'      => $group,
-            'group_parent_id' => $parentGroup,
+            'university_id' => $university->id,
             'year'          => $year,
             'gender'        => $gender,
         ]);

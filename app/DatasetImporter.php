@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class DatasetImporter
 {
+    const ALL_FIELD = 'All';
+
     /**
      * The dataset object.
      * 
@@ -86,8 +88,8 @@ class DatasetImporter
      */
     public function parse($dataset)
     {
-        // $filePath = public_path('uploads/' . $dataset->file);
-        $filePath = $dataset;
+        $filePath = public_path('uploads/' . $dataset->file);
+        // $filePath = $dataset; // for test purposes
         $csv = Reader::createFromPath($filePath)->setDelimiter(';');
 
         // retrieve the header columns
@@ -145,21 +147,12 @@ class DatasetImporter
                         });
                 });
         
-        dd(
-            $data->get('Riket')->first()->first(), 
-            $data->get('Blekinge tekniska högskola')->first()->first()
-        );
+        // dd(
+        //     $data->get('Riket')->first()->get('Total')
+        // );
 
         return $data;
     }
-
-
-
-
-
-
-
-
 
     public function iterateOverGender($data)
     {
@@ -167,33 +160,26 @@ class DatasetImporter
 
         $collection = $this->iterateOverGroups($data, $groups);
 
-        if ($collection->has('')) {
-            $this->iterateOverTotal($collection->get(''));
-        }
-
         return $collection;
     }
 
-    public function iterateOverTotal($data)
+    private function iterateOverTotal($data)
     {
-        // CALCULATE THE TOTAL
-        // Total columns - current column index = amount to navigate
-        // 
-        // Total columns: 3, Current column index: 1
-        //      3 - 1 = 2
-        //      ->get('')->get('')
-        //      
-        // Total columns: 4, Current column index: 1
-        //      4 - 1 = 3
-        //      ->get('')->get('')->get('')
-        //      
-        // Total columns: 4, Current column index: 4
-        //      4 - 4 = 0
-        //      DO NOTHING, YOU ARE ALREADY INSIDE TOTAL
-        //      
-        // Total columns: 4, Current column index: 3
-        //      4 - 3 = 1
-        //      ->get('')
+        if (! ($data instanceof Collection)) {
+            return $data;
+        }
+
+        if ($data->has(static::ALL_FIELD)) {
+            return $this->iterateOverTotal($data->get(static::ALL_FIELD));
+        }
+
+        if ($data->has('children')) {
+            return $this->iterateOverTotal($data->get('children'));
+        }
+
+        $collection = $data->take(count($this->ageGroups));
+
+        return collect($collection->pluck('Åldersgrupp'))->combine($collection->pluck($this->totalColumn));
     }
 
     public function iterateOverGroups($data, $groups, $activeGroup = null)
@@ -212,7 +198,7 @@ class DatasetImporter
                 );
             } else {
                 // We've reached the end of the line, return the data
-                return $data;
+                return $this->iterateOverTotal($data);
             }
         }
 
@@ -222,19 +208,44 @@ class DatasetImporter
         // Group the data by the popped out group
         $collection = $data->groupBy($group);
 
+        $total = $collection->pull('');
+        $collection->prepend($total, static::ALL_FIELD);
+
+        // update hardcoded value with dynamic
+        if ($this->shouldHideEmpty($group)) {
+            $collection->forget(static::ALL_FIELD);
+        }
+
         // Loop over each item in the collection
-        return $collection->map(function ($subdata, $category) use ($groups, $group) {
-            // Repeat this whole function for each item
-            return $this->iterateOverGroups($subdata, $groups, $group);
-        });
+        return collect([
+            'total'     => $this->iterateOverTotal($total),
+            'children'  => $collection->map(function ($subdata, $category) use ($groups, $group) {
+                // Repeat this whole function for each item
+                return $this->iterateOverGroups($subdata, $groups, $group);
+            }),
+        ]);
     }
 
+    /**
+     * Hides group with "" as key. Therse contains the totals of each groups which we iterate through
+     * and generate the 'total' + 'children' structure. Once that's done we remove the "" item in the array because
+     * we don't need it anymore.
+     * 
+     * @param  [type] $group
+     * @return [type]
+     */
+    protected function shouldHideEmpty($group)
+    {
+        $original = $this->originalGroups->toBase();
 
+        $containsBrackets = function ($column) {
+            return preg_match('/\[\d+\]/', $column);
+        };
 
-
-
-
-
+        return $original->count() === 1 // hide if 1 total columns
+            or $original->filter($containsBrackets)->count() === $original->count() // hide if all columns contain brackets
+            or $group !== $original->first(); // hide if the current group isnt the first
+    }
 
     private function removeStartChar($item, $char) {
         if (strpos($item, $char) === 0) {

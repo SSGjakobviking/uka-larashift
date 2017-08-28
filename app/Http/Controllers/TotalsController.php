@@ -15,7 +15,9 @@ use App\TotalValue;
 use App\TotalsFormatter;
 use App\University;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TotalsController extends Controller
 {
@@ -42,6 +44,7 @@ class TotalsController extends Controller
         $groupTopParent = ! empty($request->group_top_parent) ? $request->group_top_parent : null;
         $age_group = ! empty($request->age_group) ? $request->age_group : TotalColumn::where('name', 'Total')->first()->id;
         $year = $request->year;
+        $export = ! empty($request->export) ? $request->export : null;
 
         $filters = [
             'university' => $university,
@@ -107,12 +110,123 @@ class TotalsController extends Controller
 
         $data = array_merge($data, $totalsData);
 
-        // var_dump($data);
+        // check if export was requested.
+        if ($export) {
+            // send cors headers
+            $headers = [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
+            ];
+            // return csv data for the whole year
+            if ($export === 'all') {
+                $filePath = asset('uploads/' . $dataset->file);
+                return response()
+                    ->json(['url' => $filePath])
+                    ->withHeaders($headers);
+            }
+
+            // create csv file and return data for the current api request.
+            if ($export === 'current') {
+                $filePath = $this->jsonToCsv($data, $indicator->slug);
+                return response()
+                ->json(['url' => $filePath])
+                ->withHeaders($headers);
+            }
+        }
+
         return $data;
     }
 
     /**
+     * Create csv file out ouf current api request.
+     * 
+     * @param  [type] $data
+     * @param  [type] $fileName
+     * @return [type]
+     */
+    private function jsonToCsv($data, $fileName)
+    {
+        $header = [
+            'År',
+            'Indikator',
+        ];
+
+        $fileName = \uniqid() . '-' . $fileName;
+
+        $content = [];
+
+        $groups = collect($data['groups']);
+        $grouped = $groups->pluck('column')->flatMap(function($item) {
+            return [
+                $item,
+                'Värde['.$item.']',
+            ];
+        });
+        $headers = array_merge($header, $grouped->toArray());
+
+        $rows = collect([]);
+
+        $content = $groups->map(function($item) {
+            return $item;
+        });
+
+        $content->map(function($column) use (&$rows, $headers, $data) {
+            $res = collect($column['totals'])->map(function($item, $key) use (&$rows, $headers, $column, $data) {
+                $group = $rows->get($key, collect([]));
+
+                if ($group->isEmpty()) {
+                    foreach ($headers as $header) {
+                        if ($header === 'År') {
+                            $group->put($header, $data['indicator']['current_year']);
+                        } else if ($header === 'Indikator') {
+                            $group->put($header, $data['indicator']['measurement']);
+                        } else {
+                            $group->put($header, null);
+                        }
+
+                        $rows->put($key, $group);
+                    }
+                }
+
+                $nameField = isset($item['name']) ? 'name' : 'gender';
+
+                $group->put($column['column'], $item[$nameField]);
+                $group->put('Värde['.$column['column'].']', $item['value']);
+                $rows->put($key, $group);
+
+                return [$item[$nameField], $item['value']];
+            });
+
+            return $res;
+        });
+
+        $rows = $rows->map(function ($row) {
+            return $row->values();
+        });
+
+        $headers = array_map(function ($header) {
+            return preg_replace('/\[(.*)\]$/', null, $header);
+        }, $headers);
+
+        // add headers to the first line.
+        $output = $rows->prepend($headers);
+        $fileName = $fileName . '.csv';
+        $filePath = public_path('downloads/' . $fileName);
+        $fp = fopen($filePath, 'w');
+
+        $output->each(function($fields) use($fp) {
+            $fields = $fields instanceof Collection ? $fields->toArray() : $fields;
+            // dump($fields);
+            fputcsv($fp, $fields, ';');
+        });
+
+        return asset('downloads/' . $fileName);
+    }
+
+    /**
      * Retrieves current dataset by indicator id and year.
+     * 
      * @param  [type] $indicator
      * @param  [type] $year
      * @return [type]

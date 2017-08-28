@@ -10,7 +10,6 @@ class Group extends Model
     protected $fillable = [
         'column_id',
         'name',
-        'order',
     ];
 
     public $timestamps = false;

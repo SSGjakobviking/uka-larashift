@@ -134,7 +134,7 @@ class IndicatorController extends Controller
         }
 
         // Index only production dataset in elasticsearch
-        if ($input['status'] == 'published') {
+        if ($input['status'] === 'published') {
             $this->indexDataset($id);
         }
     }

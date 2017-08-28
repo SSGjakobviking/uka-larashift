@@ -12,7 +12,6 @@ class Total extends Model
         'university_id',
         'group_id',
         'group_parent_id',
-        'term',
         'year',
         'gender',
     ];

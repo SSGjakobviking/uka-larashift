@@ -28,6 +28,9 @@ class CreateTotalsTable extends Migration
             $table->integer('group_parent_id')->unsigned()->nullable();
             $table->foreign('group_parent_id')->references('id')->on('groups');
 
+            $table->integer('group_top_parent')->unsigned()->nullable();
+            $table->foreign('group_top_parent')->references('id')->on('groups');
+
             $table->string('year');
             $table->string('gender');
         });

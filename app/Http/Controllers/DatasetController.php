@@ -66,9 +66,9 @@ class DatasetController extends Controller
         // $dataset = storage_path('app/uploads/hst-per-amnesomrade[2011-2012]-v1.csv');
         #$dataset = storage_path('app/hst-studieform-amne_Lasar2014_-v1.csv');
         // $dataset = storage_path('app/testdata-simple.csv');
-        // $dataset = storage_path('app/testdata-simple.csv');
+        // $dataset = storage_path('app/testdata.csv');
 
-        // $dataset = Dataset::orderBy('id', 'ASC')->first();
+        // $dataset = Dataset::orderBy('id', 'desc')->first();
         // $dataset = new DatasetImporter($dataset);
         // $dataset->make();
         // dd($dataset->toArray());

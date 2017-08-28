@@ -39,6 +39,7 @@ class TotalsController extends Controller
         $university = ! empty($request->university) ? $request->university : $universityDefaultId;
         $gender = ! empty($request->gender) ? $request->gender : 'Total';
         $groupInput = ! empty($request->group) ? $request->group : null;
+        $groupTopParent = ! empty($request->group_top_parent) ? $request->group_top_parent : null;
         $age_group = ! empty($request->age_group) ? $request->age_group : TotalColumn::where('name', 'Total')->first()->id;
         $year = $request->year;
 
@@ -59,15 +60,15 @@ class TotalsController extends Controller
         // retrieve dataset id for current year
         $dataset = $this->dataset($indicator, $year);
 
-        $universities = $this->universities($dataset, $year, $gender, $groupInput, $age_group, $filter);
+        $universities = $this->universities($dataset, $year, $gender, $groupInput, $groupTopParent, $age_group, $filter);
 
-        $groups = $this->groups($dataset, $university, $year, $gender, $groupInput, $age_group, $filter);
+        $groups = $this->groups($dataset, $university, $year, $gender, $groupInput, $groupTopParent, $age_group, $filter);
 
-        $genders = $this->gender($dataset, $university, $year, $groupInput, $age_group, $filter);
+        $genders = $this->gender($dataset, $university, $year, $groupInput, $groupTopParent, $age_group, $filter);
 
-        $totalColumns = $this->totalColumns($dataset, $university, $year, $gender, $groupInput, $filter);
+        $totalColumns = $this->totalColumns($dataset, $university, $year, $gender, $groupInput, $groupTopParent, $filter);
 
-        $yearlyTotals = $this->yearlyTotals($indicator, $university, $gender, $groupInput, $age_group, $filter);
+        $yearlyTotals = $this->yearlyTotals($indicator, $university, $gender, $groupInput, $groupTopParent, $age_group, $filter);
 
         $totals = new TotalsFormatter();
 
@@ -148,16 +149,23 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function universities($dataset, $year, $gender, $groupId, $ageGroup, $filter)
+    private function universities($dataset, $year, $gender, $groupId, $groupTopParent, $ageGroup, $filter)
     {
+        $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
+
         $totals = Total::where('dataset_id', $dataset->id)
                     ->where('group_id', $groupId)
                     ->where('gender', $gender)
                     ->where('university_id', '!=', 1)
                     ->with('values')
                     ->with('university')
-                    ->groupBy('university_id')
-                    ->get();
+                    ->groupBy('university_id');
+
+        if (! empty($groupTopParent)) {
+            $totals = $totals->where('group_top_parent', $groupTopParent);
+        }
+
+        $totals = $totals->get();
 
         return $totals->map(function($total) use($ageGroup, $filter) {
             return [
@@ -174,16 +182,23 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function groups($dataset, $university, $year, $gender, $groupId, $ageGroup, $filter)
+    private function groups($dataset, $university, $year, $gender, $groupId, $groupTopParent, $ageGroup, $filter)
     {
+        $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
+
         $totals = $dataset->totals()
                     ->where('university_id', $university)
                     ->where('year', $year)
                     ->where('gender', $gender)
                     ->where('group_parent_id', $groupId)
                     ->whereHas('group')
-                    ->with(['group.column', 'values.column'])
-                    ->get();
+                    ->with(['group.column', 'values.column']);
+
+        if (! empty($groupTopParent)) {
+            $totals = $totals->where('group_top_parent', $groupTopParent);
+        }
+
+        $totals = $totals->get();
 
         return $totals->map(function($total) {
             $total->group_column = $total->group->column->name;
@@ -197,7 +212,10 @@ class TotalsController extends Controller
                     'id'    => $item->group->id,
                     'name'  => $item->group->name,
                     'value' => $item->values->keyBy('column_id')[$ageGroup]->value,
-                    'url'   => $filter->updateUrl(['group' => $item->group->id]),
+                    'url'   => $filter->updateUrl([
+                        'group' => $item->group->id,
+                        'group_top_parent' => $item->group_top_parent,
+                    ]),
                 ];
             });
 
@@ -214,15 +232,22 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return [type]
      */
-    private function gender($dataset, $university, $year, $groupId, $ageGroup, $filter)
+    private function gender($dataset, $university, $year, $groupId, $groupTopParent, $ageGroup, $filter)
     {
+        $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
+
         $totals = Total::where('dataset_id', $dataset->id)
                     ->where('group_id', $groupId)
                     ->where('gender', '!=', 'Total')
                     ->where('university_id', $university)
                     ->with('values')
-                    ->groupBy('gender')
-                    ->get();
+                    ->groupBy('gender');
+
+        if (! empty($groupTopParent)) {
+            $totals = $totals->where('group_top_parent', $groupTopParent);
+        }
+
+        $totals = $totals->get();
 
         return $totals->map(function($total) use($ageGroup, $filter) {
             return [
@@ -240,8 +265,10 @@ class TotalsController extends Controller
      * @param  [type] $dataset
      * @return \Illuminate\Support\Collection
      */
-    private function totalColumns($dataset, $university, $year, $gender, $groupId, $filter)
+    private function totalColumns($dataset, $university, $year, $gender, $groupId, $groupTopParent, $filter)
     {
+        $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
+
         $totals = DB::table('totals')
             ->select('total_columns.id', 'total_columns.name', 'total_values.value')
             ->leftJoin('total_values', 'totals.id', 'total_values.total_id')
@@ -252,8 +279,13 @@ class TotalsController extends Controller
             ->where('totals.gender', $gender)
             ->where('total_columns.name', '!=', 'Total')
             ->where('totals.group_id', $groupId)
-            ->groupBy('total_values.column_id')
-            ->get();
+            ->groupBy('total_values.column_id');
+
+        if (! empty($groupTopParent)) {
+            $totals = $totals->where('group_top_parent', $groupTopParent);
+        }
+
+        $totals = $totals->get();
 
         return $totals->map(function($total) use($filter) {
             return [
@@ -265,16 +297,38 @@ class TotalsController extends Controller
         });
     }
 
-    private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $ageGroup, $filter)
+    /**
+     * Set value to null if group is empty since we don't need to query groupTopParent if group
+     * hasn't been selected.
+     * 
+     * @param  [type] $group
+     * @param  [type] $groupTopParent
+     * @return [type]
+     */
+    private function groupTopParent($group, $groupTopParent)
     {
+        if (empty($group)) {
+            return null;
+        }
+
+        return $groupTopParent;
+    }
+
+    private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $groupTopParent, $ageGroup, $filter)
+    {
+        $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
+
         $totals = Total::whereHas('dataset', function($query) use($indicator) {
                         $query->where('indicator_id', $indicator->id);
                     })
                     ->where('gender', $gender)
                     ->where('group_id', $groupId)
                     ->where('university_id', $university)
-                    ->orderBy('year')
-                    ->get();
+                    ->orderBy('year');
+
+        $totals = $totals->where('group_top_parent', $groupTopParent);
+
+        $totals = $totals->get();
 
         $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
 

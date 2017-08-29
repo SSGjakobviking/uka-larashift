@@ -17,9 +17,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware' => ['api', 'cors']], function() {
+Route::group(['middleware' => ['api']], function() {
 
-    Route::get('indicators', 'IndicatorController@index');
+    Route::get('indicators', 'IndicatorController@all');
 
     Route::get('totals/{indicator}', 'TotalsController@index')->name('totals');
 

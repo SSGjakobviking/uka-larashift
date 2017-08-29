@@ -16,7 +16,40 @@ class IndicatorController extends Controller
 
     public function __construct()
     {
-        $this->middleware(['auth', 'admin']);
+        $this->middleware(['auth', 'admin'], ['except' => 'all']);
+    }
+
+    /**
+     * Retrieves all indicator groups with their indicators.
+     * 
+     * @return [type]
+     */
+    public function all()
+    {
+        $allIndicators = Indicator::all();
+
+        // loop through all indicators 
+        $indicators = $allIndicators->map(function($item) {
+            // retrieve last published dataset (which we are showing by default in the GUI)
+            $lastPublishedDataset = DatasetHelper::lastPublishedDataset($item);
+
+            if (! $lastPublishedDataset) {
+                return false;
+            }
+
+            return [
+                'name' => $item->name,
+                'most_recent_url' => route('totals', $item->id) . '/?year=' . $lastPublishedDataset->year,
+                'indicator_group' => $item->indicatorGroup->name,
+            ];
+        })->groupBy('indicator_group');
+
+        // remove indicators with no datasets
+        if ($indicators->has('')) {
+            $indicators->forget('');
+        }
+
+        return $indicators;
     }
     
     public function index()

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Indicator extends Model
 {
 
-    protected $fillable = ['name', 'description', 'slug', 'measurement', 'time_unit'];
+    protected $fillable = ['indicator_group', 'name', 'description', 'slug', 'measurement', 'time_unit'];
     
     /**
      * Retrieve all of the associated dataset models.
@@ -17,5 +17,15 @@ class Indicator extends Model
     public function datasets()
     {
         return $this->hasMany(Dataset::class);
+    }
+
+    /**
+     * Retrieve the indicator group.
+     * 
+     * @return [type]
+     */
+    public function indicatorGroup()
+    {
+        return $this->belongsTo(IndicatorGroup::class, 'indicator_group', 'id');
     }
 }

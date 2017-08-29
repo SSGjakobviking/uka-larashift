@@ -168,7 +168,7 @@ return [
          */
         Laravel\Tinker\TinkerServiceProvider::class,
         GrahamCampbell\Exceptions\ExceptionsServiceProvider::class,
-        // Barryvdh\Debugbar\ServiceProvider::class,
+        Barryvdh\Debugbar\ServiceProvider::class,
 
         /*
          * Application Service Providers...

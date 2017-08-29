@@ -113,25 +113,25 @@ class TotalsController extends Controller
         // check if export was requested.
         if ($export) {
             // send cors headers
-            $headers = [
-                'Access-Control-Allow-Origin' => '*',
-                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
-            ];
+            // $headers = [
+            //     'Access-Control-Allow-Origin' => '*',
+            //     'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            //     'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
+            // ];
             // return csv data for the whole year
             if ($export === 'all') {
                 $filePath = asset('uploads/' . $dataset->file);
                 return response()
-                    ->json(['url' => $filePath])
-                    ->withHeaders($headers);
+                    ->json(['url' => $filePath]);
+                    // ->withHeaders($headers);
             }
 
             // create csv file and return data for the current api request.
             if ($export === 'current') {
                 $filePath = $this->jsonToCsv($data, $indicator->slug);
                 return response()
-                ->json(['url' => $filePath])
-                ->withHeaders($headers);
+                ->json(['url' => $filePath]);
+                // ->withHeaders($headers);
             }
         }
 

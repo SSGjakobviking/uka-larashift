@@ -76,10 +76,8 @@ class IndicatorController extends Controller
         return redirect()->back();
     }
 
-    public function edit($id)
+    public function edit($indicator)
     {
-        $indicator = Indicator::find($id);
-
         return view('indicator.edit', [
             'indicator' => $indicator,
             'previewData' => $indicator->datasets()->preview()->get(),

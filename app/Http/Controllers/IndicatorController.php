@@ -50,7 +50,14 @@ class IndicatorController extends Controller
             $indicators->forget('');
         }
 
-        return $indicators;
+        // send cors headers
+        $headers = [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
+        ];
+
+        return response()->json($indicators)->withHeaders($headers);
     }
     
     public function index()

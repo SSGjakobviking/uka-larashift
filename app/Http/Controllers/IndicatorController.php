@@ -38,6 +38,7 @@ class IndicatorController extends Controller
             }
 
             return [
+                'id' => $item->id,
                 'name' => $item->name,
                 'most_recent_url' => route('totals', $item->id) . '/?year=' . $lastPublishedDataset->year,
                 'indicator_group' => $item->indicatorGroup->name,

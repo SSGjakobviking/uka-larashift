@@ -327,14 +327,20 @@ class TotalsController extends Controller
 
         $totals = $totals->get();
 
-        return $totals->map(function($total) use($ageGroup, $filter) {
+        return $totals->filter(function($total) use($ageGroup) {
+            if (isset($total->values->keyBy('column_id')[$ageGroup])) {
+                return true;
+            } else {
+                return false;
+            }
+        })->map(function($total) use($ageGroup, $filter) {
             return [
                 'id'     => $total->university->slug,
                 'name'   => $total->university->name,
                 'value'  => $total->values->keyBy('column_id')[$ageGroup]->value,
                 'url'   => $filter->updateUrl(['university' => $total->university_id]),
             ];
-        });
+        })->values();
     }
 
     /**

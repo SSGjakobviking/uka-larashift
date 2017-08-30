@@ -14,6 +14,9 @@ use App\TotalColumn;
 use App\TotalValue;
 use App\TotalsFormatter;
 use App\University;
+use Box\Spout\Common\Type;
+use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Writer\WriterFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +48,7 @@ class TotalsController extends Controller
         $age_group = ! empty($request->age_group) ? $request->age_group : TotalColumn::where('name', 'Total')->first()->id;
         $year = $request->year;
         $export = ! empty($request->export) ? $request->export : null;
+        $exportType = ! empty($request->export_type) ? $request->export_type : null;
 
         $filters = [
             'university' => $university,
@@ -112,30 +116,74 @@ class TotalsController extends Controller
 
         // check if export was requested.
         if ($export) {
-            // send cors headers
-            // $headers = [
-            //     'Access-Control-Allow-Origin' => '*',
-            //     'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
-            //     'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
-            // ];
             // return csv data for the whole year
             if ($export === 'all') {
-                $filePath = asset('uploads/' . $dataset->file);
+                $filePath = null;
+
+                if ($exportType === 'xlsx') {
+                    $filePath = $this->convertToExcel($dataset->file, 'uploads');
+                }
+
+                if ($exportType === 'csv') {
+                    $filePath = asset('uploads/' . $dataset->file);
+                }
+
                 return response()
                     ->json(['url' => $filePath]);
-                    // ->withHeaders($headers);
             }
 
             // create csv file and return data for the current api request.
             if ($export === 'current') {
                 $filePath = $this->jsonToCsv($data, $indicator->slug);
-                return response()
-                ->json(['url' => $filePath]);
-                // ->withHeaders($headers);
+
+                if ($exportType === 'xlsx') {
+                    $filePath = str_replace(url('downloads') . '/', '', $filePath);
+                    $filePath = $this->convertToExcel($filePath, 'downloads');
+                }
+
+                return response()->json(['url' => $filePath]);
             }
         }
 
         return $data;
+    }
+
+    /**
+     * Convert csv to excel.
+     * 
+     * @param  [type] $csvFile
+     * @param  [type] $folder
+     * @return [type]
+     */
+    public function convertToExcel($csvFile, $folder)
+    {
+        $excelFile = head(explode('.', $csvFile)) . '.xlsx';
+        $relativePath = public_path('downloads/' . $excelFile);
+        $filePath = asset('downloads/' . $excelFile);
+
+        // return file if already exist
+        if (file_exists($relativePath)) {
+            return $filePath;
+        }
+
+        $reader = ReaderFactory::create(Type::CSV); // for CSV files
+        $reader->setFieldDelimiter(';');
+        $writer = WriterFactory::create(Type::XLSX); // for XLSX files
+
+        $reader->open(public_path($folder . '/' . $csvFile));
+        $writer->openToFile($relativePath);
+
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                // do stuff with the row  
+                $writer->addRow($row);
+            }
+        }
+
+        $writer->close();
+        $reader->close();
+
+        return $filePath;
     }
 
     /**
@@ -151,8 +199,6 @@ class TotalsController extends Controller
             'År',
             'Indikator',
         ];
-
-        $fileName = \uniqid() . '-' . $fileName;
 
         $content = [];
 
@@ -211,7 +257,7 @@ class TotalsController extends Controller
 
         // add headers to the first line.
         $output = $rows->prepend($headers);
-        $fileName = $fileName . '.csv';
+        $fileName = uniqid() . '-' . $fileName . '.csv';
         $filePath = public_path('downloads/' . $fileName);
         $fp = fopen($filePath, 'w');
 

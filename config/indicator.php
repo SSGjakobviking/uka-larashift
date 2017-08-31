@@ -129,4 +129,22 @@ return [
             ],
         ]
     ],
+    'andel-med-hogutbildade-foraldrar' => [
+        'group_columns' => [
+            'larosate'  => 'Lärosäten',
+        ],
+        'dynamic_title' => [
+            'default'   => 'Andel med högutbildade föräldrar{university}{year}',
+            'university' => 'vid',
+        ]
+    ],
+    'andel-med-utlandsk-bakgrund' => [
+        'group_columns' => [
+            'larosate'  => 'Lärosäten',
+        ],
+        'dynamic_title' => [
+            'default'   => 'Andel med utländsk bakgrund{university}{year}',
+            'university' => 'vid',
+        ]
+    ],
 ];

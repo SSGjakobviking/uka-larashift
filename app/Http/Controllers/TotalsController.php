@@ -498,11 +498,20 @@ class TotalsController extends Controller
         $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
 
             return [
-                'year' => $total->year,
+                'year' => trim($total->year),
                 'value' => $total->values->keyBy('column_id')[$ageGroup]->value,
-                'url'   => $filter->updateUrl(['year' => $total->year]),
+                'url'   => $filter->updateUrl(['year' => trim($total->year)]),
             ];
         });
+
+        // code below sorts ht/vt years in the following order: HT2010, VT2010, HT2011, VT2011
+        $checkForHtVt = ['ht', 'vt'];
+
+        if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
+            $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
+                return substr($item['year'], 2, 4);
+            })->collapse();
+        }
 
         return $yearlyTotals;
     }

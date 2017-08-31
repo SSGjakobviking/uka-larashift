@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Dataset;
 use App\Total;
 
 class DatasetHelper
@@ -14,14 +15,8 @@ class DatasetHelper
      */
     public static function lastPublishedDataset($indicator)
     {
-        $latest = Total::whereHas('dataset', function($query) use($indicator) {
-            $query->where('status', 'published');
-            $query->where('indicator_id', $indicator->id);
-        })
-        ->where('gender', 'Total')
-        ->orderBy('year', 'desc')
-        ->first(['year', 'dataset_id']);
-
-        return $latest;
+        return Dataset::where('indicator_id', $indicator->id)
+                    ->orderBy('year', 'desc')
+                    ->first(['year', 'id']);
     }
 }

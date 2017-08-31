@@ -90,16 +90,22 @@ class DatasetController extends Controller
         $file = $request->file('file');
 
         $name = time() . '-' . $file->getClientOriginalName();
-
+        // separate file name by underscore to retrieve the dataset year
+        $separateNameFormat = explode('_', $name);
+        // year will always be in position 1 in the array, also replace - with / before inserting (2008-09 becomes 2008/09 in the db)
+        $year = str_replace('-', '/', $separateNameFormat[1]);
+        // move file to uploads folder
         $file->move(public_path() . '/uploads/', $name);
-
+        // create the dataset row in db
         $dataset = Dataset::create([
             'user_id'       => auth()->user()->id,
-            'indicator_id' => null,
-            'status'        => 'processing',
+            'indicator_id'  => null,
             'file'          => $name,
+            'year'          => $year,
+            'status'        => 'processing',
         ]);
-
+        
+        // start the job (our parsing of csv and import to db)
         dispatch(new ImportDataset($dataset));
 
         return response()->json(['success' => true]);

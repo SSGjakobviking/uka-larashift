@@ -13,8 +13,9 @@ class Dataset extends Model
         'user_id',
         'indicator_id',
         'file',
-        'version',
+        'year',
         'status',
+        'version',
     ];
 
     /**

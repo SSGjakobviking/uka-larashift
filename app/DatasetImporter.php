@@ -150,7 +150,6 @@ class DatasetImporter
         // dd(
         //     $data->get('Riket')->first()->get('Total')
         // );
-
         return $data;
     }
 
@@ -331,10 +330,6 @@ class DatasetImporter
                 }
             }
 
-            if ($groupName === static::ALL_FIELD) {
-                dd($groupName);
-            }
-
             $currentGroup = Group::firstOrCreate([
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'name'          => $groupName,
@@ -399,8 +394,9 @@ class DatasetImporter
 
                     $this->createTotal($dataset, $createdUniversity, $year, $gender, $group->get('total'));
 
-                    $this->createGroup($dataset, $group['children'], $group['children'], $createdUniversity, $year, $gender);
-
+                    if (isset($group['children'])) {
+                        $this->createGroup($dataset, $group['children'], $group['children'], $createdUniversity, $year, $gender);
+                    }
                 }
             }
         }
@@ -433,10 +429,6 @@ class DatasetImporter
             'year'          => $year,
             'gender'        => $gender,
         ]);
-
-        // if (empty($totals)) {
-        //     dd($parentGroup);
-        // }
 
         $this->createTotalValues($total, $totals);
 

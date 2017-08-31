@@ -129,7 +129,7 @@ class Search {
 
         $results = $this->client->search($params);
 
-        return $results['hits']['hits'][0];
+        return isset($results['hits']['hits'][0]) ? $results['hits']['hits'][0] : false;
     }
 
     /**
@@ -150,7 +150,7 @@ class Search {
             foreach($group as $list) {
                 $document = collect([]);
                 $document = $document->merge($list)->toArray();
-                $document['dataset_id'] = $this->dataset->dataset_id;
+                $document['dataset_id'] = $this->dataset->id;
 
                 $params['body'][] = [
                     'index' => [
@@ -193,7 +193,7 @@ class Search {
         //     return $item;
         // });
 
-        $universities = Total::where('dataset_id', $this->dataset->dataset_id)
+        $universities = Total::where('dataset_id', $this->dataset->id)
                         ->whereHas('university')
                         ->with('university')
                         ->groupBy('university_id')
@@ -214,7 +214,7 @@ class Search {
         //     return $item;
         // });
 
-        $groups = Total::where('dataset_id', $this->dataset->dataset_id)->whereHas('group')
+        $groups = Total::where('dataset_id', $this->dataset->id)->whereHas('group')
                     ->with('group')
                     ->groupBy('group_id')
                     ->get()
@@ -252,7 +252,7 @@ class Search {
                         ];
                     });
         
-        $genders = Total::where('dataset_id', $this->dataset->dataset_id)
+        $genders = Total::where('dataset_id', $this->dataset->id)
                     ->where('gender', '!=', 'Total')
                     ->groupBy('gender')
                     ->get(['gender']);

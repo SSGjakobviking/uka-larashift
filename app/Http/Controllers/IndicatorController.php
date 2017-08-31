@@ -49,8 +49,8 @@ class IndicatorController extends Controller
         if ($indicators->has('')) {
             $indicators->forget('');
         }
-        echo 'hello';
-        // return response()->json($indicators);
+
+        return response()->json($indicators);
     }
     
     public function index()

@@ -40,7 +40,7 @@ class IndicatorController extends Controller
             return [
                 'id' => $item->id,
                 'name' => $item->name,
-                'most_recent_url' => route('totals', $item->id) . '/?year=' . $lastPublishedDataset->year,
+                'most_recent_url' => route('totals', $item->id) . '/?year=' . trim($lastPublishedDataset->year),
                 'indicator_group' => $item->indicatorGroup->name,
             ];
         })->groupBy('indicator_group');
@@ -49,15 +49,8 @@ class IndicatorController extends Controller
         if ($indicators->has('')) {
             $indicators->forget('');
         }
-
-        // send cors headers
-        // $headers = [
-        //     'Access-Control-Allow-Origin' => '*',
-        //     'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
-        //     'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With',
-        // ];
-
-        return response()->json($indicators);
+        echo 'hello';
+        // return response()->json($indicators);
     }
     
     public function index()

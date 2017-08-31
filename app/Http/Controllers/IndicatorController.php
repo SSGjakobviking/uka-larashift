@@ -60,10 +60,8 @@ class IndicatorController extends Controller
         return view('indicator.index', ['indicators' => $indicators]);
     }
 
-    public function update($id, Request $request)
+    public function update($indicator, Request $request)
     {
-        $indicator = Indicator::findOrFail($id);
-
         $indicator->update($request->all());
 
         return redirect()->back();

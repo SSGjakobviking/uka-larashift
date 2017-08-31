@@ -27,7 +27,7 @@ class CreateIndicatorGroupsColumnOnIndicatorsTable extends Migration
     public function down()
     {
         Schema::table('indicators', function (Blueprint $table) {
-            $table->dropColumn(['indicator_group']);
+            $table->dropColumn('indicator_group');
         });
     }
 }

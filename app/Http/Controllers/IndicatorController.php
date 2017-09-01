@@ -72,13 +72,19 @@ class IndicatorController extends Controller
     {
         $noStatusDatasets = Dataset::doesntHave('statuses')->get();
 
-        $previewData = $indicator->datasets()->whereHas('statuses', function($query) {
-            $query->preview();
-        })->get();
+        $previewData = $indicator->datasets()
+                        ->whereHas('statuses', function($query) {
+                            $query->preview();
+                        })
+                        ->with('user')
+                        ->get();
 
-        $publishedData = $indicator->datasets()->whereHas('statuses', function($query) {
-            $query->published();
-        })->get();
+        $publishedData = $indicator->datasets()
+                        ->whereHas('statuses', function($query) {
+                            $query->published();
+                        })
+                        ->with('user')
+                        ->get();
 
         $previewDropdownData = $noStatusDatasets->merge($publishedData);
         $publishedDropdownData = $noStatusDatasets->merge($previewData);

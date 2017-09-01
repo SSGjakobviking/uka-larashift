@@ -21,7 +21,6 @@ class Search {
         $this->client = $client;
         $this->indicator = $indicator;
         $this->dataset = $dataset;
-        // $this->groups();
     }
 
     public function search($query, $year = null)
@@ -187,11 +186,6 @@ class Search {
     private function groups()
     {
         $dataset = $this->dataset;
-        // $universities = University::get(['id', 'name'])->map(function($item) {
-        //     $item['order'] = 1;
-        //     $item['group'] = 'university';
-        //     return $item;
-        // });
 
         $universities = Total::where('dataset_id', $this->dataset->id)
                         ->whereHas('university')
@@ -207,13 +201,6 @@ class Search {
                             ];
                         });
 
-        // old groups
-        // $groups = Group::get(['id',  'name'])->map(function($item) {
-        //     $item['order'] = 2;
-        //     $item['group'] = 'group';
-        //     return $item;
-        // });
-
         $groups = Total::where('dataset_id', $this->dataset->id)->whereHas('group')
                     ->with('group')
                     ->groupBy('group_id')
@@ -228,30 +215,23 @@ class Search {
                         ];
                     });
 
-        // $ageGroup = TotalColumn::get(['id', 'name'])->map(function($item) {
-        //     $item['order'] = 3;
-        //     $item['group'] = 'age_group';
-        //     return $item;
-        // });
+        $ageGroup = DB::table('totals')
+            ->join('total_values', 'totals.id', '=', 'total_values.total_id')
+            ->join('total_columns', 'total_values.column_id', 'total_columns.id')
+            ->where('dataset_id', $dataset->id)
+            ->groupBy('total_columns.id')
+            ->having('total_columns.name', '<>', 'Total')
+            ->select('total_columns.id', 'total_columns.name')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'id'    => $item->id, 
+                    'name'    => $item->name, 
+                    'order' => 3,
+                    'group' => 'age_group',
+                ];
+            });
 
-        $ageGroup = TotalValue::whereHas('total', function($query) use($dataset) {
-                        $query->where('dataset_id', $dataset->dataset_id);
-                    })
-                    ->with('column')
-                    ->whereHas('column', function($query) {
-                        $query->where('name', '!=', 'Total');
-                    })
-                    ->groupBy('column_id')
-                    ->get()
-                    ->map(function($item) {
-                        return [
-                            'id'    => $item->column->id, 
-                            'name'    => $item->column->name, 
-                            'order' => 3,
-                            'group' => 'age_group',
-                        ];
-                    });
-        
         $genders = Total::where('dataset_id', $this->dataset->id)
                     ->where('gender', '!=', 'Total')
                     ->groupBy('gender')

@@ -18,20 +18,15 @@ class SearchController extends Controller
 
     public function index(Request $request, $indicator, $query)
     {
-        // Log::info('Before published');
         $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
-        // Log::info('After published');
         $client = ClientBuilder::create()->build();
         $results = [];
-        // Log::info('initialize search');
+
         $search = new Search($client, $indicator, $lastPublishedDataset);
-        // Log::info('after search init');
+
         if (! empty($query)) {
-            // Log::info('Try query!');
             try {
-                // Log::info('Before search');
                 $results['result'] = $search->search($query, $lastPublishedDataset['year']);
-                // Log::info('After search');
             } catch(\Exception $e) {
                 $results = [
                     'error' => true,

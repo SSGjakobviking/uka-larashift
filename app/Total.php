@@ -34,6 +34,11 @@ class Total extends Model
         return $this->hasMany(TotalValue::class);
     }
 
+    public function columns()
+    {
+        return $this->belongsToMany(TotalColumn::class)->withPivot('total_id', 'column_id');
+    }
+
     public function group()
     {
         return $this->belongsTo(Group::class);

@@ -131,7 +131,7 @@ class IndicatorController extends Controller
             $currentIndexedDataset = $result['_source']['dataset_id'];
 
             // remove indexed dataset if it matches with the current unattached dataset.
-            if ($currentIndexedDataset != $lastPublishedDataset->dataset_id) {
+            if ($currentIndexedDataset != $lastPublishedDataset->id) {
                 $search->remove();
 
                 if ($lastPublishedDataset) {

@@ -13,9 +13,12 @@ class DatasetHelper
      * @param  [type] $indicator
      * @return [type]
      */
-    public static function lastPublishedDataset($indicator)
+    public static function lastPublishedDataset($indicator, $status = 'published')
     {
         return Dataset::where('indicator_id', $indicator->id)
+                    ->whereHas('statuses', function($query) use($status) {
+                        $query->where('name', $status);
+                    })
                     ->orderBy('year', 'desc')
                     ->first(['year', 'id']);
     }

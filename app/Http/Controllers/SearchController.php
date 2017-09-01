@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Dataset;
 use App\Filter;
+use App\Helpers\DatasetHelper;
 use App\Indicator;
 use App\Search;
 use App\Total;
@@ -16,8 +17,7 @@ class SearchController extends Controller
 
     public function index(Request $request, $indicator, $query)
     {
-        $indicator = Indicator::find($indicator);
-        $lastPublishedDataset = $this->lastPublishedDataset($indicator);
+        $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
         $client = ClientBuilder::create()->build();
         $results = [];
 
@@ -38,18 +38,5 @@ class SearchController extends Controller
         }
 
         return $results;
-    }
-
-    private function lastPublishedDataset($indicator)
-    {
-        $latest = Total::whereHas('dataset', function($query) use($indicator) {
-            $query->where('status', 'published');
-            $query->where('indicator_id', $indicator->id);
-        })
-        ->where('gender', 'Total')
-        ->orderBy('year', 'desc')
-        ->first(['year', 'dataset_id']);
-
-        return $latest;
     }
 }

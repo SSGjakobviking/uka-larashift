@@ -40,8 +40,8 @@
             </td>
             <td>{{ $dataset->user->name }}</td>
             <td>{{ $dataset->created_at->format('Y-m-d H:i:s')  }}</td>
-            <td>{{ $dataset->statuses()->pluck('name')->implode(', ') }}</td>
-            @if($dataset->statuses()->count() === 0) 
+            <td>{{ $dataset->statuses->pluck('name')->implode(', ') }}</td>
+            @if($dataset->statuses->count() === 0) 
                 <td><a href="{{ url('dataset', [$dataset->id, 'delete']) }}" class="text-danger">Ta bort</a></td>
             @endif
         </tr>

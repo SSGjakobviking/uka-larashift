@@ -35,6 +35,9 @@ class DatasetController extends Controller
    {
         $datasets = Dataset::has('tags', '<', 1)
                             ->orderBy('created_at', 'desc')
+                            ->with('user')
+                            ->with('tags')
+                            ->with('statuses')
                             ->get();
 
         $filter = $request->filter;

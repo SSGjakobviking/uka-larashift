@@ -504,7 +504,9 @@ class TotalsController extends Controller
                     ->where('university_id', $university)
                     ->orderBy('year');
 
-        $totals = $totals->where('group_top_parent', $groupTopParent);
+        if (! is_null($groupTopParent)) {
+            $totals = $totals->where('group_top_parent', $groupTopParent);
+        }
 
         $totals = $totals->get();
 

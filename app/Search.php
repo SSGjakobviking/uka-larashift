@@ -21,7 +21,7 @@ class Search {
         $this->client = $client;
         $this->indicator = $indicator;
         $this->dataset = $dataset;
-        $this->groups();
+        // $this->groups();
     }
 
     public function search($query, $year = null)

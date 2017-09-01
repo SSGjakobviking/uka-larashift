@@ -516,15 +516,15 @@ class TotalsController extends Controller
                 'url'   => $filter->updateUrl(['year' => trim($total->year)]),
             ];
         });
-        // add below code later
-        // code below sorts ht/vt years in the following order: HT2010, VT2010, HT2011, VT2011
-        // $checkForHtVt = ['ht', 'vt'];
 
-        // if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
-        //     $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
-        //         return substr($item['year'], 2, 4);
-        //     })->collapse();
-        // }
+        // code below sorts ht/vt years in the following order: HT2010, VT2010, HT2011, VT2011
+        $checkForHtVt = ['ht', 'vt'];
+
+        if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
+            $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
+                return substr($item['year'], 2, 4);
+            })->collapse();
+        }
 
         return $yearlyTotals;
     }

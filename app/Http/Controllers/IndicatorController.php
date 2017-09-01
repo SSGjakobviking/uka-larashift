@@ -82,7 +82,10 @@ class IndicatorController extends Controller
 
         $previewDropdownData = $noStatusDatasets->merge($publishedData);
         $publishedDropdownData = $noStatusDatasets->merge($previewData);
-        // dd($publishedDropdownData->toArray());
+        
+        $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
+
+        $previewUrl = env('APP_PREVIEW_URL') . '?statq=' . urlencode(route('totals', $indicator) . '?year=' . $lastPublishedDataset->year . '&status=preview');
 
         return view('indicator.edit', [
             'indicator' => $indicator,
@@ -90,6 +93,7 @@ class IndicatorController extends Controller
             'publishedData' => $publishedData,
             'previewDropdownData' => $previewDropdownData,
             'publishedDropdownData' => $publishedDropdownData,
+            'previewUrl' => $previewUrl,
         ]);
     }
 

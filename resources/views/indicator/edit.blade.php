@@ -34,6 +34,12 @@
         </select>
 
         <input type="submit" class="btn btn-primary" name="save_dataset_preview" value="Lägg till preview">
+        <a style="
+        margin-top: 30px;
+        margin-left: 50px;
+        display: block;
+        float: right;" 
+        href="{{ $previewUrl }}" target="_blank">Förhandsgranska i testmiljön</a>
     </form>
 
 

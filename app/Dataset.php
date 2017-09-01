@@ -48,30 +48,40 @@ class Dataset extends Model
         return $this->belongsToMany(Tag::class, 'dataset_tags');
     }
 
-    /**
-     * Retrieve published datasets.
-     * 
-     * @param  [type] $query
-     * @return [type]
-     */
-    public function scopePublished($query)
+    public function statuses()
     {
-        return $query->where('status', 'published');
+        return $this->belongsToMany(Status::class)->withTimestamps();
     }
 
-    /**
-     * Retrieve datasets set for preview.
-     * 
-     * @param  [type] $query
-     * @return [type]
-     */
-    public function scopePreview($query)
-    {
-        return $query->where('status', 'preview');
-    }
+    // public function scopePublished($query)
+    // {
+        
+    // }
 
-    public function scopeUnattached($query)
-    {
-        return $query->where('status', null);
-    }
+    // /**
+    //  * Retrieve published datasets.
+    //  * 
+    //  * @param  [type] $query
+    //  * @return [type]
+    //  */
+    // public function scopePublished($query)
+    // {
+    //     return $query->where('status', 'published');
+    // }
+
+    // *
+    //  * Retrieve datasets set for preview.
+    //  * 
+    //  * @param  [type] $query
+    //  * @return [type]
+     
+    // public function scopePreview($query)
+    // {
+    //     return $query->where('status', 'preview');
+    // }
+
+    // public function scopeUnattached($query)
+    // {
+    //     return $query->where('status', null);
+    // }
 }

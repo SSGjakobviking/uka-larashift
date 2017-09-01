@@ -6,6 +6,7 @@ use App\Dataset;
 use App\Helpers\DatasetHelper;
 use App\Indicator;
 use App\Search;
+use App\Status;
 use App\Total;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
@@ -69,11 +70,26 @@ class IndicatorController extends Controller
 
     public function edit($indicator)
     {
+        $noStatusDatasets = Dataset::doesntHave('statuses')->get();
+
+        $previewData = $indicator->datasets()->whereHas('statuses', function($query) {
+            $query->preview();
+        })->get();
+
+        $publishedData = $indicator->datasets()->whereHas('statuses', function($query) {
+            $query->published();
+        })->get();
+
+        $previewDropdownData = $noStatusDatasets->merge($publishedData);
+        $publishedDropdownData = $noStatusDatasets->merge($previewData);
+        // dd($publishedDropdownData->toArray());
+
         return view('indicator.edit', [
             'indicator' => $indicator,
-            'previewData' => $indicator->datasets()->preview()->get(),
-            'publishedData' => $indicator->datasets()->published()->get(),
-            'unAttachedData'  => Dataset::unAttached()->get(),
+            'previewData' => $previewData,
+            'publishedData' => $publishedData,
+            'previewDropdownData' => $previewDropdownData,
+            'publishedDropdownData' => $publishedDropdownData,
         ]);
     }
 
@@ -157,10 +173,17 @@ class IndicatorController extends Controller
         $input = $this->detectStatus($request);
 
         foreach ($input['datasets'] as $datasetId) {
-            Dataset::where('id', $datasetId)->update([
-                'indicator_id' => $id,
-                'status'    => $input['status'],
+            $dataset = Dataset::where('id', $datasetId)->update([
+                'indicator_id' => $id
             ]);
+
+            $status = Status::where('name', $input['status'])->first(['id']);
+
+            $dataset = Dataset::find($datasetId);
+
+            if (! $dataset->statuses->contains($status)) {
+                $dataset->statuses()->attach($status->id);
+            }
         }
 
         // Index only production dataset in elasticsearch

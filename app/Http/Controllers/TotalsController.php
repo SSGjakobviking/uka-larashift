@@ -49,6 +49,7 @@ class TotalsController extends Controller
         $year = $request->year;
         $export = ! empty($request->export) ? $request->export : null;
         $exportType = ! empty($request->export_type) ? $request->export_type : null;
+        $status = ! empty($request->status) ? $request->status : 'published';
 
         $filters = [
             'university' => $university,
@@ -65,7 +66,13 @@ class TotalsController extends Controller
         $data['indicator'] = $this->indicatorData($indicator, $filter, $year);
         
         // retrieve dataset id for current year
-        $dataset = $this->dataset($indicator, $year);
+        $dataset = $this->dataset($indicator, $year, $status);
+        
+        if (is_null($dataset)) {
+            return response()->json([
+                'error' => 'No dataset for this indicator ID: ' . $indicator->id . ' and year ' . $year,
+            ]);
+        }
 
         $universities = $this->universities($dataset, $year, $gender, $groupInput, $groupTopParent, $age_group, $filter);
 
@@ -75,7 +82,7 @@ class TotalsController extends Controller
 
         $totalColumns = $this->totalColumns($dataset, $university, $year, $gender, $groupInput, $groupTopParent, $filter);
 
-        $yearlyTotals = $this->yearlyTotals($indicator, $university, $gender, $groupInput, $groupTopParent, $age_group, $filter);
+        $yearlyTotals = $this->yearlyTotals($indicator, $university, $gender, $groupInput, $groupTopParent, $age_group, $status, $filter);
 
         $totals = new TotalsFormatter();
 
@@ -277,12 +284,14 @@ class TotalsController extends Controller
      * @param  [type] $year
      * @return [type]
      */
-    private function dataset($indicator, $year)
+    private function dataset($indicator, $year, $status)
     {
         return $indicator->datasets()
-                ->whereHas('totals', function($query) use($year) {
-                    $query->where('year', $year);
-                })->get()->first();
+                ->where('year', $year)
+                ->whereHas('statuses', function($query) use($status) {
+                    $query->where('name', $status);
+                })
+                ->first();
     }
 
     /**
@@ -479,12 +488,16 @@ class TotalsController extends Controller
         return $groupTopParent;
     }
 
-    private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $groupTopParent, $ageGroup, $filter)
+    private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $groupTopParent, $ageGroup, $status, $filter)
     {
         $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
 
-        $totals = Total::whereHas('dataset', function($query) use($indicator) {
+        $totals = Total::whereHas('dataset', function($query) use($indicator, $status) {
                         $query->where('indicator_id', $indicator->id);
+
+                        $query->whereHas('statuses', function($query) use($status) {
+                            $query->status($status);
+                        });
                     })
                     ->where('gender', $gender)
                     ->where('group_id', $groupId)
@@ -503,15 +516,15 @@ class TotalsController extends Controller
                 'url'   => $filter->updateUrl(['year' => trim($total->year)]),
             ];
         });
-
+        // add below code later
         // code below sorts ht/vt years in the following order: HT2010, VT2010, HT2011, VT2011
-        $checkForHtVt = ['ht', 'vt'];
+        // $checkForHtVt = ['ht', 'vt'];
 
-        if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
-            $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
-                return substr($item['year'], 2, 4);
-            })->collapse();
-        }
+        // if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
+        //     $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
+        //         return substr($item['year'], 2, 4);
+        //     })->collapse();
+        // }
 
         return $yearlyTotals;
     }

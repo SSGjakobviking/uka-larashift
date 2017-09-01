@@ -8,6 +8,7 @@ use App\Helpers\DatasetHelper;
 use App\Indicator;
 use App\Jobs\ImportDataset;
 use App\Search;
+use App\Status;
 use App\Tag;
 use Carbon\Carbon;
 use Elasticsearch\ClientBuilder;
@@ -34,8 +35,6 @@ class DatasetController extends Controller
    {
         $datasets = Dataset::has('tags', '<', 1)
                             ->orderBy('created_at', 'desc')
-                            ->where('status', null)
-                            ->orWhere('status', 'processing')
                             ->get();
 
         $filter = $request->filter;
@@ -134,18 +133,33 @@ class DatasetController extends Controller
      * @param  [type] $id
      * @return [type]
      */
-    public function unAttach($id)
+    public function unAttach($id, $status)
     {
         $dataset = Dataset::find($id);
         $indicator = $dataset->indicator()->first();
+
+        $status = Status::where('name', $status)->first();
+
+        if ($status) {
+            $dataset->statuses()->detach($status);
+            $foundStatus = $dataset->statuses()->count();
+
+            if (! $foundStatus) {
+                Dataset::where('id', $id)->update([
+                    'indicator_id' => null,
+                ]);
+
+                $this->removeIndex($indicator, $dataset);
+            }
+        }
+        
+
+        return redirect()->back();
+    }
+
+    private function removeIndex($indicator, $dataset)
+    {
         $client = ClientBuilder::create()->build();
-
-        Dataset::where('id', $id)->update([
-            'indicator_id' => null,
-            'status'       => null,
-        ]);
-
-
         $search = new Search($client, $indicator, $dataset);
 
         // make sure index exist before attempting to remove the index
@@ -167,9 +181,6 @@ class DatasetController extends Controller
                 }
             }
         }
-        
-
-        return redirect()->back();
     }
 
     public function addTag(Request $request)

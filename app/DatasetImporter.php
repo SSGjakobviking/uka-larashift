@@ -330,7 +330,7 @@ class DatasetImporter
                 }
             }
 
-            $currentGroup = Group::firstOrCreate([
+            $currentGroup = Group::create([
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'name'          => $groupName,
             ]);

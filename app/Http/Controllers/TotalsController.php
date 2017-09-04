@@ -490,7 +490,37 @@ class TotalsController extends Controller
 
     private function yearlyTotals(Indicator $indicator, $university, $gender, $groupId, $groupTopParent, $ageGroup, $status, $filter)
     {
+        DB::enableQueryLog();
         $groupTopParent = $this->groupTopParent($groupId, $groupTopParent);
+        $parentGroup = Group::find($groupId);
+
+        $groupChilds = Total::whereHas('dataset', function($query) use($indicator, $status) {
+                        $query->where('indicator_id', $indicator->id);
+
+                        $query->whereHas('statuses', function($query) use($status) {
+                            $query->status($status);
+                        });
+                    })
+                    ->with('group')
+                    ->where('gender', $gender)
+                    ->where('group_parent_id', $groupId)
+                    ->where('university_id', $university)
+                    ->groupBy('year')
+                    ->orderBy('year');
+
+        if (! is_null($groupTopParent)) {
+            $groupChilds = $groupChilds->where('group_top_parent', $groupTopParent);
+        }
+
+        $groupChilds = $groupChilds->get();
+
+        // check if child groups has the same group name as parent group
+        if ($parentGroup) {
+            $sameParentChildGroupName = $groupChilds->filter(function($item) use($parentGroup) {
+                return $parentGroup->name === $item->group->name ? true : false;
+            });
+        }
+
 
         $totals = Total::whereHas('dataset', function($query) use($indicator, $status) {
                         $query->where('indicator_id', $indicator->id);
@@ -500,15 +530,23 @@ class TotalsController extends Controller
                         });
                     })
                     ->where('gender', $gender)
-                    ->where('group_id', $groupId)
                     ->where('university_id', $university)
+                    ->groupBy('year')
                     ->orderBy('year');
+        // dd($groupChilds->toArray());
+        // if parent group has the same name as the current groups query by group_parent_id
+        if (isset($sameParentChildGroupName) && $sameParentChildGroupName->count() > 0) {
+            $totals->where('group_parent_id', $groupId);
+        } else {
+            $totals->where('group_id', $groupId);
+        }
 
         if (! is_null($groupTopParent)) {
             $totals = $totals->where('group_top_parent', $groupTopParent);
         }
 
         $totals = $totals->get();
+        // dd(DB::getQueryLog());
 
         $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
 
@@ -518,7 +556,7 @@ class TotalsController extends Controller
                 'url'   => $filter->updateUrl(['year' => trim($total->year)]),
             ];
         });
-
+        // dd($yearlyTotals);
         // code below sorts ht/vt years in the following order: HT2010, VT2010, HT2011, VT2011
         $checkForHtVt = ['ht', 'vt'];
 

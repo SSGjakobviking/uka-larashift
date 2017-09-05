@@ -487,15 +487,18 @@ class TotalsController extends Controller
             ];
         });
 
-        // code below sorts ht/vt years in the following order: HT2010, VT2010, HT2011, VT2011
+        // code below sorts vt/ht years in the following order: VT2010, HT2010, VT2011, HT2011
         $checkForHtVt = ['ht', 'vt'];
 
         if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
             $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
                 return substr($item['year'], 2, 4);
+            })->sort()->map(function($item) {
+                return $item->sortByDesc('year')->values();
             })->collapse();
         }
 
+        // dd($yearlyTotals->toArray());
         return $yearlyTotals;
     }
 }

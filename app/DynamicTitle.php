@@ -53,14 +53,23 @@ class DynamicTitle
         return $filters->map(function($value, $key) {
 
             // year doesn't need a nice value from the config so we return it directly.
-            if ($key === 'year' or $key === 'group_slug') {
+            if ($key === 'year') {
                 return;
             }
 
             $prefix = $this->config['dynamic_title'][$key];
 
-            if ($key == 'group' && ! is_null($value)) {
-                $group = $this->leftSpacing(Group::find($value)->name);
+            if ($key === 'group_slug' && ! is_null($value)) {
+                $slug = $this->indicator
+                        ->datasets
+                        ->first()
+                        ->totals()
+                        ->where('group_slug', $value)
+                        ->first()
+                        ->group()
+                        ->first();
+
+                $group = $this->leftSpacing($slug->name);
 
                 return $this->leftSpacing($prefix . strtolower($group));
             }

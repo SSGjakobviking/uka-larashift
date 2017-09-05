@@ -43,7 +43,6 @@ class TotalsController extends Controller
         // Retrieve filter args
         $university = ! empty($request->university) ? $request->university : $universityDefaultId;
         $gender = ! empty($request->gender) ? $request->gender : 'Total';
-        $groupInput = ! empty($request->group) ? $request->group : null;
         $groupSlug = ! empty($request->group_slug) ? $request->group_slug : null;
         $age_group = ! empty($request->age_group) ? $request->age_group : TotalColumn::where('name', 'Total')->first()->id;
         $year = $request->year;
@@ -54,7 +53,6 @@ class TotalsController extends Controller
         $filters = [
             'university' => $university,
             'year'       => $year,
-            'group'      => $request->group,
             'group_slug' => $groupSlug,
             'gender'     => $request->gender,
             'age_group'  => $request->age_group,

@@ -10,9 +10,9 @@ return [
         ],
 
         'dynamic_title' => [
-            'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{year}',
+            'default'   => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
             'university' => 'vid',
-            'group'     => 'inom',
+            'group_slug' => 'inom',
             'gender'    => [
                 'man'       => 'manliga',
                 'kvinnor'   => 'kvinnliga'
@@ -34,9 +34,9 @@ return [
         ],
 
         'dynamic_title' => [
-            'default'   => 'Antal{gender} registrerade studenter{age_group}{group}{university}{year}',
+            'default'   => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
             'university' => 'vid',
-            'group'     => 'inom',
+            'group_slug' => 'inom',
             'gender'    => [
                 'man'       => 'manliga',
                 'kvinnor'   => 'kvinnliga'
@@ -59,9 +59,9 @@ return [
         ],
 
         'dynamic_title' => [
-            'default'   => 'Antal{gender} högskolestuderande{age_group}{group}{university}{year}',
+            'default'   => 'Antal{gender} högskolestuderande{age_group}{group_slug}{university}{year}',
             'university' => 'vid',
-            'group'     => 'inom',
+            'group_slug' => 'inom',
             'gender'    => [
                 'man'       => 'manliga',
                 'kvinnor'   => 'kvinnliga'
@@ -84,9 +84,9 @@ return [
         ],
 
         'dynamic_title' => [
-            'default'   => 'Antal{gender} doktorander{age_group}{group}{university}{year}',
+            'default'   => 'Antal{gender} doktorander{age_group}{group_slug}{university}{year}',
             'university' => 'vid',
-            'group'     => 'inom',
+            'group_slug' => 'inom',
             'gender'    => [
                 'man'       => 'manliga',
                 'kvinnor'   => 'kvinnliga'
@@ -94,8 +94,8 @@ return [
             'age_group' => [
                 '29'    => 'i åldersgruppen -29 år',
                 '30-39'  => 'i åldersgruppen 30-39 år',
-                '40'    => 'i åldersgruppen 40- år',
-                'antal'    => null,
+                '40'     => 'i åldersgruppen 40- år',
+                'antal'  => null,
             ],
         ]
     ],
@@ -104,9 +104,9 @@ return [
             'utbildningsform'  => 'Lärosäten',
         ],
         'dynamic_title' => [
-            'default'   => 'Antal{gender} sökande studenter{age_group}{group}{university}{year}',
+            'default'   => 'Antal{gender} sökande studenter{age_group}{group_slug}{university}{year}',
             'university' => 'vid',
-            'group'     => 'till',
+            'group_slug' => 'till',
             'gender'    => [
                 'man'       => 'manliga',
                 'kvinnor'   => 'kvinnliga'
@@ -121,9 +121,9 @@ return [
     ],
     'intakter' => [
         'dynamic_title' => [
-            'default'   => 'Summa intäkter{group}{university}{year}',
+            'default'   => 'Summa intäkter{group_slug}{university}{year}',
             'university' => 'vid',
-            'group'     => 'till',
+            'group_slug' => 'till',
             'age_group' => [
                 'summa'    => null,
             ],

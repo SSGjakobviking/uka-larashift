@@ -12,10 +12,10 @@ class Total extends Model
         'university_id',
         'group_id',
         'group_parent_id',
-        'group_top_parent',
         'year',
         'gender',
         'group_slug',
+        'group_parent_slug',
     ];
 
     public $timestamps = false;

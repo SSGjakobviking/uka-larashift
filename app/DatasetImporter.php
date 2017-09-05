@@ -224,7 +224,7 @@ class DatasetImporter
             'group_slug' => $slug,
             'children'   => $collection->map(function ($subdata, $category) use ($groups, $group, $slug) {
                 // Repeat this whole function for each item
-                $slug = sha1(trim($slug.'_'.str_slug($category), '_'));
+                $slug = trim($slug.'_'.str_slug($category), '_');
 
                 return $this->iterateOverGroups($subdata, $groups, $group, $slug);
             }),
@@ -336,7 +336,7 @@ class DatasetImporter
                 }
             }
 
-            $currentGroup = Group::create([
+            $currentGroup = Group::firstOrCreate([
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'name'          => $groupName,
             ]);
@@ -418,6 +418,8 @@ class DatasetImporter
             $group = $group->id;
         }
 
+        $groupParentSlug = $this->removeLastGroup($groupSlug);
+
         $total = Total::firstOrCreate([
             'dataset_id'    => $dataset->id,
             'university_id' => $university->id,
@@ -425,12 +427,24 @@ class DatasetImporter
             'group_parent_id' => $parentGroup,
             'year'          => $year,
             'gender'        => $gender,
-            'group_slug'    => $groupSlug,
+            'group_slug'    => ! empty($groupSlug) ? sha1($groupSlug) : null,
+            'group_parent_slug' => ! empty($groupParentSlug) ? sha1($groupParentSlug) : null,
         ]);
 
         $this->createTotalValues($total, $totals);
 
         return $total;
+    }
+
+    protected function removeLastGroup($groupSlug)
+    {
+        $groupParentSlug = preg_replace('/\_(.*)$/', null, $groupSlug);
+
+        $groupParentSlug = collect(explode('_', $groupSlug));
+
+        $groupParentSlug->pop();
+
+        return $groupParentSlug->implode('_');
     }
 
     /**

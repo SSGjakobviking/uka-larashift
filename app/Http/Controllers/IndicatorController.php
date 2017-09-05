@@ -185,22 +185,24 @@ class IndicatorController extends Controller
         // Retrieve dataset status, preview or production?
         $input = $this->detectStatus($request);
 
-        foreach ($input['datasets'] as $datasetId) {
-            $dataset = Dataset::where('id', $datasetId)->update([
-                'indicator_id' => $id
-            ]);
+        if (! empty($input['datasets'])) {
+            foreach ($input['datasets'] as $datasetId) {
+                $dataset = Dataset::where('id', $datasetId)->update([
+                    'indicator_id' => $id
+                ]);
 
-            $status = Status::where('name', $input['status'])->first(['id']);
+                $status = Status::where('name', $input['status'])->first(['id']);
 
-            $dataset = Dataset::find($datasetId);
+                $dataset = Dataset::find($datasetId);
 
-            if (! $dataset->statuses->contains($status)) {
-                $dataset->statuses()->attach($status->id);
+                if (! $dataset->statuses->contains($status)) {
+                    $dataset->statuses()->attach($status->id);
+                }
             }
         }
 
         // Index only production dataset in elasticsearch
-        if ($input['status'] === 'published') {
+        if (isset($input['status']) && $input['status'] === 'published') {
             $this->indexDataset($id);
         }
     }

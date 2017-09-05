@@ -70,10 +70,12 @@ class DatasetController extends Controller
         // $dataset = storage_path('app/testdata-simple.csv');
         // $dataset = storage_path('app/testdata.csv');
 
-        // $dataset = Dataset::orderBy('id', 'desc')->first();
-        // $dataset = new DatasetImporter($dataset);
-        // $dataset->make();
-        // dd($dataset->toArray());
+        // $dataset = Dataset::find(1);
+        // $dataset->statuses()->attach(3);
+
+        // $import = new DatasetImporter($dataset);
+        // $import->make();
+        // dd($import);
         return view('dataset.create');
    }
 
@@ -104,8 +106,10 @@ class DatasetController extends Controller
             'indicator_id'  => null,
             'file'          => $name,
             'year'          => $year,
-            'status'        => 'processing',
         ]);
+        
+        // set status to "processing"
+        $dataset->statuses()->attach(3);
         
         // start the job (our parsing of csv and import to db)
         dispatch(new ImportDataset($dataset));

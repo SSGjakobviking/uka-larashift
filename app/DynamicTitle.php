@@ -53,7 +53,7 @@ class DynamicTitle
         return $filters->map(function($value, $key) {
 
             // year doesn't need a nice value from the config so we return it directly.
-            if ($key == 'year') {
+            if ($key === 'year' or $key === 'group_slug') {
                 return;
             }
 

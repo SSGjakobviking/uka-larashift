@@ -181,7 +181,7 @@ class DatasetImporter
         return collect($collection->pluck('Åldersgrupp'))->combine($collection->pluck($this->totalColumn));
     }
 
-    public function iterateOverGroups($data, $groups, $activeGroup = null)
+    public function iterateOverGroups($data, $groups, $activeGroup = null, $slug = null)
     {
         // Check if we've gone through all of the groups
         if ($groups->isEmpty()) {
@@ -197,7 +197,10 @@ class DatasetImporter
                 );
             } else {
                 // We've reached the end of the line, return the data
-                return collect(['total' => $this->iterateOverTotal($data)]);
+                return collect([
+                    'total' => $this->iterateOverTotal($data),
+                    'group_slug' => $slug,
+                ]);
             }
         }
 
@@ -217,10 +220,13 @@ class DatasetImporter
 
         // Loop over each item in the collection
         return collect([
-            'total'     => $this->iterateOverTotal($total),
-            'children'  => $collection->map(function ($subdata, $category) use ($groups, $group) {
+            'total'      => $this->iterateOverTotal($total),
+            'group_slug' => $slug,
+            'children'   => $collection->map(function ($subdata, $category) use ($groups, $group, $slug) {
                 // Repeat this whole function for each item
-                return $this->iterateOverGroups($subdata, $groups, $group);
+                $slug = sha1(trim($slug.'_'.str_slug($category), '_'));
+
+                return $this->iterateOverGroups($subdata, $groups, $group, $slug);
             }),
         ]);
     }
@@ -311,7 +317,7 @@ class DatasetImporter
      * @param  integer $level
      * @return [type]
      */
-    private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $parent = null, $level = -1, $topParentId = null, $groupTopParent = null)
+    private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $parent = null, $level = -1, $topParentId = null)
     {
         foreach($data as $groupName => $item) {
 
@@ -325,7 +331,7 @@ class DatasetImporter
             // if parent group is "", skip and go down one level since we already got the total from the university total (for datasets with special structure)
             if ($groupName === static::ALL_FIELD) {
                 if (isset($item['children'])) {
-                    $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $parent, $level, $topParentId, static::ALL_FIELD);
+                    $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $parent, $level, $topParentId);
                     continue;
                 }
             }
@@ -334,14 +340,6 @@ class DatasetImporter
                 'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
                 'name'          => $groupName,
             ]);
-
-            if ($this->groupColumns[0] === $this->groupColumns[$level]) {
-                $groupTopParent = $currentGroup->id;
-            }
-
-            if ($groupTopParent === static::ALL_FIELD) {
-                $groupTopParent = null;
-            }
 
             if (isset($item['children']) && $firstInLevel == $groupName) {
                 if ($level === 0) {
@@ -362,12 +360,12 @@ class DatasetImporter
                 $gender,
                 $item->get('total'),
                 $currentGroup,
-                $parent,
-                $groupTopParent
+                $item->get('group_slug'),
+                $parent
             );
 
             if (isset($item['children'])) {
-                $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $currentGroup->id, $level, $topParentId, $groupTopParent);
+                $this->createGroup($dataset, $prevData, $item['children'], $university, $year, $gender, $currentGroup->id, $level, $topParentId);
                 continue;
             }
         }
@@ -414,7 +412,7 @@ class DatasetImporter
      * @param  [type] $gender
      * @return [type]
      */
-    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null, $parentGroup = null, $groupTopParent = null)
+    private function createTotal($dataset, $university, $year, $gender, $totals, $group = null, $groupSlug = null, $parentGroup = null)
     {
         if (! is_null($group)) {
             $group = $group->id;
@@ -425,9 +423,9 @@ class DatasetImporter
             'university_id' => $university->id,
             'group_id'      => $group,
             'group_parent_id' => $parentGroup,
-            'group_top_parent' => $groupTopParent,
             'year'          => $year,
             'gender'        => $gender,
+            'group_slug'    => $groupSlug,
         ]);
 
         $this->createTotalValues($total, $totals);
@@ -456,17 +454,14 @@ class DatasetImporter
     }
 
     /**
-     * Removes the 'processing' status and sets the status to null which means it's ready for use.
+     * Removes the 'processing' status which means it's ready for use.
      * 
      * @param  App\Dataset $dataset
      * @return App\Dataset
      */
     private function updateStatus($dataset)
     {
-        return Dataset::where('id', $dataset->id)
-        ->update([
-            'status' => null,
-        ]);
+        return $dataset->statuses()->detach(3);
     }
 
     /**

@@ -14,7 +14,6 @@ class Dataset extends Model
         'indicator_id',
         'file',
         'year',
-        'status',
         'version',
     ];
 

@@ -88,6 +88,7 @@ class IndicatorController extends Controller
         $indicatorGroups = IndicatorGroup::with(['indicators' => function($query) {
                                 $query->orderBy('name');
                             }])
+                            ->whereHas('indicators')
                             ->orderBy('name')
                             ->get();
 

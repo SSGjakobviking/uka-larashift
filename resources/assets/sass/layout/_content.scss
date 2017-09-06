@@ -47,6 +47,11 @@ span {
     float: left;
 }
 
+.multiselect-container.dropdown-menu {
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
 .dropzone-msg {
     opacity: 0;
     transition: opacity 1s linear;

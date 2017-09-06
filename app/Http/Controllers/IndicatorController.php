@@ -25,23 +25,35 @@ class IndicatorController extends Controller
      * 
      * @return [type]
      */
-    public function all()
+    public function all(Request $request)
     {
         $allIndicators = Indicator::all();
 
+        if (! $allIndicators) {
+            return response()->json(['error' => 'No indicators found.']);
+        }
+
+        $status = $this->isPreview($request);
+
         // loop through all indicators 
-        $indicators = $allIndicators->map(function($item) {
+        $indicators = $allIndicators->map(function($item) use ($status) {
             // retrieve last published dataset (which we are showing by default in the GUI)
-            $lastPublishedDataset = DatasetHelper::lastPublishedDataset($item);
+            $lastPublishedDataset = DatasetHelper::lastPublishedDataset($item, $status);
 
             if (! $lastPublishedDataset) {
                 return false;
             }
 
+            $url = route('totals', $item->id) . '/?year=' . trim($lastPublishedDataset->year);
+
+            if ($status === 'preview') {
+                $url.= '&status=preview';
+            }
+
             return [
                 'id' => $item->id,
                 'name' => $item->name,
-                'most_recent_url' => route('totals', $item->id) . '/?year=' . trim($lastPublishedDataset->year),
+                'most_recent_url' => $url,
                 'indicator_group' => $item->indicatorGroup->name,
             ];
         })->groupBy('indicator_group');
@@ -52,6 +64,22 @@ class IndicatorController extends Controller
         }
 
         return response()->json($indicators);
+    }
+
+    /**
+     * Returns preview string if status=preview in request.
+     * If not return 'published'.
+     * 
+     * @param  [type] $request
+     * @return [type]
+     */
+    private function isPreview($request)
+    {
+        if ($request->has('status') && $request->get('status') === 'preview') {
+            return 'preview';
+        }
+
+        return 'published';
     }
     
     public function index()

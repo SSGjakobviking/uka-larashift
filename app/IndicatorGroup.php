@@ -8,6 +8,6 @@ class IndicatorGroup extends Model
 {
     public function indicators()
     {
-        return $this->hasMany(Indicator::class);
+        return $this->hasMany(Indicator::class, 'indicator_group');
     }
 }

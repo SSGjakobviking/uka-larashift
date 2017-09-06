@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Dataset;
 use App\Helpers\DatasetHelper;
 use App\Indicator;
+use App\IndicatorGroup;
 use App\Search;
 use App\Status;
 use App\Total;
@@ -84,9 +85,13 @@ class IndicatorController extends Controller
     
     public function index()
     {
-        $indicators = Indicator::all();
+        $indicatorGroups = IndicatorGroup::with(['indicators' => function($query) {
+                                $query->orderBy('name');
+                            }])
+                            ->orderBy('name')
+                            ->get();
 
-        return view('indicator.index', ['indicators' => $indicators]);
+        return view('indicator.index', ['indicatorGroups' => $indicatorGroups]);
     }
 
     public function update($indicator, Request $request)

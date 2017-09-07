@@ -2,149 +2,27 @@
 
 return [
     'default' => [
-        'group_columns' => [
-            'larosate'          => 'Lärosäten',
-            'amnesomrade'       => 'Ämnesområden',
-            'amnesdelsomrade'   => 'Ämnesdelsområden',
-            'amnesgrupp'        => 'Ämnesgrupp',
-        ],
-
-        'dynamic_title' => [
-            'default'   => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
-            'university' => 'vid',
-            'group_slug' => 'inom',
-            'gender'    => [
-                'man'       => 'manliga',
-                'kvinnor'   => 'kvinnliga'
-            ],
-            'age_group' => [
-                '24'    => 'i åldersgruppen -24 år',
-                '25-34'  => 'i åldersgruppen 25-34 år',
-                '35'    => 'i åldersgruppen 35- år',
-                'antal'    => null,
-            ],
-        ]
+        'dynamic_title' => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
     ],
     'antal-registrerade-studenter' => [
-        'group_columns' => [
-            'larosate'          => 'Lärosäten',
-            'amnesomrade'       => 'Ämnesområden',
-            'amnesdelsomrade'   => 'Ämnesdelsområden',
-            'amnesgrupp'        => 'Ämnesgrupp',
-        ],
-
-        'dynamic_title' => [
-            'default'   => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
-            'university' => 'vid',
-            'group_slug' => 'inom',
-            'gender'    => [
-                'man'       => 'manliga',
-                'kvinnor'   => 'kvinnliga'
-            ],
-            'age_group' => [
-                '24'    => 'i åldersgruppen -24 år',
-                '25-34'  => 'i åldersgruppen 25-34 år',
-                '35'    => 'i åldersgruppen 35- år',
-                'antal'    => null,
-            ],
-        ]
+        'dynamic_title' => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
     ],
     'hst-per-studieform-och-amnesomrade' => [
-        'group_columns' => [
-            'larosate'          => 'Lärosäten',
-            'studieform'        => 'Studieform',
-            'amnesomrade'       => 'Ämnesområden',
-            'amnesdelsomrade'   => 'Ämnesdelsområden',
-            'amnesgrupp'        => 'Ämnesgrupp',
-        ],
-
-        'dynamic_title' => [
-            'default'   => 'Antal{gender} högskolestuderande{age_group}{group_slug}{university}{year}',
-            'university' => 'vid',
-            'group_slug' => 'inom',
-            'gender'    => [
-                'man'       => 'manliga',
-                'kvinnor'   => 'kvinnliga'
-            ],
-            'age_group' => [
-                '24'    => 'i åldersgruppen -24 år',
-                '25-34'  => 'i åldersgruppen 25-34 år',
-                '35'    => 'i åldersgruppen 35- år',
-                'antal'    => null,
-            ],
-        ]
+        'dynamic_title' => 'Antal{gender} högskolestuderande{age_group}{group_slug}{university}{year}',
     ],
     'doktorander-per-forsorjningsform-och-forskningsamne' => [
-        'group_columns' => [
-            'larosate'              => 'Lärosäten',
-            'forsorjningsform'      => 'Försörjningsform',
-            'forskningsamnesomrade' => 'Forskningsämnesområde',
-            'forskningsamnesgrupp'  => 'Forskningsämnesgrupp',
-            'forskningsamne'        => 'Forskningsämne',
-        ],
-
-        'dynamic_title' => [
-            'default'   => 'Antal{gender} doktorander{age_group}{group_slug}{university}{year}',
-            'university' => 'vid',
-            'group_slug' => 'inom',
-            'gender'    => [
-                'man'       => 'manliga',
-                'kvinnor'   => 'kvinnliga'
-            ],
-            'age_group' => [
-                '29'    => 'i åldersgruppen -29 år',
-                '30-39'  => 'i åldersgruppen 30-39 år',
-                '40'     => 'i åldersgruppen 40- år',
-                'antal'  => null,
-            ],
-        ]
+        'dynamic_title' => 'Antal{gender} doktorander{age_group}{group_slug}{university}{year}',
     ],
     'nya-sokande-program' => [
-        'group_columns' => [
-            'utbildningsform'  => 'Lärosäten',
-        ],
-        'dynamic_title' => [
-            'default'   => 'Antal{gender} sökande studenter{age_group}{group_slug}{university}{year}',
-            'university' => 'vid',
-            'group_slug' => 'till',
-            'gender'    => [
-                'man'       => 'manliga',
-                'kvinnor'   => 'kvinnliga'
-            ],
-            'age_group' => [
-                '24'    => 'i åldersgruppen -24 år',
-                '25-34'  => 'i åldersgruppen 25-34 år',
-                '35'    => 'i åldersgruppen 35- år',
-                'antal'    => null,
-            ],
-        ]
+        'dynamic_title' => 'Antal{gender} sökande studenter{age_group}{group_slug}{university}{year}',
     ],
     'intakter' => [
-        'dynamic_title' => [
-            'default'   => 'Summa intäkter{group_slug}{university}{year}',
-            'university' => 'vid',
-            'group_slug' => 'till',
-            'age_group' => [
-                'summa'    => null,
-            ],
-        ]
+        'dynamic_title' => 'Summa intäkter{group_slug}{university}{year}',
     ],
     'andel-med-hogutbildade-foraldrar' => [
-        'group_columns' => [
-            'larosate'  => 'Lärosäten',
-        ],
-        'dynamic_title' => [
-            'default'   => 'Andel med högutbildade föräldrar{university}{year}',
-            'university' => 'vid',
-        ]
+        'dynamic_title' => 'Andel med högutbildade föräldrar{university}{year}',
     ],
     'andel-med-utlandsk-bakgrund' => [
-        'group_columns' => [
-            'larosate'  => 'Lärosäten',
-        ],
-        'dynamic_title' => [
-            'default'   => 'Andel med utländsk bakgrund{university}{year}',
-            'university' => 'vid',
-        ]
+        'dynamic_title' => 'Andel med utländsk bakgrund{university}{year}',
     ],
 ];

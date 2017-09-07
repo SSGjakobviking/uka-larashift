@@ -20,7 +20,8 @@ class DynamicTitle
         $this->indicator = $indicator;
         $this->filters = $filters;
         $this->config = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
-        $this->title = $this->config['dynamic_title']['default'];
+        $this->title = $this->config['dynamic_title'];
+        $this->stringConfig = config('strings');
     }
 
     /**
@@ -57,7 +58,7 @@ class DynamicTitle
                 return;
             }
 
-            $prefix = $this->config['dynamic_title'][$key];
+            $prefix = $this->stringConfig[$key];
 
             if ($key === 'group_slug' && ! is_null($value)) {
                 $slug = $this->indicator

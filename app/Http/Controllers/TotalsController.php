@@ -445,23 +445,6 @@ class TotalsController extends Controller
         });
     }
 
-    /**
-     * Set value to null if group is empty since we don't need to query groupTopParent if group
-     * hasn't been selected.
-     * 
-     * @param  [type] $group
-     * @param  [type] $groupTopParent
-     * @return [type]
-     */
-    private function groupTopParent($group, $groupTopParent)
-    {
-        if (empty($group)) {
-            return null;
-        }
-
-        return $groupTopParent;
-    }
-
     private function yearlyTotals(Indicator $indicator, $university, $gender, $groupSlug, $ageGroup, $status, $filter)
     {
         $totals = Total::whereHas('dataset', function($query) use($indicator, $status, $groupSlug) {

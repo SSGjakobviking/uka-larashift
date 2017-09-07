@@ -28,22 +28,3 @@ Route::group(['middleware' => [
 
     Route::get('search/{indicator}/{query}', 'SearchController@index');
 });
-
-// Route::group(['prefix' => 'indicator-groups', 'middleware' => 'api'], function() {
-
-//     Route::get('/', function(Request $request) {
-//         $apiPath = storage_path('app/api/indicator-groups/');
-
-//         $indicatorGroups = include $apiPath. 'all.php';
-
-//         return $indicatorGroups;
-//     });
-
-// });
-
-// Route::middleware('api')->get('/registrerade-studenter/totals', function(Request $request) {
-//     $apiPath = storage_path('app/api/');
-//     $studenter = include $apiPath.'registrerade-studenter.php';
-
-//     return $studenter['year_totals'];
-// });

@@ -8,7 +8,7 @@ return [
         'dynamic_title' => 'Antal{gender} registrerade studenter{age_group}{group_slug}{university}{year}',
     ],
     'hst-per-studieform-och-amnesomrade' => [
-        'dynamic_title' => 'Antal{gender} högskolestuderande{age_group}{group_slug}{university}{year}',
+        'dynamic_title' => 'Antal{gender} helårsstudenter{age_group}{group_slug}{university}{year}',
     ],
     'doktorander-per-forsorjningsform-och-forskningsamne' => [
         'dynamic_title' => 'Antal{gender} doktorander{age_group}{group_slug}{university}{year}',

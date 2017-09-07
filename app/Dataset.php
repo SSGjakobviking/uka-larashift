@@ -51,36 +51,4 @@ class Dataset extends Model
     {
         return $this->belongsToMany(Status::class)->withTimestamps();
     }
-
-    // public function scopePublished($query)
-    // {
-        
-    // }
-
-    // /**
-    //  * Retrieve published datasets.
-    //  * 
-    //  * @param  [type] $query
-    //  * @return [type]
-    //  */
-    // public function scopePublished($query)
-    // {
-    //     return $query->where('status', 'published');
-    // }
-
-    // *
-    //  * Retrieve datasets set for preview.
-    //  * 
-    //  * @param  [type] $query
-    //  * @return [type]
-     
-    // public function scopePreview($query)
-    // {
-    //     return $query->where('status', 'preview');
-    // }
-
-    // public function scopeUnattached($query)
-    // {
-    //     return $query->where('status', null);
-    // }
 }

@@ -33,7 +33,7 @@
             @endforeach
         </select>
 
-        <input type="submit" class="btn btn-primary" name="save_dataset_preview" value="Lägg till preview">
+        <input type="submit" class="btn btn-primary" name="save_dataset_preview" value="Lägg till i testmiljön">
         @if(! empty($previewUrl))
             <a class="preview-url" href="{{ $previewUrl }}" target="_blank">Förhandsgranska i testmiljön</a>
         @endif
@@ -67,7 +67,7 @@
             @endforeach
         </select>
 
-        <input type="submit" class="btn btn-primary" name="save_dataset_published" value="Lägg till produktion">
+        <input type="submit" class="btn btn-primary" name="save_dataset_published" value="Lägg till i produktionsmiljön">
     </form>
     
 @stop

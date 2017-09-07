@@ -62,13 +62,6 @@ class Group extends Model
     public function scopeTopLevel($query, $year, $gender)
     {
         return $query->where('parent_id', null)->children();
-            // ->with([
-            //     'totals' => function($query) use($year, $gender) {
-            //         $query->where('gender', $gender)
-            //         ->where('group_id', '!=', null)
-            //         ->where('year', $year);
-            //     }
-            // ]);
     }
 
     public function universities()

@@ -27,7 +27,7 @@ class Search {
     {
         $params = [
             'index' => $this->indicator->slug,
-            'type'  => 'university,group,gender,age_group',
+            'type'  => 'university,group,gender',
             'body'  => [
                 'size' => 100,
                 'query' => [
@@ -39,7 +39,7 @@ class Search {
         ];
 
         $results = $this->client->search($params);
-        
+
         // no match
         if ($results['hits']['total'] == 0) {
             throw new \Exception('Hittade inget som matchade sökordet ' . $query);
@@ -120,7 +120,7 @@ class Search {
     {
         $params = [
             'index' => $this->indicator->slug,
-            'type'  => 'university,group,gender,age_group',
+            'type'  => 'university,group_slug,gender',
             'body'  => [
                 'size' => 1,
             ],
@@ -203,45 +203,35 @@ class Search {
 
         $groups = Total::where('dataset_id', $this->dataset->id)->whereHas('group')
                     ->with('group')
-                    ->groupBy('group_id')
+                    ->groupBy('group_slug')
                     ->get()
                     ->map(function($item) {
                         return [
-                            'parent_id' => $item->group_parent_id,
-                            'id' => $item->group->id,
+                            'parent_id' => $item->group_parent_slug,
+                            'id' => $item->group_slug,
                             'name' => $item->group->name,
-                            'group' => 'group',
+                            'group' => 'group_slug',
                             'order' => 2,
                         ];
                     });
 
-        $ageGroup = DB::table('totals')
-            ->join('total_values', 'totals.id', '=', 'total_values.total_id')
-            ->join('total_columns', 'total_values.column_id', 'total_columns.id')
-            ->where('dataset_id', $dataset->id)
-            ->groupBy('total_columns.id')
-            ->having('total_columns.name', '<>', 'Total')
-            ->select('total_columns.id', 'total_columns.name')
-            ->get()
-            ->map(function($item) {
-                return [
-                    'id'    => $item->id, 
-                    'name'    => $item->name, 
-                    'order' => 3,
-                    'group' => 'age_group',
-                ];
-            });
-
         $genders = Total::where('dataset_id', $this->dataset->id)
                     ->where('gender', '!=', 'Total')
                     ->groupBy('gender')
-                    ->get(['gender']);
+                    ->get(['gender'])
+                    ->map(function($item) {
+                        return [
+                            'id' => $item->gender,
+                            'name' => $item->gender,
+                            'order' => 4,
+                            'group' => 'gender',
+                        ];
+                    });
     
         return [
             'university' => $universities,
             'group' => $groups,
             'gender' => $genders,
-            'age_group' => $ageGroup,
         ];
     }
 
@@ -303,10 +293,11 @@ class Search {
                                 'type' => 'synonym',
                                 'ignore_case' => true,
                                 'synonyms' => [
-                                    'kvinna, kvinnor, kvinnliga',
-                                    'man, män, manliga',
+                                    'kvinna, kvinnor, kvinnliga, kvinnlig',
+                                    'man, män, manlig, manliga',
                                     'kth, kungl tekniska högskolan',
                                 ],
+                                'tokenizer' => 'whitespace',
                             ],
                         ],
                     ],
@@ -343,17 +334,6 @@ class Search {
                                 'type' => 'text',
                                 'analyzer' => 'my_analyzer',
                             ],
-                            'name' => [
-                                'type' => 'text',
-                                'analyzer' => 'my_analyzer',
-                            ],
-                        ]
-                    ],
-                    'age_group' => [
-                        '_source' => [
-                            'enabled' => true
-                        ],
-                        'properties' => [
                             'name' => [
                                 'type' => 'text',
                                 'analyzer' => 'my_analyzer',

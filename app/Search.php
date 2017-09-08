@@ -273,19 +273,8 @@ class Search {
                         'analyzer' => [
                             'my_analyzer' => [
                                 'type' => 'custom',
-                                'tokenizer' => 'my_ngram',
+                                'tokenizer' => 'whitespace',
                                 'filter' => ['lowercase', 'synonym_filter'],
-                            ],
-                        ],
-                        'tokenizer' => [
-                            'my_ngram' => [
-                                'type' => 'ngram',
-                                'min_gram' => '3',
-                                'max_gram' => '3',
-                                'token_chars' => [
-                                    'letter',
-                                    'digit',
-                                ]
                             ],
                         ],
                         'filter' => [
@@ -295,7 +284,7 @@ class Search {
                                 'synonyms' => [
                                     'kvinna, kvinnor, kvinnliga, kvinnlig',
                                     'man, män, manlig, manliga',
-                                    'kth, kungl tekniska högskolan',
+                                    'kth, Kungl. Tekniska högskolan',
                                 ],
                                 'tokenizer' => 'whitespace',
                             ],

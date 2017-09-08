@@ -58,7 +58,7 @@ class DynamicTitle
                 return;
             }
 
-            $prefix = $this->stringConfig[$key];
+            $prefix = isset($this->stringConfig[$key]) ? $this->stringConfig[$key] : null;
 
             if ($key === 'group_slug' && ! is_null($value)) {
                 $slug = $this->indicator
@@ -84,7 +84,7 @@ class DynamicTitle
                     return false;
                 }
 
-                $value = $prefix[StringHelper::slugify($ageGroup)];
+                $value = 'i åldersgruppen ' . $ageGroup . ' år';
 
                 return $this->leftSpacing($value);
             }

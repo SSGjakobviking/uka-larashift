@@ -12,9 +12,16 @@
         <th>E-postadress</th>
         <th>Roll</th>
         <th></th>
+        <?php
+            $currentUser = auth()->user();
+        ?>
         @foreach($users as $user)
             <tr>
-                <td><a href="{{ route('users.edit', $user) }}">{{ $user->name }}</a></td>
+                @if($currentUser->role->name === 'admin' or $currentUser->id === $user->id)
+                    <td><a href="{{ route('users.edit', $user) }}">{{ $user->name }}</a></td>
+                @else
+                    <td>{{ $user->name }}</td>
+                @endif
                 <td>{{ $user->email }}</td>
                 <td>{{ $user->role->label }}</td>
 

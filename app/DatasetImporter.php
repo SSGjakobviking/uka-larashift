@@ -428,7 +428,7 @@ class DatasetImporter
             'year'          => $year,
             'gender'        => $gender,
             'group_slug'    => ! empty($groupSlug) ? sha1($groupSlug) : null,
-            'group_parent_slug' => ! empty($groupParentSlug) ? sha1($groupParentSlug) : null,
+            'group_parent_slug' => ! empty($parentGroup) ? sha1($groupParentSlug) : null,
         ]);
 
         $this->createTotalValues($total, $totals);

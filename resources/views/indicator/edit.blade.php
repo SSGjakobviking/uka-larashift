@@ -18,7 +18,7 @@
             <tr>
                 <td>{{ $preview->id }}</td>
                 <td>{{ $preview->file }}</td>
-                <td>{{ $preview->user->name }}</td>
+                <td>@isset($preview->user) {{ $preview->user->name }} @endisset</td>
                 <td>{{ $preview->created_at }}</td>
                 <td><a href="{{ url('dataset/' . $preview->id . '/preview/unattach') }}" class="text-danger pull-right">Ta bort</a></td>
             </tr>
@@ -52,7 +52,7 @@
             <tr>
                 <td>{{ $published->id }}</td>
                 <td>{{ $published->file }}</td>
-                <td>{{ $published->user->name }}</td>
+                <td>@isset($published->user) {{ $published->user->name }} @endisset</td>
                 <td>{{ $published->created_at }}</td>
                 <td><a href="{{ url('dataset/' . $published->id . '/published/unattach') }}" class="text-danger pull-right">Ta bort</a></td>
             </tr>

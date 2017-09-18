@@ -38,7 +38,7 @@
                     <a class="btn btn-primary pull-left" href="{{ url('dataset') }}">Spara</a>
                 </form>
             </td>
-            <td>{{ $dataset->user->name }}</td>
+            <td>@isset($dataset->user) {{ $dataset->user->name }} @endisset</td>
             <td>{{ $dataset->created_at->format('Y-m-d H:i:s')  }}</td>
             <td>{{ $dataset->statuses->pluck('name')->implode(', ') }}</td>
             @if($dataset->statuses->count() === 0) 

@@ -25,4 +25,7 @@ return [
     'andel-med-utlandsk-bakgrund' => [
         'dynamic_title' => 'Andel med utländsk bakgrund{university}{year}',
     ],
+    'antal-forskande-och-undervisande-personal' => [
+        'dynamic_title' => 'Antal{gender} forskande och undervisande personal{age_group}{group_slug}{university}{year}',
+    ],
 ];

@@ -504,7 +504,6 @@ class TotalsController extends Controller
             ->map(function($item) {
                 return $item->sortByDesc('year')->values();
             })->collapse();
-            dd($yearlyTotals);
         }
 
         // dd($yearlyTotals->toArray());

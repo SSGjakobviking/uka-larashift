@@ -500,10 +500,11 @@ class TotalsController extends Controller
             $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
                 return substr($item['year'], 2, 4);
             })
-            ->sortByDesc('year')
+            ->sort()
             ->map(function($item) {
                 return $item->sortByDesc('year')->values();
             })->collapse();
+            dd($yearlyTotals);
         }
 
         // dd($yearlyTotals->toArray());

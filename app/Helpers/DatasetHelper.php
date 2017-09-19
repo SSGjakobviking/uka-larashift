@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Dataset;
 use App\Total;
+use Illuminate\Support\Facades\DB;
 
 class DatasetHelper
 {
@@ -19,7 +20,8 @@ class DatasetHelper
                     ->whereHas('statuses', function($query) use($status) {
                         $query->where('name', $status);
                     })
-                    ->orderBy('year', 'desc')
-                    ->first(['year', 'id']);
+                    ->orderByRaw('CAST(year AS UNSIGNED) DESC') // cast as unsigned because of VT2011/HT2011 years
+                    ->get(['year', 'id'])
+                    ->first();
     }
 }

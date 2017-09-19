@@ -6,6 +6,7 @@ use App\Dataset;
 use App\DynamicTitle;
 use App\Filter;
 use App\Group;
+use App\Helpers\DatasetHelper;
 use App\Helpers\StringHelper;
 use App\Helpers\UrlHelper;
 use App\Indicator;
@@ -45,10 +46,18 @@ class TotalsController extends Controller
         $gender = ! empty($request->gender) ? $request->gender : 'Total';
         $groupSlug = ! empty($request->group_slug) ? $request->group_slug : null;
         $age_group = ! empty($request->age_group) ? $request->age_group : TotalColumn::where('name', 'Total')->first()->id;
-        $year = $request->year;
         $export = ! empty($request->export) ? $request->export : null;
         $exportType = ! empty($request->export_type) ? $request->export_type : null;
         $status = ! empty($request->status) ? $request->status : 'published';
+        $year = ! empty($request->year) ? $request->year : null;
+
+        try {
+            $year = $this->setYear($indicator, $request);
+        } catch(\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+
+        // set year to last published year if no year has been specified and indicator contains a dataset
 
         $filters = [
             'university' => $university,
@@ -69,7 +78,7 @@ class TotalsController extends Controller
         
         if (is_null($dataset)) {
             return response()->json([
-                'error' => 'No dataset for this indicator ID: ' . $indicator->id . ' and year ' . $year,
+                'error' => 'No dataset for indicator ID: ' . $indicator->id . ' and year ' . $year,
             ]);
         }
 
@@ -276,6 +285,20 @@ class TotalsController extends Controller
         return asset('downloads/' . $fileName);
     }
 
+    private function setYear($indicator, $request)
+    {
+        if (empty($request->year)) {
+            $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
+            if ($lastPublishedDataset) {
+                return $lastPublishedDataset->year;
+            } else {
+                throw new \Exception('Indicator has no datasets.');
+            }
+        }
+
+        return $request->year;
+    }
+
     /**
      * Retrieves current dataset by indicator id and year.
      * 
@@ -476,10 +499,11 @@ class TotalsController extends Controller
         if (in_array(strtolower(substr($yearlyTotals->first()['year'], 0, 2)), $checkForHtVt)) {
             $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
                 return substr($item['year'], 2, 4);
-            })->sort()->map(function($item) {
-                return $item->sortByDesc('year')->values();
             })
-            ->collapse();
+            ->sortByDesc('year')
+            ->map(function($item) {
+                return $item->sortByDesc('year')->values();
+            })->collapse();
         }
 
         // dd($yearlyTotals->toArray());

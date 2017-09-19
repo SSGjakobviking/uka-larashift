@@ -14,7 +14,7 @@
         <th>Status</th>
         <th>Action</th>
     </tr>
-
+    
     @foreach($datasets as $dataset)
         <tr class="dataset-row">
             <td>{{ $dataset->id }}</td>

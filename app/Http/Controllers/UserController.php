@@ -70,8 +70,8 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::with('role')->where('id', $id)->get()->first();
-
-        return view('user.edit', ['user' => $user]);
+        $roles = Role::all();
+        return view('user.edit', compact('user', 'roles'));
     }
 
     /**
@@ -83,13 +83,19 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-
+        // if pass is empty, update everything except the password
         if (trim(Input::get('password')) == '') {
            $data = Input::except('password');
            $request->offsetUnset('password');
         } else {
            $data = Input::all();
+           // encrypt the password before updating.
            $data['password'] = bcrypt($data['password']);
+        }
+
+        if (isset($data['role'])) {
+            $data['role_id'] = $data['role'];
+            unset($data['role']);
         }
 
          $this->validate($request, [

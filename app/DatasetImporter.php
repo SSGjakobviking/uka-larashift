@@ -125,6 +125,14 @@ class DatasetImporter
                                 return ($key == 'Lärosäte' && $value == null) ? self::UNIVERSITY_DEFAULT : $value;
                             });
                 })
+                ->map(function($line) {
+                    // replaces totals with commas with points
+                    $line->put(
+                        $totalKey = $line->reverse()->keys()->first(), // get key from the last item in the csv line (the total)
+                        str_replace(',', '.', $line->get($totalKey)) // replace comma with points
+                    );
+                    return $line;
+                })
                 ->groupBy($header->get(1)) // group by university
                 ->map(function ($university) use ($header, $groups) {
                     
@@ -428,7 +436,7 @@ class DatasetImporter
             'year'          => $year,
             'gender'        => $gender,
             'group_slug'    => ! empty($groupSlug) ? sha1($groupSlug) : null,
-            'group_parent_slug' => ! empty($groupParentSlug) ? sha1($groupParentSlug) : null,
+            'group_parent_slug' => ! empty($parentGroup) ? sha1($groupParentSlug) : null,
         ]);
 
         $this->createTotalValues($total, $totals);

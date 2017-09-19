@@ -16,8 +16,10 @@
 
         <div class="form-group">
             <label for="role">Roll</label>
-            <select name="role" id="role" class="form-control" disabled>
-                <option svalue="{{ $user->role->id }}">{{ $user->role->label }}</option>
+            <select name="role" id="role" class="form-control"{{ auth()->user()->role->name !== 'admin' ? ' disabled' : null }}>
+                @foreach($roles as $role)
+                    <option value="{{ $role->id }}" {{ $user->role->id === $role->id ? 'selected' : null }}>{{ $role->label }}</option>
+                @endforeach
             </select>
         </div>
 

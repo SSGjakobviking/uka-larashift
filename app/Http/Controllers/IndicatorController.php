@@ -106,11 +106,30 @@ class IndicatorController extends Controller
     {
         $noStatusDatasets = Dataset::doesntHave('statuses')->get();
 
+        // retrieve datasets with no status or where status is not preview
+        $previewDropdownData = $indicator->datasets()
+                        ->whereDoesntHave('statuses', function($query) {
+                            $query->preview();
+                            $query->orProcessing();
+                        })
+                        ->orDoesntHave('statuses')
+                        ->get();
+
+        // retrieve datasets with no status or where status is not published
+        $publishedDropdownData = $indicator->datasets()
+                        ->whereDoesntHave('statuses', function($query) {
+                            $query->published();
+                            $query->orProcessing();
+                        })
+                        ->orDoesntHave('statuses')
+                        ->get();
+
         $previewData = $indicator->datasets()
                         ->whereHas('statuses', function($query) {
                             $query->preview();
                         })
                         ->with('user')
+                        ->orderByDesc('year')
                         ->get();
 
         $publishedData = $indicator->datasets()
@@ -118,10 +137,9 @@ class IndicatorController extends Controller
                             $query->published();
                         })
                         ->with('user')
+                        ->orderByDesc('year')
                         ->get();
 
-        $previewDropdownData = $noStatusDatasets->merge($publishedData);
-        $publishedDropdownData = $noStatusDatasets->merge($previewData);
 
         $lastPreviewDataset = DatasetHelper::lastPublishedDataset($indicator, 'preview');
         $previewUrl = '';

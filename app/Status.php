@@ -26,7 +26,7 @@ class Status extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('name', 'published');
+        return $query->status('published');
     }
 
     /**
@@ -37,6 +37,27 @@ class Status extends Model
      */
     public function scopePreview($query)
     {
-        return $query->where('name', 'preview');
+        return $query->status('preview');
+    }
+
+    public function scopeNotPreview($query)
+    {
+        return $query->where('name', '<>', 'preview');
+    }
+
+    public function scopeOrProcessing($query) {
+        return $query->orWhere('name', 'processing');
+    }
+
+    public function scopeNotPreviewAndPublished($query)
+    {
+        return $query
+                ->where('name', '<>', 'preview')
+                ->where('name', '<>', 'published');
+    }
+
+    public function scopeNotPublished($query)
+    {
+        return $query->where('name', '<>', 'published');
     }
 }

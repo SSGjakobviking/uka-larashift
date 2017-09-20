@@ -39,7 +39,7 @@ class Search {
         ];
 
         $results = $this->client->search($params);
-
+        
         // no match
         if ($results['hits']['total'] == 0) {
             throw new \Exception('Hittade inget som matchade sökordet ' . $query);

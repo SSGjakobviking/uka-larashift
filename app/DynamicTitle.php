@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Helpers\DatasetHelper;
 use App\Helpers\StringHelper;
 use App\TotalColumn;
 
@@ -61,10 +62,8 @@ class DynamicTitle
             $prefix = isset($this->stringConfig[$key]) ? $this->stringConfig[$key] : null;
 
             if ($key === 'group_slug' && ! is_null($value)) {
-                $slug = $this->indicator
-                        ->datasets
-                        ->first()
-                        ->totals()
+                $dataset = DatasetHelper::lastPublishedDataset($this->indicator);
+                $slug = Total::where('dataset_id', $dataset->id)
                         ->where('group_slug', $value)
                         ->first()
                         ->group()

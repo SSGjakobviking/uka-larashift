@@ -104,7 +104,7 @@ class Search {
         $results = $results->sortBy(function($item) { // sort by order first
             return $item['_source']['order'];
         })->values()->sortBy(function($item) { // sort by id within order groups
-            return $item['_source']['id'];
+            return $item['_source']['group_id'];
         });
 
         return $results;
@@ -209,6 +209,7 @@ class Search {
                         return [
                             'parent_id' => $item->group_parent_slug,
                             'id' => $item->group_slug,
+                            'group_id' => $item->group->id,
                             'name' => $item->group->name,
                             'group' => 'group_slug',
                             'order' => 2,

@@ -42,7 +42,10 @@ class DatasetController extends Controller
 
         $filter = $request->filter;
 
-        $tags = Tag::with('datasets')
+        $tags = Tag::with(['datasets' => function($query) {
+                    $query->with('statuses');
+                    $query->with('user');
+                }])
                 ->has('datasets')
                 ->orderBy('name');
 
@@ -54,7 +57,7 @@ class DatasetController extends Controller
             $tags->where('id', $filter);
         }
 
-        $allTags = Tag::all();
+        $allTags = Tag::all(['id', 'name']);
         
         return view('dataset.index', [
             'datasets' => $datasets,

@@ -14,19 +14,20 @@
         <th>Status</th>
         <th>Action</th>
     </tr>
-    
+
+    <?php $datasets->load('tags'); ?>
+
     @foreach($datasets as $dataset)
         <tr class="dataset-row">
             <td>{{ $dataset->id }}</td>
             <td>
-
                 <p><a href="{{ url('uploads', $dataset->file) }}">{{ $dataset->file }}</a></p>
             </td>
             <td>
                 <form method="post" action="">
                     {{ csrf_field() }}
                     <select class="tags-form form-control select2-hidden-accessible pull-left" placeholder="Välj en tagg" style="width: 60%;" data-dataset-id="{{ $dataset->id }}" multiple>
-
+            
                         @foreach($allTags as $tag)
                             @if(in_array($tag->id, $dataset->tags->pluck('id')->toArray()))
                                 <option value="{{ strtolower($tag->name) }}" selected>{{ $tag->name }}</option>

@@ -5,7 +5,7 @@
 
     @include('forms.indicator')
 
-    <h2>Dataset i testmiljön</h2>
+    <h2>Dataset för förhandsgranskning</h2>
     
     <table class="table">
         <th>ID</th>
@@ -33,9 +33,9 @@
             @endforeach
         </select>
 
-        <input type="submit" class="btn btn-primary" name="save_dataset_preview" value="Lägg till i testmiljön">
+        <input type="submit" class="btn btn-primary" name="save_dataset_preview" value="Lägg till i förhandsgranskning">
         @if(! empty($previewUrl))
-            <a class="preview-url" href="{{ $previewUrl }}" target="_blank">Förhandsgranska i testmiljön</a>
+            <a class="preview-url" href="{{ $previewUrl }}" target="_blank">Förhandsgranska dataset</a>
         @endif
     </form>
 

@@ -7,10 +7,12 @@
     @endif
 
     <h1>Uppladdning av dataset</h1>
+    <div class="row">
+        <p class="col-sm-6">Ladda upp dataset (CSV-filer) genom att dra och släppa dem i rutan för filuppladdning. Du kan ladda upp flera filer samtidigt genom att dra och släppa dem i rutan. De två första filerna laddas upp direkt, övriga ställs i kö och laddas upp allteftersom tidigare filer blir klara. Observera att du måste ha webbläsarens fönster öppet till samtliga filer har laddats upp och markerats som klara i rutan för filuppladdning. Filerna måste vara i filformatet CSV för att importeras korrekt.</p>
+        <div style="clear: both;"></div>
 
-    <p>Endast filformatet CSV stöds.</p>
-
-    <p class="alert dropzone-msg"></p>
+        <p class="alert dropzone-msg"></p>
+    </div>
     
     @include('forms.dataset')
 

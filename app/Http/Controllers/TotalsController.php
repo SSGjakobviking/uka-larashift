@@ -374,7 +374,7 @@ class TotalsController extends Controller
             return [
                 'id'     => $total->university->slug,
                 'name'   => $total->university->name,
-                'value'  => $total->values->keyBy('column_id')[$ageGroup]->value,
+                'value'  => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
                 'url'   => $filter->updateUrl(['university' => $total->university_id]),
             ];
         })->values();
@@ -410,7 +410,7 @@ class TotalsController extends Controller
                 return [
                     'id'    => $item->group_slug,
                     'name'  => $item->group->name,
-                    'value' => $item->values->keyBy('column_id')[$ageGroup]->value,
+                    'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
                     'url'   => $filter->updateUrl([
                         'group_slug' => $item->group_slug,
                     ]),
@@ -444,7 +444,7 @@ class TotalsController extends Controller
             return [
                 'id'     => StringHelper::slugify($total->gender),
                 'gender' => $total->gender,
-                'value'  => $total->values->keyBy('column_id')[$ageGroup]->value,
+                'value'  => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
                 'url'   => $filter->updateUrl(['gender' => $total->gender]),
             ];
         });
@@ -501,7 +501,7 @@ class TotalsController extends Controller
 
             return [
                 'year' => trim($total->year),
-                'value' => $total->values->keyBy('column_id')[$ageGroup]->value,
+                'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
                 'url'   => $filter->updateUrl(['year' => trim($total->year)]),
             ];
         });

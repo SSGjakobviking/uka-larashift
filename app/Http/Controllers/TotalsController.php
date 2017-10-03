@@ -217,7 +217,14 @@ class TotalsController extends Controller
 
         $content = [];
 
-        $groups = collect($data['groups']);
+        if (isset($data['groups'])) {
+          $groups = collect($data['groups']);
+          dd($groups);
+        } else {
+          $groups = collect([$data['yearly_totals']]);
+          // dd($groups);
+        }
+
         $grouped = $groups->pluck('column')->flatMap(function($item) {
             return [
                 $item,
@@ -250,7 +257,13 @@ class TotalsController extends Controller
                     }
                 }
 
-                $nameField = isset($item['name']) ? 'name' : 'gender';
+                if (isset($item['name'])) {
+                  $nameField = 'name';
+                } elseif (isset($item['gender'])) {
+                  $nameField = 'gender';
+                } elseif (isset($item['year'])) { // this will be set when all groups has been filtrered and yearly totals is used as data.
+                  $nameField = 'year';
+                }
 
                 $group->put($column['column'], $item[$nameField]);
                 $group->put('Värde['.$column['column'].']', $item['value']);

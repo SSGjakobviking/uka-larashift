@@ -219,10 +219,8 @@ class TotalsController extends Controller
 
         if (isset($data['groups'])) {
           $groups = collect($data['groups']);
-          dd($groups);
         } else {
           $groups = collect([$data['yearly_totals']]);
-          // dd($groups);
         }
 
         $grouped = $groups->pluck('column')->flatMap(function($item) {

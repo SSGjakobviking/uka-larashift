@@ -410,7 +410,7 @@ class TotalsController extends Controller
                 return [
                     'id'    => $item->group_slug,
                     'name'  => $item->group->name,
-                    'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
+                    'value' => isset($item->values->keyBy('column_id')[$ageGroup]) ? $item->values->keyBy('column_id')[$ageGroup]->value : 0,
                     'url'   => $filter->updateUrl([
                         'group_slug' => $item->group_slug,
                     ]),

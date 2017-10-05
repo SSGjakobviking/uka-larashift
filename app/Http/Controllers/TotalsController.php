@@ -218,9 +218,16 @@ class TotalsController extends Controller
         $content = [];
 
         if (isset($data['groups'])) {
-          $groups = collect($data['groups']);
+            $groups = collect($data['groups']);
         } else {
-          $groups = collect([$data['yearly_totals']]);
+            $yearlyTotals = collect([$data['yearly_totals']]);
+            $currentYearData = $this->extractCurrentYearData($yearlyTotals, request());
+
+            $groups = collect([]);
+            $currentYearData = collect($yearlyTotals->first())
+                    ->put('totals', $currentYearData);
+
+            $groups->push($currentYearData);
         }
 
         $grouped = $groups->pluck('column')->flatMap(function($item) {
@@ -283,6 +290,13 @@ class TotalsController extends Controller
 
         // add headers to the first line.
         $output = $rows->prepend($headers);
+
+        // special case. If all filters are active, we only want to return the year, value and indicator. Since we're using the data from
+        // yearly_totals function, we get two 'year' columns (year and Tid). So we remove the 'Tid' duplicate year column.
+        if (collect($output->first())->contains('Tid')) {
+            $output = $this->removeColumn($output, 'Tid');
+        }
+
         $fileName = uniqid() . '-' . $fileName . '.csv';
         $filePath = public_path('downloads/' . $fileName);
         $fp = fopen($filePath, 'w');
@@ -294,6 +308,39 @@ class TotalsController extends Controller
         });
 
         return asset('downloads/' . $fileName);
+    }
+
+    /**
+     * Remove column + value from the output array.
+     * 
+     * @param  Illuminiate\Support\Collection $data
+     * @param  string $column
+     * @return Illuminiate\Support\Collection
+     */
+    private function removeColumn($data, $column) {
+        $skipIndex = collect($data->first())->search($column);
+
+        return $data->map(function($item) use($skipIndex) {
+                        return collect($item)->filter(function($value, $key) use($skipIndex) {
+                            return $key !== $skipIndex;
+                        })->toArray();
+                    });
+    }
+
+    /**
+     * Extracts data by the current year.
+     * 
+     * @param  Illuminate\Support\Collection $data
+     * @param  Illuminate\Http\Request $request
+     * @return Illuminate\Support\Collection
+     */
+    private function extractCurrentYearData($data, $request)
+    {
+        return collect($data->first())
+                ->get('totals')
+                ->filter(function($item) use($request) {
+                    return $item['year'] === $request->year;
+                })->values();
     }
 
     private function setYear($indicator, $request)

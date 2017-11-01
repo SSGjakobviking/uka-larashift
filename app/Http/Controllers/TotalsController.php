@@ -542,8 +542,7 @@ class TotalsController extends Controller
                     ->orderBy('year')
                     ->get();
 
-            $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
-
+        $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
             return [
                 'year' => trim($total->year),
                 'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,

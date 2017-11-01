@@ -20,7 +20,7 @@
                 <td>{{ $preview->file }}</td>
                 <td>@isset($preview->user->name) {{ $preview->user->name }} @endisset</td>
                 <td>{{ $preview->created_at }}</td>
-                <td><a href="{{ url('dataset/' . $preview->id . '/preview/unattach') }}" class="text-danger pull-right">Ta bort</a></td>
+                <td><a href="{{ url('dataset/' . $preview->id . '/preview/unattach') }}" class="text-danger pull-right">Koppla bort</a></td>
             </tr>
         @endforeach
     </table>
@@ -54,7 +54,7 @@
                 <td>{{ $published->file }}</td>
                 <td>@isset($published->user->name) {{ $published->user->name }} @endisset</td>
                 <td>{{ $published->created_at }}</td>
-                <td><a href="{{ url('dataset/' . $published->id . '/published/unattach') }}" class="text-danger pull-right">Ta bort</a></td>
+                <td><a href="{{ url('dataset/' . $published->id . '/published/unattach') }}" class="text-danger pull-right">Koppla bort</a></td>
             </tr>
         @endforeach
     </table>

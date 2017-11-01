@@ -555,13 +555,16 @@ class TotalsController extends Controller
         if (in_array(substr($yearlyTotals->first()['year'], 0, 2), ['HT', 'VT'])) {
             $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
                 return substr($item['year'], 2, 4);
-            })
-            ->map(function($item) {
+            })->pipe(function($collection) {
+                $array = $collection->toArray();
+                ksort($array);
+                return collect($array);
+            })->map(function($item) {
+                $item = collect($item);
                 return $item->sortByDesc('year')->values();
             })->collapse();
         }
 
-        // dd($yearlyTotals->toArray());
         return $yearlyTotals;
     }
 }

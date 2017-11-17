@@ -6,6 +6,7 @@ use App\Dataset;
 use App\DynamicTitle;
 use App\Filter;
 use App\Group;
+use App\GroupColumn;
 use App\Helpers\DatasetHelper;
 use App\Helpers\StringHelper;
 use App\Helpers\UrlHelper;
@@ -432,6 +433,7 @@ class TotalsController extends Controller
      */
     private function groups($dataset, $university, $year, $gender, $groupSlug, $ageGroup, $filter)
     {
+        // this is the default query that is being used when there are 1 top level group
         $totals = $dataset->totals()
                     ->where('university_id', $university)
                     ->where('year', $year)
@@ -443,6 +445,69 @@ class TotalsController extends Controller
                         $query->where('column_id', $ageGroup);
                     })
                     ->get();
+
+        $parentColumnData = null;
+        $currentGroup = Total::where('group_slug', $groupSlug)->first();
+        $topGroupId = $currentGroup->top_group_id;
+
+        // dd($totals->first()->top_group_id);
+        // code below is intended for querying the top level group while viewing the second level group.
+        // Example hiearchy is this: Studieform | Ämnesområde[0] | Ämnesdelsområde[1] | Ämnesgrupp[2]
+        // In the GUI, both Studieform and Ämnesområde[0] will show in the sidebar acting as "top-level groups".
+        // But Ämnesområde[0] is also a child of Stuedieform, that's why we run the query below while filtering on the
+        // "top-level Ämnesområde[0] column".
+        if ($groupSlug && is_null($currentGroup->top_group_id)) {
+            $groupId = \DB::table('totals')->select('group_id')->where('group_slug', $groupSlug)->take(1);
+
+            // parentColumn in this case is "Studieform" if we're handling an indicator with
+            // the following structure: Studieform | Ämnesområde[0] | Ämnesdelsområde[1] | Ämnesgrupp[2]
+            $parentColumn = Total::where('dataset_id', $dataset->id)
+                            ->select([
+                                'group_columns.name AS column_name', 
+                                'groups.name AS group_name',
+                                'totals.*', 
+                                'total_values.value'
+                            ])
+                            ->leftJoin('groups', 'totals.top_group_id', '=', 'groups.id')
+                            ->leftJoin('group_columns', 'groups.column_id', '=', 'group_columns.id')
+                            ->leftJoin('total_values', 'totals.id', '=', 'total_values.total_id')
+                            ->where('gender', $gender)
+                            ->where('total_values.column_id', $ageGroup)
+                            ->where('university_id', $university)
+                            ->where('year', $year)
+                            ->whereIn('group_id', function ($query) use ($groupSlug) {
+                                $query->select('group_id')
+                                      ->from('totals')
+                                      ->where('group_slug', $groupSlug)
+                                      ->groupBy('group_id');
+                            })
+                            ->whereNotNull('group_columns.name')
+                            ->get();
+
+            $parentColumnData = $parentColumn->groupBy('column_name')->map(function($items, $column) use($filter) {
+                // if (! is_null($items->first()->top_group_id)) {
+                //     return;
+                // }
+
+                $totals = $items->map(function($item) use($filter) {
+                    return [
+                        'id' => $item->group_slug,
+                        'name' => $item->group_name,
+                        'value' => $item->value,
+                        'url'   => $filter->updateUrl([
+                            'group_slug' => $item->group_slug,
+                        ]),
+                    ];
+                });
+
+                return  [
+                    'column' => $column,
+                    'top_parent_id' => null,
+                    'totals' => $totals->toArray(),
+                ];
+            });
+            // dd($parentColumnData);
+        }
 
         return $totals->map(function($total) {
             $total->group_column = $total->group->column->name;
@@ -467,6 +532,39 @@ class TotalsController extends Controller
                 'top_parent_id' => $total->first()->top_parent_id,
                 'totals' => $allTotals->toArray(),
             ];
+        // this code below will only be used with nested groups where the second level also acts as top level group in the frontend.
+        })->when($parentColumnData, function($collection) use($parentColumnData, $groupSlug, $totals) {
+            // 
+            if (! empty($groupSlug)) {
+                $topGroupId = null;
+                // return empty if reached
+                if (! $totals->isEmpty()) {
+                    $topGroupId = $totals->first()->top_group_id;
+                }
+
+                // dd($collection);
+                // dd($parentColumnData);
+                // this will be true when filtering in the absolute top group. 
+                // Studieform | Ämnesområde[0] | Ämnesdelsområde[1] | Ämnesgrupp[2]
+                // When filtering on studieform we will return the 'regular' collection below
+                if (! is_null($topGroupId)) {
+                    return $collection;
+                }
+
+                // if (! is_null($topGroupId)) {
+                //     $topGroupColumn = Group::find($topGroupId)->column;
+                //     // Here we return the child of the
+                //     if (is_null($topGroupColumn->top_parent_id)) {
+                //         return $collection;
+                //     }
+                // }
+            }
+
+            if (! $collection->isEmpty()) {
+                return $collection->merge($parentColumnData);
+            }
+
+            return $parentColumnData;
         });
     }
 

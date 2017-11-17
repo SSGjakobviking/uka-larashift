@@ -39,7 +39,9 @@ class TotalsFormatter
     public function addGroups(Collection $groups)
     {
         $groups->each(function($group) {
-            $this->addGroup($group);
+            if (! is_null($group)) {
+                $this->addGroup($group);
+            }
         });
     }
 

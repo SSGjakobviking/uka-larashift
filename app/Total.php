@@ -16,6 +16,7 @@ class Total extends Model
         'gender',
         'group_slug',
         'group_parent_slug',
+        'top_group_id',
     ];
 
     public $timestamps = false;

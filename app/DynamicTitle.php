@@ -63,6 +63,11 @@ class DynamicTitle
 
             if ($key === 'group_slug' && ! is_null($value)) {
                 $dataset = DatasetHelper::lastPublishedDataset($this->indicator);
+                // if no published dataset exists, retrieve lastpreviewed dataset
+                if (! $dataset) {
+                    $dataset = DatasetHelper::lastPublishedDataset($this->indicator, 'preview');
+                }
+                
                 $slug = Total::where('dataset_id', $dataset->id)
                         ->where('group_slug', $value)
                         ->first()

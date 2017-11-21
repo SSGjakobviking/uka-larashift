@@ -20,8 +20,6 @@ class DynamicTitle
     {
         $this->indicator = $indicator;
         $this->filters = $filters;
-        $this->config = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
-        $this->title = $this->config['dynamic_title'];
         $this->stringConfig = config('strings');
     }
 
@@ -31,14 +29,12 @@ class DynamicTitle
      * @return string
      */
     public function get($ignore)
-    {
-        $title = $this->title;
-        
+    {   
         // Retrieves nice values from indicator config file for each filter group
         $filters = $this->niceValue($this->filters->all()->forget($ignore));
 
         // Builds the dynamic string by replacing the placeholders for each group with their filter value
-        $title = $this->build($title, $filters);
+        $title = $this->build($this->indicator->title_config, $filters);
 
         return $title;
     }
@@ -74,9 +70,7 @@ class DynamicTitle
                         ->group()
                         ->first();
 
-                $group = $this->leftSpacing($slug->name);
-
-                return $this->leftSpacing($prefix . strtolower($group));
+                return strtolower($slug->name);
             }
 
             if ($key == 'age_group') {
@@ -90,7 +84,7 @@ class DynamicTitle
 
                 $value = 'i åldersgruppen ' . $ageGroup . ' år';
 
-                return $this->leftSpacing($value);
+                return $value;
             }
 
             if ($key == 'university' && $value != strtolower('riket')) {
@@ -101,12 +95,12 @@ class DynamicTitle
                     return false;
                 }
 
-                return $this->leftSpacing($prefix . $university);
+                return ' ' . $prefix . $university;
             }
            
             $value = $prefix[StringHelper::slugify($value)];
 
-            return $this->leftSpacing($value);
+            return $value;
         });
     }
 
@@ -120,6 +114,10 @@ class DynamicTitle
      */
     private function build($title, $filters)
     {
+        // remove group prefix if group filter is not active.
+        if (! isset($filters['group_slug'])) {
+            $title = $this->removeGroupPrefix($title);
+        }
         // replaces placeholders for all the 'groups' that has been filtered.
         foreach($filters as $name => $value) {
             $title = str_replace('{' . $name . '}', $value, $title);
@@ -127,7 +125,38 @@ class DynamicTitle
 
         // remove placeholders that hasn't been filtered and return the string.
         // regexp targets curly brackets and it's value.
-        return preg_replace('/{(.*?)}/i', '', $title);
+        $title = preg_replace('/{(.*?)}/i', '', $title);
+        $title = $this->removeWhiteSpace($title);
+
+        return $title;
+    }
+
+    /**
+     * Removes group prefix when no group filter has been done.
+     * 
+     * @param  [type] $title
+     * @return [type]
+     */
+    private function removeGroupPrefix($title)
+    {
+        $pieces = collect(explode(' ', $title));
+        $search = $pieces->search('{group_slug}{university}');
+
+        if (! $search) {
+            return $title;
+        }
+        
+        $prefix = $pieces[$search - 1];
+        $title = str_replace($prefix, '', $title);
+
+        return $title;
+    }
+
+    function removeWhiteSpace($text) {
+        $text = preg_replace('/[\t\n\r\0\x0B]/', '', $text);
+        $text = preg_replace('/([\s])\1+/', ' ', $text);
+        $text = trim($text);
+        return $text;
     }
 
     /**

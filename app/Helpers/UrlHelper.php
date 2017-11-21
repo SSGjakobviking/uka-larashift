@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Facades\Route;
+
 class UrlHelper
 {
 
@@ -18,5 +20,14 @@ class UrlHelper
         }
 
         return $query;
+    }
+
+    /**
+     * Returns controller name from the current route.
+     * 
+     * @return string
+     */
+    public static function rootRoute() {
+        return kebab_case(collect(explode('.', Route::currentRouteName()))->first());
     }
 }

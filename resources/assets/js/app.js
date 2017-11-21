@@ -28,6 +28,43 @@ $.ajaxSetup({
 var UKA = UKA || {};
 
 UKA.TagForm = function() {
+    function init() {
+        $('.multiselect').multiselect({
+            buttonText: function(options, select) {
+                return 'Välj dataset';
+            },
+            // maxHeight: 200,
+            enableFiltering: true
+        });
+
+        $(".tags-form").select2({
+            tags: true,
+            placeholder: 'Välj en tagg',
+            theme: "bootstrap"
+            // data: tags
+        });
+
+        $('.tags-form').on('select2:select', function (evt) {
+            var dataset = $(this).attr('data-dataset-id'),
+                tag = {
+                    id: evt.params.data.id,
+                    name: evt.params.data.text
+                };
+
+            UKA.TagForm.add(dataset, tag);
+
+        });
+
+        $('.tags-form').on('select2:unselect', function (evt) {
+            var dataset = $(this).attr('data-dataset-id'),
+                tag = {
+                    id: evt.params.data.id,
+                    name: evt.params.data.text
+                };
+
+            UKA.TagForm.remove(dataset, tag);
+        });
+    }
 
     function add(datasetId, tag) {
         update('dataset/addTag', {
@@ -56,6 +93,7 @@ UKA.TagForm = function() {
     }
 
     return {
+        init: init,
         add: add,
         remove: remove
     };
@@ -67,63 +105,52 @@ Dropzone.options.datasetForm = {
     acceptedFiles: '.csv'
 };
 
-$(document).ready(function() {
+UKA.dropzone = function() {
+    function init() {
+        if ($('#datasetForm').length > 0) {
+            var myDropzone = new Dropzone("#datasetForm");
+            myDropzone.on("addedfile", function(file) {
+                console.log(file);
+            });
 
-    if ($('#datasetForm').length > 0) {
-        var myDropzone = new Dropzone("#datasetForm");
-        myDropzone.on("addedfile", function(file) {
-            console.log(file);
-        });
+            myDropzone.on("success", function(file) {
+                $('.dropzone-msg').html('').removeClass('alert-danger');
+                $('.dropzone-msg').addClass('alert-success').html('<p>Filuppladdningen lyckades!</p>').css('opacity', 1);
+            });
 
-        myDropzone.on("success", function(file) {
-            $('.dropzone-msg').html('').removeClass('alert-danger');
-            $('.dropzone-msg').addClass('alert-success').html('<p>Filuppladdningen lyckades!</p>').css('opacity', 1);
-        });
+            myDropzone.on("error", function(file) {
+                $('.dropzone-msg').html('');
 
-        myDropzone.on("error", function(file) {
-            $('.dropzone-msg').html('');
+                if (!file.accepted) {
+                    this.removeFile(file);
+                    $('.dropzone-msg').addClass('alert-danger').html('<p>Kunde inte ladda upp ' + file.name + '.</p><p>Kontrollera att filen har formatet .csv</p>').css('opacity', 1);
+                }
+            });
+        }
+    }
 
-            if (!file.accepted) {
-                this.removeFile(file);
-                $('.dropzone-msg').addClass('alert-danger').html('<p>Kunde inte ladda upp ' + file.name + '.</p><p>Kontrollera att filen har formatet .csv</p>').css('opacity', 1);
+    return {
+        init: init
+    };
+}();
+
+UKA.common = function() {
+    function init() {
+        $('.action-remove').on('click', function(e) {
+            var confirmation = confirm('Är du säker?');
+            if (! confirmation) {
+                e.preventDefault();
             }
         });
     }
 
-    $('.multiselect').multiselect({
-        buttonText: function(options, select) {
-            return 'Välj dataset';
-        },
-        // maxHeight: 200,
-        enableFiltering: true
-    });
+    return {
+        init: init
+    };
+}();
 
-    $(".tags-form").select2({
-        tags: true,
-        placeholder: 'Välj en tagg',
-        theme: "bootstrap"
-        // data: tags
-    });
-
-    $('.tags-form').on('select2:select', function (evt) {
-        var dataset = $(this).attr('data-dataset-id'),
-            tag = {
-                id: evt.params.data.id,
-                name: evt.params.data.text
-            };
-
-        UKA.TagForm.add(dataset, tag);
-
-    });
-
-    $('.tags-form').on('select2:unselect', function (evt) {
-        var dataset = $(this).attr('data-dataset-id'),
-            tag = {
-                id: evt.params.data.id,
-                name: evt.params.data.text
-            };
-
-        UKA.TagForm.remove(dataset, tag);
-    });
-
+$(document).ready(function() {
+    UKA.common.init();
+    UKA.dropzone.init();
+    UKA.TagForm.init();
 });

@@ -20,7 +20,8 @@
         ]) !!};
     </script>
 </head>
-<body>
+
+<body class="<?php echo App\Helpers\UrlHelper::rootRoute(); ?>">
     <div id="app">
         <nav class="navbar navbar-default navbar-static-top">
             <div class="container">

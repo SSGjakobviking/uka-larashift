@@ -88,7 +88,6 @@ class IndicatorController extends Controller
         $indicatorGroups = IndicatorGroup::with(['indicators' => function($query) {
                                 $query->orderBy('name');
                             }])
-                            ->whereHas('indicators')
                             ->orderBy('name')
                             ->get();
 
@@ -156,6 +155,33 @@ class IndicatorController extends Controller
             'publishedDropdownData' => $publishedDropdownData,
             'previewUrl' => $previewUrl,
         ]);
+    }
+
+    public function create()
+    {
+        $indicator = new \stdClass;
+        $indicatorGroups = IndicatorGroup::orderBy('name')->get();
+
+        return view('indicator.create', compact('indicator', 'indicatorGroups'));
+    }
+
+    public function store(\App\Http\Requests\Indicator $request)
+    {
+        // create slug out of indicator name
+        $request->request->add(['slug' => kebab_case($request->input('name'))]);
+        Indicator::create($request->all());
+        return redirect('indicator');
+    }
+
+    public function destroy($id)
+    {
+        $indicatorCount = Dataset::where('indicator_id', $id)->count();
+
+        if ($indicatorCount === 0) {
+            Indicator::destroy($id);
+        }
+
+        return redirect('indicator');
     }
 
     /**

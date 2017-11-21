@@ -28,19 +28,30 @@ Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail'
 Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
 Route::post('password/reset', 'Auth\ResetPasswordController@reset');
 
+// Dataset Routes...
 Route::resource('dataset', 'DatasetController');
 Route::get('dataset/{id}/delete', 'DatasetController@destroy');
 Route::get('dataset/{id}/{status}/unattach', 'DatasetController@unAttach');
 Route::post('dataset/addTag', 'DatasetController@addTag');
 Route::post('dataset/deleteTag', 'DatasetController@deleteTag');
 
+// Indicator Routes...
 Route::resource('indicator', 'IndicatorController');
 Route::post('indicator/{id}/dataset', 'IndicatorController@saveDataset');
+Route::get('indicator/{id}/delete', 'IndicatorController@destroy');
 
+Route::get('indicator/{id}/settings', 'IndicatorSettingsController@edit')->name('indicator-settings.edit');
+Route::put('indicator/{id}/update', 'IndicatorSettingsController@update')->name('indicator-settings.update');
+
+// Indicator Group Routes
+Route::resource('indicator-group', 'IndicatorGroupController');
+Route::get('indicator-group/{id}/delete', 'IndicatorGroupController@destroy');
+
+// User Routes
 Route::resource('users', 'UserController');
 Route::get('users/{id}/delete', 'UserController@destroy');
 
+// Misc
 Route::get('/home', 'HomeController@index');
-
 Route::get('parse', 'DatasetController@parse');
 

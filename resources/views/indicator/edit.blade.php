@@ -3,8 +3,6 @@
 @section('content')
     <h1>{{ $indicator->name }}</h1>
 
-    @include('forms.indicator')
-
     <h2>Dataset för förhandsgranskning</h2>
     
     <table class="table">

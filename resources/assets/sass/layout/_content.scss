@@ -63,3 +63,42 @@ span {
     display: block;
     float: right;
 }
+
+.indicator-group-container {
+    display: flex;
+    align-items: flex-end;
+    h2 {
+        display: inline-block;
+    }
+
+    a {
+        margin-left: 20px;
+    }
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.link-list {
+    list-style: none;
+    padding: 0;
+
+    li {
+        display: inline;
+        margin-left: 20px;
+    }
+}
+
+tr {
+    border-top: 1px solid #ddd;
+}
+
+td {
+    border: 0;
+}

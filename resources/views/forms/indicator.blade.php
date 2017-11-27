@@ -20,8 +20,17 @@
     
     <div class="form-group">
         <label for="title_config">Rubrik konfiguration</label>
-        <p>Exempel:</p>
-        <pre>Antal {gender} registrerade studenter {age_group} inom {group_slug}{university}</pre>
+        <p>Exempel #1: Indikator grupperat på kön, åldersgrupp, ämnesområde samt lärosäte.</p>
+        <pre>Konfiguration:<span><br>Antal <strong>{gender}</strong> registrerade studenter <strong>{age_group}</strong> inom <strong>{group_slug}{university}</strong></span>
+            <br>Rubrik:<span><br>Antal <strong>kvinnliga</strong> registrerade studenter <strong>i åldersgruppen 25-34 år</strong> inom <strong>beteendevetenskap</strong> <strong>vid Blekinge tekniska högskola</strong></span></pre>
+
+        <p>Exempel #2: Indikator grupperat på verksamhetsområde och lärosäte.</p>
+        <pre>Konfiguration:<span><br>Summa intäkter inom <strong>{group_slug}{university}</strong></span>
+            <br>Rubrik:<span><br>Summa intäkter inom <strong>annan verksamhet</strong> <strong>vid Blekinge tekniska högskola</strong></span></pre>
+
+        <p>Exempel #3: Indikator grupperat på lärosäte.</p>
+        <pre>Konfiguration:<span><br>Andel med utländsk bakgrund <strong>{university}</strong></span>
+            <br>Rubrik:<span><br>Andel med utländsk bakgrund <strong>vid Blekinge tekniska högskola</strong></span></pre>
         <input type="text" id="title_config" name="title_config" class="form-control" value="{{ object_get($indicator, 'title_config') }}">
     </div>
 </div>

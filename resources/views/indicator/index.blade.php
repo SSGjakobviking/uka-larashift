@@ -23,10 +23,10 @@
             <a href="{{ url('indicator-group', [$indicatorGroup->id, 'delete']) }}" class="text-danger action-remove">Ta bort</a>
         @endif
     </div>
-    <table class="table">
-        <th>Namn</th>
-        <th></th>
-        <th></th>
+    <table class="indicator-container table">
+        <th class="indicator-name">Namn</th>
+        <th>Uppdatera</th>
+        <th>Action</th>
 
         @foreach($indicatorGroup->indicators as $indicator)
             <tr>

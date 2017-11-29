@@ -13,7 +13,7 @@
         <label for="indicator_group">Indikatorgrupp</label>
         <select name="indicator_group" id="indicator_group" class="form-control">
             @foreach($indicatorGroups as $indicatorGroup)
-                <option value="{{ $indicatorGroup->id }}" {{ (object_get($indicator, 'name') !== null) ? ' selected' : null }}>{{ $indicatorGroup->name }}</option>
+                <option value="{{ $indicatorGroup->id }}" {{ (object_get($indicator, 'name') !== null && $indicator->indicator_group === $indicatorGroup->id) ? ' selected' : null }}>{{ $indicatorGroup->name }}</option>
             @endforeach
         </select>
     </div>

@@ -11381,7 +11381,7 @@ UKA.dropzone = function () {
 UKA.common = function () {
     function init() {
         $('.action-remove').on('click', function (e) {
-            var confirmation = confirm('Är du säker?');
+            var confirmation = confirm('Är du säker på att du vill ta bort informationen?');
             if (!confirmation) {
                 e.preventDefault();
             }

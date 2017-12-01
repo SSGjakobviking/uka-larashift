@@ -4,6 +4,7 @@
     <h1>Redigera indikator</h1>
     <p><a href="{{ url('indicator') }}">Tillbaka till alla indikatorer</a></p>
     
+    @include('errors.success')
     <form method="post" class="form-medium" action="{{ route('indicator-settings.update', $indicator->id) }}">
         {{ csrf_field() }}
 

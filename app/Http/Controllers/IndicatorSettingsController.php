@@ -20,6 +20,6 @@ class IndicatorSettingsController extends Controller
     {
         $indicator = Indicator::find($id);
         $indicator->update($request->all());
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Indikatorn är uppdaterad.');
     }
 }

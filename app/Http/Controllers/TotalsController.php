@@ -388,7 +388,7 @@ class TotalsController extends Controller
             'id'            => $indicator->id,
             'name'          => $filter->title(),
             'description'   => $indicator->description,
-            'measurement'   => $indicator->measurement,
+            'measurement'   => $indicator->name,
             'current_year'  => $year,
         ];
     }

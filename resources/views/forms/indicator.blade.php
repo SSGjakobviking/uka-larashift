@@ -21,9 +21,12 @@
     <div class="form-group">
         <label for="title_config">Rubrik konfiguration</label>
         <input type="text" id="title_config" name="title_config" class="form-control" value="{{ object_get($indicator, 'title_config') }}">
+        
+        <p class="indicator-example">Respektive indikator kan filtreras på kön, åldersgrupp, ämnesområde/verksamhetsområde och lärosäte. För att specificera dessa kan du ange:<br><br><i>{gender}  = kvinnor/män<br>{age_group} = de åldersgrupper som är specificerade i datasetten<br>{group_slug} = de ämnesområden/verksamhetsområden med underavdelningar som är specificerade i datasetten<br>{university} = de lärosäten som är specificerade i datasetten<br><br></i></p>
+        
         <p class="indicator-example">Exempel #1: Indikator grupperat på kön, åldersgrupp, ämnesområde samt lärosäte.</p>
-        <pre>Konfiguration:<span><br>Antal <strong>{gender}</strong> registrerade studenter <strong>{age_group}</strong> inom <strong>{group_slug}{university}</strong></span>
-            <br>Rubrik:<span><br>Antal <strong>kvinnliga</strong> registrerade studenter <strong>i åldersgruppen 25-34 år</strong> inom <strong>beteendevetenskap</strong> <strong>vid Blekinge tekniska högskola</strong></span></pre>
+<pre>Konfiguration:<span><br>Antal registrerade studenter <strong>{gender}</strong> <strong>{age_group}</strong> inom <strong>{group_slug}{university}</strong></span>
+            <br>Rubrik:<span><br>Antal registrerade studenter <strong>(kvinnor)</strong> <strong>i åldersgruppen 25-34 år</strong> inom <strong>beteendevetenskap</strong> <strong>vid Blekinge tekniska högskola</strong></span></pre>
 
         <p class="indicator-example">Exempel #2: Indikator grupperat på verksamhetsområde och lärosäte.</p>
         <pre>Konfiguration:<span><br>Summa intäkter inom <strong>{group_slug}{university}</strong></span>

@@ -42,26 +42,29 @@ class DatasetController extends Controller
 
         $filter = $request->filter;
 
-        $tags = Tag::with(['datasets' => function($query) {
+        // By default, show all untagged datasets
+        $tags = [];
+
+        if ($filter == 'untagged') {
+            return redirect('dataset');
+        }
+
+        if (! empty($filter)) {
+            $tags = Tag::with(['datasets' => function($query) {
                     $query->with('statuses');
                     $query->with('user');
                 }])
                 ->has('datasets')
                 ->orderBy('name');
-
-        if ($filter == 'all') {
-            return redirect('dataset');
-        }
-
-        if (! empty($filter)) {
             $tags->where('id', $filter);
+            $tags = $tags->get();
         }
 
         $allTags = Tag::all(['id', 'name']);
-        
+
         return view('dataset.index', [
             'datasets' => $datasets,
-            'tags' => $tags->get(),
+            'tags' => $tags,
             'allTags' => $allTags,
         ]);
    }
@@ -83,7 +86,7 @@ class DatasetController extends Controller
 
     /**
      * Store the uploaded file.
-     * 
+     *
      * @param  Request $request
      * @return [type]
      */
@@ -109,10 +112,10 @@ class DatasetController extends Controller
             'file'          => $name,
             'year'          => $year,
         ]);
-        
+
         // set status to "processing"
         $dataset->statuses()->attach(3);
-        
+
         // start the job (our parsing of csv and import to db)
         dispatch(new ImportDataset($dataset));
 
@@ -121,14 +124,14 @@ class DatasetController extends Controller
 
     /**
      * Deletes a file in the DB And on the server.
-     * 
+     *
      * @param  [type] $id
      * @return [type]
      */
     public function destroy($id)
     {
         $file = Dataset::find($id);
-        
+
         unlink(public_path('uploads/' . $file->file));
 
         Dataset::destroy($id);
@@ -138,7 +141,7 @@ class DatasetController extends Controller
 
     /**
      * Unattach a dataset from the indicator, also removes/adds index if necessary.
-     * 
+     *
      * @param  [type] $id
      * @return [type]
      */
@@ -161,7 +164,7 @@ class DatasetController extends Controller
                 $this->removeIndex($indicator, $dataset);
             }
         }
-        
+
 
         return redirect()->back();
     }
@@ -182,7 +185,7 @@ class DatasetController extends Controller
             if ($currentIndexedDataset == $dataset->id) {
                 $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
                 $search->remove();
-                // index the last published dataset if current indexed dataset 
+                // index the last published dataset if current indexed dataset
                 // is the one we unattach from the indicator
                 if ($lastPublishedDataset) {
                     $search = new Search($client, $indicator, $lastPublishedDataset);

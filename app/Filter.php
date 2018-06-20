@@ -104,7 +104,7 @@ class Filter
                 $item['_source']['group'] => $item['_source']['id'],
                 'year' => $this->year,
             ];
-            return new static($filterArgs, $this->indicator, $this->year, $item['children'] ?? []);
+            return new static($filterArgs, $this->indicator, $this->year, $item['children'] || []);
         });
     }
 

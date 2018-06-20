@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+// Setting encoding for PHP
+// mb_internal_encoding('UTF-8');
+// setlocale(LC_ALL, 'sv_SE');
+
 use App\Dataset;
 use App\DynamicTitle;
 use App\Filter;
@@ -132,7 +136,7 @@ class TotalsController extends Controller
 
         // check if export was requested.
         if ($export) {
-            // return csv data for the whole year
+            // return csv data for year/term
             if ($export === 'all') {
                 $filePath = null;
 
@@ -183,6 +187,7 @@ class TotalsController extends Controller
         }
 
         $reader = ReaderFactory::create(Type::CSV); // for CSV files
+        $reader->setEncoding('UTF-8');
         $reader->setFieldDelimiter(';');
         $writer = WriterFactory::create(Type::XLSX); // for XLSX files
 
@@ -272,10 +277,11 @@ class TotalsController extends Controller
                 }
 
                 $group->put($column['column'], $item[$nameField]);
-                $group->put('Värde['.$column['column'].']', $item['value']);
+                // Replaces dots with commas when written to from api to file
+                $convertDecimals = str_replace('.', ',', $item['value']);
+                $group->put('Värde['.$column['column'].']', $convertDecimals);
                 $rows->put($key, $group);
-
-                return [$item[$nameField], $item['value']];
+                return [$item[$nameField], $convertDecimals];
             });
 
             return $res;

@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers;
 
-// Setting encoding for PHP
-// mb_internal_encoding('UTF-8');
-// setlocale(LC_ALL, 'sv_SE');
-
 use App\Dataset;
 use App\DynamicTitle;
 use App\Filter;
@@ -20,9 +16,9 @@ use App\TotalColumn;
 use App\TotalValue;
 use App\TotalsFormatter;
 use App\University;
-use Box\Spout\Common\Type;
 use Box\Spout\Reader\ReaderFactory;
 use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Common\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -190,17 +186,35 @@ class TotalsController extends Controller
         $reader->setEncoding('UTF-8');
         $reader->setFieldDelimiter(';');
         $writer = WriterFactory::create(Type::XLSX); // for XLSX files
-
+        
+        $writer->setShouldUseInlineStrings(false);
         $reader->open(public_path($folder . '/' . $csvFile));
         $writer->openToFile($relativePath);
-
         foreach ($reader->getSheetIterator() as $sheet) {
             foreach ($sheet->getRowIterator() as $row) {
+                $intRow = array();
+                foreach ($row as $cell) {
+                    // $intCell .= (int)$cell; 
+                    // if(preg_match("\d{1,2}([\.,][\d{1,2}])?", $cell)) {
+                    if(preg_match("/^[0-9.]+$/", $cell)) {
+                        array_push($intRow, (int)$cell);
+                    } else {
+                        array_push($intRow, $cell);
+                    }
+                    // $intValue = (int)$cell;
+                    // $removeFnutts = str_replace('"', '', $cell);
+                    // Log::info('Type: ' . gettype($removeFnutts));
+                    // Log::info('Data: ' . $removeFnutts);
+                    // $intRow .= $intValue;
+                    // Log::info('Introw: ' . print_r($intRow));
+                }
+                // Log::info('intRow: ' . print_r($intRow, true));
+                // Log::info('Row: ' . print_r($row, true));
                 // do stuff with the row  
-                $writer->addRow($row);
+                $writer->addRow($intRow);
             }
         }
-
+        
         $writer->close();
         $reader->close();
 
@@ -278,10 +292,10 @@ class TotalsController extends Controller
 
                 $group->put($column['column'], $item[$nameField]);
                 // Replaces dots with commas when written to from api to file
-                $convertDecimals = str_replace('.', ',', $item['value']);
-                $group->put('Värde['.$column['column'].']', $convertDecimals);
+                $convertDecimals = str_replace(',', '.', $item['value']);
+                $group->put('Värde['.$column['column'].']', $iconvertDecimals);
                 $rows->put($key, $group);
-                return [$item[$nameField], $convertDecimals];
+                return [$item[$nameField], $iconvertDecimals];
             });
 
             return $res;

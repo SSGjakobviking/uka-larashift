@@ -293,9 +293,9 @@ class TotalsController extends Controller
                 $group->put($column['column'], $item[$nameField]);
                 // Replaces dots with commas when written to from api to file
                 $convertDecimals = str_replace(',', '.', $item['value']);
-                $group->put('Värde['.$column['column'].']', $iconvertDecimals);
+                $group->put('Värde['.$column['column'].']', $convertDecimals);
                 $rows->put($key, $group);
-                return [$item[$nameField], $iconvertDecimals];
+                return [$item[$nameField], $convertDecimals];
             });
 
             return $res;

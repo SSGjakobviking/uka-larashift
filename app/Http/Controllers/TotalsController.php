@@ -196,7 +196,7 @@ class TotalsController extends Controller
                 foreach ($row as $cell) {
                     // $intCell .= (int)$cell; 
                     // if(preg_match("\d{1,2}([\.,][\d{1,2}])?", $cell)) {
-                    if(preg_match("/^[0-9.]+$/", $cell)) {
+                    if(preg_match("/^[0-9.,]+$/", $cell)) {
                         array_push($intRow, (int)$cell);
                     } else {
                         array_push($intRow, $cell);

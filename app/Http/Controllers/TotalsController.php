@@ -196,11 +196,15 @@ class TotalsController extends Controller
                 foreach ($row as $cell) {
                     // $intCell .= (int)$cell; 
                     // if(preg_match("\d{1,2}([\.,][\d{1,2}])?", $cell)) {
-                    if(preg_match("/^[0-9.,-]+$/", $cell)) {
-                        array_push($intRow, (int)$cell);
+                        
+                    // if(  preg_match("~^\d+(,\d+)?$~", $cell) ) {
+                    if ( preg_match("/^[0-9,.-]+$/", $cell) ) {
+                        $toDot = str_replace(',', '.', $cell);
+                        array_push($intRow, (float)$toDot);
                     } else {
                         array_push($intRow, $cell);
                     }
+
                     // $intValue = (int)$cell;
                     // $removeFnutts = str_replace('"', '', $cell);
                     // Log::info('Type: ' . gettype($removeFnutts));

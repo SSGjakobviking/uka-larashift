@@ -175,6 +175,7 @@ class TotalsController extends Controller
     {
         $excelFile = head(explode('.', $csvFile)) . '.xlsx';
         $relativePath = public_path('downloads/' . $excelFile);
+        // Log::info('Filepath: ' . $relativePath);
         $filePath = asset('downloads/' . $excelFile);
 
         // return file if already exist
@@ -191,29 +192,32 @@ class TotalsController extends Controller
         $reader->open(public_path($folder . '/' . $csvFile));
         $writer->openToFile($relativePath);
         foreach ($reader->getSheetIterator() as $sheet) {
+            $ageIndex = 1000; // Setting a default value to variable. 
             foreach ($sheet->getRowIterator() as $row) {
+                
                 $intRow = array();
-                foreach ($row as $cell) {
-                    // $intCell .= (int)$cell; 
-                    // if(preg_match("\d{1,2}([\.,][\d{1,2}])?", $cell)) {
-                        
-                    // if(  preg_match("~^\d+(,\d+)?$~", $cell) ) {
-                    if ( preg_match("/^[0-9,.-]+$/", $cell) ) {
-                        $toDot = str_replace(',', '.', $cell);
-                        array_push($intRow, (float)$toDot);
-                    } else {
-                        array_push($intRow, $cell);
-                    }
+                foreach ($row as $position => $cell) {
 
-                    // $intValue = (int)$cell;
-                    // $removeFnutts = str_replace('"', '', $cell);
-                    // Log::info('Type: ' . gettype($removeFnutts));
-                    // Log::info('Data: ' . $removeFnutts);
-                    // $intRow .= $intValue;
-                    // Log::info('Introw: ' . print_r($intRow));
+                    // Check if column is "Åldergrupp" then automatic push as text to array
+                    if ($cell === "Åldersgrupper" || $cell === "Åldersgrupp") {
+                        $ageIndex = $position;
+                    }
+                    // Picking out array index where index is age and treating it as text.
+                    if ($position == $ageIndex) {
+                        // Log::info('Åldersindex: ' . $cell);
+                        array_push($intRow, $cell);
+                    } else {
+                        // Log::info('Övrig info: ' . $cell);
+                        if ( preg_match("/^[0-9,.]+$/", $cell) ) {
+                            $toDot = str_replace(',', '.', $cell);
+                            array_push($intRow, (float)$toDot);
+                        } else {
+                            array_push($intRow, $cell);
+                        }
+                    }
+                    // Log::info('cell: ' . print_r($cell, true));
+                    // Log::info('Type: ' . gettype($cell));
                 }
-                // Log::info('intRow: ' . print_r($intRow, true));
-                // Log::info('Row: ' . print_r($row, true));
                 // do stuff with the row  
                 $writer->addRow($intRow);
             }

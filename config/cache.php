@@ -88,4 +88,14 @@ return [
 
     'prefix' => 'laravel',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Export app cache purge url
+    |--------------------------------------------------------------------------
+    |
+    | The base url for the UKÄ export app's purge indicator function.
+    |
+    */
+
+    'export_app_cache_purge_url' => env('EXPORT_APP_CACHE_PURGE_URL', 'http://uka-gui.genau.haus/export/api/cache.php?purge_indicator='),
 ];

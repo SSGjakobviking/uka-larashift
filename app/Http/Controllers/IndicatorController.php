@@ -12,6 +12,8 @@ use App\Total;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Client;
 
 class IndicatorController extends Controller
 {
@@ -19,11 +21,12 @@ class IndicatorController extends Controller
     public function __construct()
     {
         $this->middleware(['auth', 'admin'], ['except' => 'all']);
+        $this->cacheConfig = config('cache');
     }
 
     /**
      * Retrieves all indicator groups with their indicators.
-     * 
+     *
      * @return [type]
      */
     public function all(Request $request)
@@ -36,7 +39,7 @@ class IndicatorController extends Controller
 
         $status = $this->isPreview($request);
 
-        // loop through all indicators 
+        // loop through all indicators
         $indicators = $allIndicators->map(function($item) use ($status) {
             // retrieve last published dataset (which we are showing by default in the GUI)
             $lastPublishedDataset = DatasetHelper::lastPublishedDataset($item, $status);
@@ -70,7 +73,7 @@ class IndicatorController extends Controller
     /**
      * Returns preview string if status=preview in request.
      * If not return 'published'.
-     * 
+     *
      * @param  [type] $request
      * @return [type]
      */
@@ -82,7 +85,7 @@ class IndicatorController extends Controller
 
         return 'published';
     }
-    
+
     public function index()
     {
         $indicatorGroups = IndicatorGroup::with(['indicators' => function($query) {
@@ -186,7 +189,7 @@ class IndicatorController extends Controller
 
     /**
      * Saves the dataset with the right status depending on the form being used (preview|production).
-     * 
+     *
      * @param  [type]  $id
      * @param  Request $request
      * @return [type]
@@ -201,7 +204,7 @@ class IndicatorController extends Controller
     private function indexDataset($indicatorId)
     {
         $indicator = Indicator::find($indicatorId);
-        
+
         $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
 
         $client = ClientBuilder::create()->build();
@@ -229,8 +232,20 @@ class IndicatorController extends Controller
     }
 
     /**
+     * Issues a request to purge the export app cache for the indicator.
+     *
+     * @param  [type] $indicatorId
+     */
+    private function clearExportCache($indicatorId)
+    {
+        $client = new Client();
+        $url = $this->cacheConfig['export_app_cache_purge_url'];
+        $client->request('GET', $url . $indicatorId);
+    }
+
+    /**
      * Checks if the input is added via preview or production form.
-     * 
+     *
      * @param  [type] $request
      * @return [type]
      */
@@ -252,7 +267,7 @@ class IndicatorController extends Controller
 
     /**
      * Loops through all of the selected datasets and updates their statuses.
-     * 
+     *
      * @param  [type] $id
      * @param  [type] $request
      * @return [type]
@@ -282,6 +297,7 @@ class IndicatorController extends Controller
         // Index only production dataset in elasticsearch
         if (isset($input['status']) && $input['status'] === 'published') {
             $this->indexDataset($id);
+            $this->clearExportCache($id)
         }
     }
 }

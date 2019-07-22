@@ -297,7 +297,7 @@ class IndicatorController extends Controller
         // Index only production dataset in elasticsearch
         if (isset($input['status']) && $input['status'] === 'published') {
             $this->indexDataset($id);
-            $this->clearExportCache($id)
+            $this->clearExportCache($id);
         }
     }
 }

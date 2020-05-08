@@ -39,7 +39,6 @@ class TotalsController extends Controller
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
-       
         
         $this->indicatorConfig = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
         $universityDefaultId = $this->universitiesConfig['default']['id'];
@@ -71,7 +70,11 @@ class TotalsController extends Controller
         ];
 
         // dd($filters);
-    
+        if ( ! is_null($groupSlug) && is_null(Total::where('group_slug', $groupSlug)->first()) ) {
+            return response()->json([
+                'error' => 'Invalid group: ' . $groupSlug,
+            ]);
+        }
 
         $filter = new Filter($filters, $indicator, $year);
         

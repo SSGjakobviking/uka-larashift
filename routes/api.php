@@ -18,8 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::group(['middleware' => [
-    //'api',
-    // 'cors',
+    // 'api',
+    'cors',
     ]], function() {
 
     Route::get('indicators', 'IndicatorController@all');

@@ -39,6 +39,8 @@ class TotalsController extends Controller
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
+       
+        
         $this->indicatorConfig = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
         $universityDefaultId = $this->universitiesConfig['default']['id'];
         
@@ -57,7 +59,7 @@ class TotalsController extends Controller
         } catch(\Exception $e) {
             return ['error' => $e->getMessage()];
         }
-
+       
         // set year to last published year if no year has been specified and indicator contains a dataset
 
         $filters = [
@@ -69,10 +71,14 @@ class TotalsController extends Controller
         ];
 
         // dd($filters);
+    
 
         $filter = new Filter($filters, $indicator, $year);
-        // dd($filter->title());
+        
+        //dd($filter->title());
+       
         $data['indicator'] = $this->indicatorData($indicator, $filter, $year);
+        //dd($data);
         
         // retrieve dataset id for current year
         $dataset = $this->dataset($indicator, $year, $status);
@@ -84,17 +90,17 @@ class TotalsController extends Controller
         }
 
         $universities = $this->universities($dataset, $year, $gender, $groupSlug, $age_group, $filter);
-
+        
         $groups = $this->groups($dataset, $university, $year, $gender, $groupSlug, $age_group, $filter);
-
+        
         $genders = $this->gender($dataset, $university, $year, $groupSlug, $age_group, $filter);
-
+        
         $totalColumns = $this->totalColumns($dataset, $university, $year, $gender, $groupSlug, $filter);
-
+        
         $yearlyTotals = $this->yearlyTotals($indicator, $university, $gender, $groupSlug, $age_group, $status, $filter);
-
+        
         $totals = new TotalsFormatter();
-
+        
         if ($university == $universityDefaultId) {
             $totals->addGroup([
                 'column' => 'Lärosäten',
@@ -127,11 +133,14 @@ class TotalsController extends Controller
         $totals->add('Tid', $yearlyTotals);
 
         $totalsData = $totals->get();
+        
 
         $data = array_merge($data, $totalsData);
-
+       
+        // dd($data);
         // check if export was requested.
         if ($export) {
+            
             // return csv data for year/term
             if ($export === 'all') {
                 $filePath = null;
@@ -412,6 +421,11 @@ class TotalsController extends Controller
      */
     private function indicatorData($indicator, $filter, $year)
     {
+        //dd($filter);
+        $name = $filter->title();
+        if(is_null($name)) {
+            $name = "";
+        }
         return [
             'id'            => $indicator->id,
             'name'          => $filter->title(),

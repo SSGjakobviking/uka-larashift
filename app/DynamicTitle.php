@@ -32,7 +32,7 @@ class DynamicTitle
     {   
         // Retrieves nice values from indicator config file for each filter group
         $filters = $this->niceValue($this->filters->all()->forget($ignore));
-
+        
         // Builds the dynamic string by replacing the placeholders for each group with their filter value
         $title = $this->build($this->indicator->title_config, $filters);
 
@@ -63,14 +63,18 @@ class DynamicTitle
                 if (! $dataset) {
                     $dataset = DatasetHelper::lastPublishedDataset($this->indicator, 'preview');
                 }
+                $slug = Total::where('dataset_id', $dataset->id)->where('group_slug', $value);
                 
-                $slug = Total::where('dataset_id', $dataset->id)
-                        ->where('group_slug', $value)
-                        ->first()
-                        ->group()
-                        ->first();
-
-                return strtolower($slug->name);
+                if($slug->first() == null) {
+                    return null;
+                }
+                
+                $slug = $slug
+                    ->first()
+                    ->group()
+                    ->first()
+                    ->name;
+                return mb_strtolower($slug);
             }
 
             if ($key == 'age_group') {
@@ -91,7 +95,7 @@ class DynamicTitle
     
                 $university = $this->leftSpacing(University::find($value)->name);
 
-                if (trim(strtolower($university)) == 'riket') {
+                if (trim(mb_strtolower($university)) == 'riket') {
                     return false;
                 }
 

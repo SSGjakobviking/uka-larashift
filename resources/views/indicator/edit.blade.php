@@ -2,7 +2,19 @@
 
 @section('content')
     <h1>{{ $indicator->name }}</h1>
+   
 
+
+    <nav>
+        <div class="nav nav-tabs" role="tablist">
+            <a style="display:inline-block;padding:10px;" class="nav-item nav-link " href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
+            <a style="display:inline-block;padding:10px;" class="nav-item nav-link " href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
+        </div>
+    </nav>
+  
+  <div class="tab-content">
+
+    <div id="preview" class="tab-pane fade in active">
     <h2>Dataset för förhandsgranskning</h2>
     
     <table class="table">
@@ -36,8 +48,9 @@
             <a class="preview-url" href="{{ $previewUrl }}" target="_blank">Förhandsgranska dataset</a>
         @endif
     </form>
+    </div>
 
-
+    <div id="production" class="tab-pane fade">
     <h2>Dataset i produktionsmiljön</h2>
 
     <table class="table">
@@ -67,5 +80,6 @@
 
         <input type="submit" class="btn btn-primary" name="save_dataset_published" value="Lägg till i produktionsmiljön">
     </form>
-    
+    </div>
+    </div>
 @stop

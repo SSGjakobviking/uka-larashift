@@ -10,6 +10,7 @@ use App\Jobs\ImportDataset;
 use App\Search;
 use App\Status;
 use App\Tag;
+use App\User;
 use Carbon\Carbon;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
@@ -36,7 +37,6 @@ class DatasetController extends Controller
         $datasets = Dataset::has('tags', '<', 1)
                             ->orderBy('created_at', 'desc')
                             ->with('user')
-                            ->with('tags')
                             ->with('statuses')
                             ->get();
 
@@ -49,23 +49,29 @@ class DatasetController extends Controller
             return redirect('dataset');
         }
 
+
+        $users = [];
+
         if (! empty($filter)) {
-            $tags = Tag::with(['datasets' => function($query) {
+            $users = User::with(['datasets' => function($query) {
                     $query->with('statuses');
-                    $query->with('user');
+                    $query->with('tags');
                 }])
                 ->has('datasets')
                 ->orderBy('name');
-            $tags->where('id', $filter);
-            $tags = $tags->get();
+            $users->where('id', $filter);
+            $users = $users->get();
         }
 
         $allTags = Tag::all(['id', 'name']);
+        $allUsers = User::all(['id', 'name']);
 
         return view('dataset.index', [
             'datasets' => $datasets,
             'tags' => $tags,
+            'users' => $users,
             'allTags' => $allTags,
+            'allUsers' => $allUsers,
         ]);
    }
 

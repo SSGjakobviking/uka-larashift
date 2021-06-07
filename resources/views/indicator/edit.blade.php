@@ -2,11 +2,10 @@
 
 @section('content')
     <h1>{{ $indicator->name }}</h1>
-
     <nav>
         <div class="nav nav-tabs" role="tablist">
-            <a class="nav-item nav-link active btn" href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
-            <a class="nav-item nav-link btn" href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
+            <a style="display:inline-block;padding:10px;" class="nav-item nav-link " href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php $previewData->count() ?>)</a>
+            <a style="display:inline-block;padding:10px;" class="nav-item nav-link " href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php $publishedData->count() ?>)</a>
         </div>
     </nav>
   

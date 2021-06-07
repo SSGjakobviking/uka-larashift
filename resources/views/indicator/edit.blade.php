@@ -5,8 +5,8 @@
 
     <nav>
         <div class="nav nav-tabs" role="tablist">
-            <a class="nav-item nav-link active btn" href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php $previewData->count() ?>)</a>
-            <a class="nav-item nav-link btn" href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php $publishedData->count() ?></a>
+            <a class="nav-item nav-link active btn" href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
+            <a class="nav-item nav-link btn" href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
         </div>
     </nav>
   

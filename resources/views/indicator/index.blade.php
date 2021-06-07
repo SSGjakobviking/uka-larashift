@@ -4,10 +4,12 @@
     
     <div class="page-header">
         <h1>Indikatorer</h1>
-        @if (auth()->user()->isAdmin())
+        @if (()->user()->isAdmin()auth)
             <ul class="link-list">
+                <li><a href="/dataset">Okopplade dataset</a></li>
                 <li><a href="{{ route('indicator.create') }}">Skapa ny indikator</a></li>
                 <li><a href="{{ route('indicator-group.create') }}">Skapa ny indikatorgrupp</a></li>
+                <li><a href="{{ url('dataset/create') }}" class="pull-right">Ladda upp dataset</a></li>
             </ul>
         @endif
     </div>
@@ -26,7 +28,7 @@
     <table class="indicator-container table">
         <th class="indicator-name">Namn</th>
         <th>Uppdatera</th>
-        <th>Action</th>
+        <th></th>
 
         @foreach($indicatorGroup->indicators as $indicator)
             <tr>

@@ -56,11 +56,7 @@
                             <li><a href="{{ route('login') }}">Logga in</a></li>
                         @else
                             @if (! auth()->user()->hasRole('uppgiftslamnare'))
-                            <li>
-                                <a href="/dataset">
-                                    Dataset
-                                </a>
-                            </li>
+                        
                             
                             <li>
                                 <a href="/indicator">

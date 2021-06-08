@@ -6,8 +6,10 @@
         <h1>Indikatorer</h1>
         @if (auth()->user()->isAdmin())
             <ul class="link-list">
+            <li><a href="/dataset">Okopplade dataset</li>
                 <li><a href="{{ route('indicator.create') }}">Skapa ny indikator</a></li>
                 <li><a href="{{ route('indicator-group.create') }}">Skapa ny indikatorgrupp</a></li>
+                <li><a href="{{ url('dataset/create') }}" class="pull-right">Ladda upp dataset</a></li>
             </ul>
         @endif
     </div>
@@ -23,10 +25,11 @@
             <a href="{{ url('indicator-group', [$indicatorGroup->id, 'delete']) }}" class="text-danger action-remove">Ta bort</a>
         @endif
     </div>
-    <table class="indicator-container table">
+    <table class="indicator-container table tablesorter">
+
         <th class="indicator-name">Namn</th>
         <th>Uppdatera</th>
-        <th>Action</th>
+        <td></td>
 
         @foreach($indicatorGroup->indicators as $indicator)
             <tr>
@@ -41,6 +44,7 @@
                 @endif
             </tr>
         @endforeach
+        
     </table>
     @endforeach
 @stop

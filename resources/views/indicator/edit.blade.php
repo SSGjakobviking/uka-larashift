@@ -29,7 +29,7 @@
         <th>Datum</th>
         <th></th>
         </thead>
-<tbodu>
+<tbody>
         @foreach($previewData as $preview)
             <tr>
                 <td>{{ $preview->id }}</td>

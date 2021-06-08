@@ -25,7 +25,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dataset';
+    protected $redirectTo = '/indicator';
 
     /**
      * Create a new controller instance.

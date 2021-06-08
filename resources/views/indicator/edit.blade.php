@@ -61,11 +61,14 @@
     <h2>Dataset i produktionsmiljön</h2>
 
     <table class="table tablesorter">
+    <thead>
         <th>ID</th>
         <th>Filnamn</th>
         <th>Uppladdat av</th>
         <th>Datum</th>
         <th></th>
+        </thead>
+        <tbody>
         @foreach($publishedData as $published)
             <tr>
                 <td>{{ $published->id }}</td>
@@ -75,6 +78,7 @@
                 <td><a href="{{ url('dataset/' . $published->id . '/published/unattach') }}" class="text-danger pull-right">Koppla bort</a></td>
             </tr>
         @endforeach
+        <tbody>
     </table>
 
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">

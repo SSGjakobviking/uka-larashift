@@ -55,11 +55,14 @@ class DatasetController extends Controller
                 }])
                 ->has('datasets')
                 ->orderBy('name');
+
+                
             $tags->where('id', $filter);
             $tags = $tags->get();
          
 
         $allTags = User::all(['id', 'name']);
+            
 
         return view('dataset.index', [
             'datasets' => $datasets,

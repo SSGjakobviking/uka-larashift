@@ -3,27 +3,33 @@
 @section('content')
     <h1>{{ $indicator->name }}</h1>
    
+<style>
 
+</style>
 
-    <nav>
-        <div class="nav nav-tabs" role="tablist">
-            <a style="display:inline-block;padding:10px;" class="nav-item nav-link " href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
-            <a style="display:inline-block;padding:10px;" class="nav-item nav-link " href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
-        </div>
-    </nav>
+    <ul class="nav-tabs nav" role="tablist">
+    <li class="nav-item active"><a class="nav-link" href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
+    </li>
+    <li class="nav-item">
+    <a class="nav-link" href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
+    </li>
+       
+    </ul>
   
   <div class="tab-content">
 
     <div id="preview" class="tab-pane fade in active">
-    <h2>Dataset för förhandsgranskning</h2>
+    <h2>Dataset i testmiljö</h2>
     
-    <table class="table">
+    <table class="table tablesorter" id="previewtable">
+    <thead>
         <th>ID</th>
         <th>Filnamn</th>
         <th>Uppladdat av</th>
         <th>Datum</th>
         <th></th>
-
+        </thead>
+<tbodu>
         @foreach($previewData as $preview)
             <tr>
                 <td>{{ $preview->id }}</td>
@@ -33,6 +39,7 @@
                 <td><a href="{{ url('dataset/' . $preview->id . '/preview/unattach') }}" class="text-danger pull-right">Koppla bort</a></td>
             </tr>
         @endforeach
+        </tbody>
     </table>
 
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
@@ -53,7 +60,7 @@
     <div id="production" class="tab-pane fade">
     <h2>Dataset i produktionsmiljön</h2>
 
-    <table class="table">
+    <table class="table tablesorter">
         <th>ID</th>
         <th>Filnamn</th>
         <th>Uppladdat av</th>

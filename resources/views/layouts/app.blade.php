@@ -119,6 +119,29 @@
 
     <!-- Scripts -->
     <script src="/js/app.js"></script>
+           
+
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+            <script>
+            $(document).ready(function(){
+                $(".tablesorter").tablesorter();
+            })
+                
+            </script>
+            <style>
+            .tablesorter th {
+                background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE0IDIwIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTQgMTNsLTIuNS0yLjVMNyAxNWwtNC41LTQuNUwwIDEzbDcgN3pNMTQgNy41TDExLjUgMTAgNyA1LjUgMi41IDEwIDAgNy41bDctN3oiLz48L3N2Zz4=);
+                background-position: right 5px center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    white-space: normal;
+            }
+            .tablesorter thead {
+                background-color: #3097D1;
+                color: #fff;
+            }
+            </style>
 
     @if(config('app.env') == 'local')
         <script src="http://localhost:35729/livereload.js"></script>

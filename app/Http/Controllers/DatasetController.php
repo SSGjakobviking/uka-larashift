@@ -46,7 +46,7 @@ class DatasetController extends Controller
         $tags = [];
 
         if (empty($filter)) {
-            $filter = strval(auth()->user()->id);
+            $filter = auth()->user()->id;
         }
 
         
@@ -68,6 +68,7 @@ class DatasetController extends Controller
             'datasets' => $datasets,
             'tags' => $tags,
             'allTags' => $allTags,
+            'filter' => $filter,
         ]);
    }
 

@@ -17,10 +17,6 @@
     @include('errors.success')
     
     @include('dataset.filter')
-    
-    @if(empty($_GET['filter']) && $datasets->count() != 0)
-        @include('dataset.list')
-    @endif
 
     @foreach($tags as $tag)
         @include('dataset.list')

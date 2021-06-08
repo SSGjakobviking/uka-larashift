@@ -20,8 +20,10 @@
 
     <div id="preview" class="tab-pane fade in active">
     <h2>Dataset i testmiljö</h2>
+
     
-    <table class="table tablesorter" id="previewtable">
+
+    <table class="table tablesorter" id="previewtable" style="order:2">
     <thead>
         <th>ID</th>
         <th>Filnamn</th>
@@ -41,7 +43,7 @@
         @endforeach
         </tbody>
     </table>
-
+    <div style="order:1">
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
         <select class="multiselect" name="dataset_preview[]" multiple="multiple">
@@ -56,11 +58,12 @@
         @endif
     </form>
     </div>
+    </div>
 
     <div id="production" class="tab-pane fade">
     <h2>Dataset i produktionsmiljön</h2>
 
-    <table class="table tablesorter">
+    <table class="table tablesorter" style="order:2;">
     <thead>
         <th>ID</th>
         <th>Filnamn</th>
@@ -80,7 +83,7 @@
         @endforeach
         <tbody>
     </table>
-
+    <div style="order:1">
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
         <select class="multiselect" name="dataset_production[]" multiple="multiple">
@@ -91,6 +94,7 @@
 
         <input type="submit" class="btn btn-primary" name="save_dataset_published" value="Lägg till i produktionsmiljön">
     </form>
+    </div>
     </div>
     </div>
 @stop

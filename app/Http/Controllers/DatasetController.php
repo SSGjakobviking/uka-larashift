@@ -10,6 +10,7 @@ use App\Jobs\ImportDataset;
 use App\Search;
 use App\Status;
 use App\Tag;
+use App\User;
 use Carbon\Carbon;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
@@ -33,11 +34,10 @@ class DatasetController extends Controller
 
    public function index(Request $request)
    {
-        $datasets = Dataset::has('tags', '<', 1)
+        $datasets = Dataset::has('statuses', '<', 1)
                             ->orderBy('created_at', 'desc')
                             ->with('user')
                             ->with('tags')
-                            ->with('statuses')
                             ->get();
 
         $filter = $request->filter;
@@ -45,22 +45,21 @@ class DatasetController extends Controller
         // By default, show all untagged datasets
         $tags = [];
 
-        if ($filter == 'untagged') {
-            return redirect('dataset');
+        if (empty($filter)) {
+            $filter = strval(auth()->user()->id);
         }
 
-        if (! empty($filter)) {
-            $tags = Tag::with(['datasets' => function($query) {
-                    $query->with('statuses');
-                    $query->with('user');
+        
+            $tags = User::with(['datasets' => function($query) {
+                    $query->has('statuses', '<', 1);
                 }])
                 ->has('datasets')
                 ->orderBy('name');
             $tags->where('id', $filter);
             $tags = $tags->get();
-        }
+         
 
-        $allTags = Tag::all(['id', 'name']);
+        $allTags = User::all(['id', 'name']);
 
         return view('dataset.index', [
             'datasets' => $datasets,

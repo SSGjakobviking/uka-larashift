@@ -1,11 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+
     <h1>{{ $indicator->name }}</h1>
    
-<style>
-
-</style>
 
     <ul class="nav-tabs nav" role="tablist">
     <li class="nav-item active"><a class="nav-link" href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
@@ -18,10 +16,8 @@
   
   <div class="tab-content">
 
-    <div id="preview" class="tab-pane fade in active">
+    <div id="preview" class="tab-pane fade in active" style="position:relative; padding-top:50px;">
     <h2>Dataset i testmiljö</h2>
-
-    
 
     <table class="table tablesorter" id="previewtable" style="order:2">
     <thead>
@@ -29,7 +25,7 @@
         <th>Filnamn</th>
         <th>Uppladdat av</th>
         <th>Datum</th>
-        <th></th>
+        <td></td>
         </thead>
 <tbody>
         @foreach($previewData as $preview)
@@ -43,7 +39,8 @@
         @endforeach
         </tbody>
     </table>
-    <div style="order:1">
+
+    <div style="position:absolute;top:15px; width:100%;">
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
         <select class="multiselect" name="dataset_preview[]" multiple="multiple">
@@ -57,19 +54,20 @@
             <a class="preview-url" href="{{ $previewUrl }}" target="_blank">Förhandsgranska dataset</a>
         @endif
     </form>
+
     </div>
     </div>
 
-    <div id="production" class="tab-pane fade">
+    <div id="production" class="tab-pane fade" style="padding-top:50px;position:relative;">
     <h2>Dataset i produktionsmiljön</h2>
 
-    <table class="table tablesorter" style="order:2;">
+    <table class="table tablesorter">
     <thead>
         <th>ID</th>
         <th>Filnamn</th>
         <th>Uppladdat av</th>
         <th>Datum</th>
-        <th></th>
+        <td></td>
         </thead>
         <tbody>
         @foreach($publishedData as $published)
@@ -83,7 +81,7 @@
         @endforeach
         <tbody>
     </table>
-    <div style="order:1">
+    <div style="position:absolute; top:15px; width:100%;">
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
         <select class="multiselect" name="dataset_production[]" multiple="multiple">
@@ -95,6 +93,6 @@
         <input type="submit" class="btn btn-primary" name="save_dataset_published" value="Lägg till i produktionsmiljön">
     </form>
     </div>
-    </div>
-    </div>
+</div>
+</div>
 @stop

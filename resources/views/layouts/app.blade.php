@@ -57,16 +57,14 @@
                         @else
                             @if (! auth()->user()->hasRole('uppgiftslamnare'))
                         
-                            <li>
-                    
-                                <a href="/indicator">
+                            <li>                    
+                            
+                                <a href="/indicator" style="{{ str_contains(Route::currentRouteName(), "dataset") || str_contains(Route::currentRouteName(), "indicator") ?  'text-decoration:underline;' : '' }}">
                                     Indikatorer
                                 </a>
-                    
-                                
                             </li>
                             <li>
-                                <a href="/users">
+                                <a href="/users" style="{{ str_contains(Route::currentRouteName(), "users") ?  'text-decoration:underline;' : '' }}">
                                     Användare
                                 </a>
                             </li>

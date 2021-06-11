@@ -8,8 +8,8 @@
             <ul class="link-list">
             <li><a href="{{ url('dataset/create') }}">Ladda upp dataset</a></li>
             <li><a href="/dataset">Okopplade dataset</li>
-                <li><a href="{{ route('indicator.create') }}">Skapa ny indikator</a></li>
-                <li><a href="{{ route('indicator-group.create') }}">Skapa ny indikatorgrupp</a></li>
+                <li><a href="{{ route('indicator.create') }}" style="{{ str_contains(Route::currentRouteName(), "indicator.create") ?  'text-decoration:underline;' : '' }}">Skapa ny indikator</a></li>
+                <li><a href="{{ route('indicator-group.create') }}" style="{{ str_contains(Route::currentRouteName(), "indicator-group.create") ?  'text-decoration:underline;' : '' }}">Skapa ny indikatorgrupp</a></li>
                 
             </ul>
         @endif

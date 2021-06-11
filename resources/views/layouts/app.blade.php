@@ -49,7 +49,7 @@
                 <div class="collapse navbar-collapse" id="app-navbar-collapse">
 
                     <!-- Right Side Of Navbar -->
-                    <ul class="nav navbar-nav navbar-right">
+                    <ul class="link-list pull-right">
                         <!-- Authentication Links -->
 
                         @if (Auth::guest())
@@ -57,11 +57,13 @@
                         @else
                             @if (! auth()->user()->hasRole('uppgiftslamnare'))
                         
-                            
                             <li>
+                    
                                 <a href="/indicator">
                                     Indikatorer
                                 </a>
+                    
+                                
                             </li>
                             <li>
                                 <a href="/users">

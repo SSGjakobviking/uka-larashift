@@ -6,10 +6,11 @@
         <h1>Indikatorer</h1>
         @if (auth()->user()->isAdmin())
             <ul class="link-list">
+            <li><a href="{{ url('dataset/create') }}">Ladda upp dataset</a></li>
             <li><a href="/dataset">Okopplade dataset</li>
                 <li><a href="{{ route('indicator.create') }}">Skapa ny indikator</a></li>
                 <li><a href="{{ route('indicator-group.create') }}">Skapa ny indikatorgrupp</a></li>
-                <li><a href="{{ url('dataset/create') }}" class="pull-right">Ladda upp dataset</a></li>
+                
             </ul>
         @endif
     </div>
@@ -28,16 +29,15 @@
     <table class="indicator-container table tablesorter">
 
         <th class="indicator-name">Namn</th>
-        <th>Uppdatera</th>
         <td></td>
 
         @foreach($indicatorGroup->indicators as $indicator)
             <tr>
                 <td style="width: 80%;"><a href="{{ url('indicator/' . $indicator->id . '/edit') }}">{{ $indicator->name }}</a></td>
                 @if (auth()->user()->isAdmin())
-                    <td><a href="{{ route('indicator-settings.edit', $indicator) }}">Redigera</a></td>
+                    
                     @if ($indicator->datasets->count() === 0)
-                        <td><a href="{{ url('indicator', [$indicator->id, 'delete']) }}" class="text-danger action-remove">Ta bort</a></td>
+                        <td style="text-align:right;"><a href="{{ url('indicator', [$indicator->id, 'delete']) }}" class="text-danger action-remove">Ta bort (inga dataset)</a></td>
                     @else
                         <td></td>
                     @endif

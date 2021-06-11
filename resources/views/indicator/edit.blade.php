@@ -1,7 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-
+    Indikator 
+    @if (auth()->user()->isAdmin())
+    <a href="{{ route('indicator-settings.edit', $indicator) }}">Redigera</a>
+    @endif
     <h1>{{ $indicator->name }}</h1>
    
 

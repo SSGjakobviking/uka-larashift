@@ -168,8 +168,7 @@ class DatasetController extends Controller
             }
         }
 
-
-        return redirect()->back();
+        return redirect(request()->headers->get('referer') . '#' . $status->name);
     }
 
     private function removeIndex($indicator, $dataset)

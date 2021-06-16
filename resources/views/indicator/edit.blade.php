@@ -12,7 +12,7 @@
     <li class="nav-item active"><a class="nav-link" href="#preview" data-toggle="tab" role="tab" aria-controls="preview">Testmiljö (<?php echo $previewData->count() ?>)</a>
     </li>
     <li class="nav-item">
-    <a class="nav-link" href="#production" data-toggle="tab" role="tab" aria-controls="production">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
+    <a class="nav-link" href="#published" data-toggle="tab" role="tab" aria-controls="published">Produktionsmiljö (<?php echo $publishedData->count() ?>)</a>
     </li>
        
     </ul>
@@ -61,7 +61,7 @@
     </div>
     </div>
 
-    <div id="production" class="tab-pane fade" style="padding-top:50px;position:relative;">
+    <div id="published" class="tab-pane fade" style="padding-top:50px;position:relative;">
     <h2>Dataset i produktionsmiljön</h2>
 
     <table class="table tablesorter">
@@ -87,7 +87,7 @@
     <div style="position:absolute; top:15px; width:100%;">
     <form method="post" action="{{ url('indicator/' . $indicator->id . '/dataset') }}">
         {{ csrf_field() }}
-        <select class="multiselect" name="dataset_production[]" multiple="multiple">
+        <select class="multiselect" name="dataset_published[]" multiple="multiple">
             @foreach($publishedDropdownData as $publishedData)
                 <option value="{{ $publishedData->id }}">{{ $publishedData->file }}</option>
             @endforeach

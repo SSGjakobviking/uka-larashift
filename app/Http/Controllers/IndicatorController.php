@@ -254,8 +254,8 @@ class IndicatorController extends Controller
         $datasets = $request->input('dataset_preview');
         $status = 'preview';
 
-        if (! is_null($request->input('dataset_production'))) {
-            $datasets = $request->input('dataset_production');
+        if (! is_null($request->input('dataset_published'))) {
+            $datasets = $request->input('dataset_published');
             $status = 'published';
         }
 

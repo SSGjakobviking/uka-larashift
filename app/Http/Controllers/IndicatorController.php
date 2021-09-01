@@ -196,8 +196,13 @@ class IndicatorController extends Controller
      */
     public function saveDataset($id, Request $request)
     {
+        $input = $this->detectStatus($request);
         $this->updateStatus($id, $request);
-
+       
+        if (isset($input['status']) && $input['status'] === 'published') {
+            return redirect(request()->headers->get('referer') . '#published');
+        }
+       
         return redirect()->back();
     }
 

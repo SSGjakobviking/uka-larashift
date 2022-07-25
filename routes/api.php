@@ -20,11 +20,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::group(['middleware' => [
     // 'api',
     // 'cors',
-    ]], function() {
+]], function () {
+        Route::get('indicators', 'IndicatorController@all');
 
-    Route::get('indicators', 'IndicatorController@all');
+        Route::get('totals/{indicator}', 'TotalsController@index')->name('totals');
 
-    Route::get('totals/{indicator}', 'TotalsController@index')->name('totals');
-
-    Route::get('search/{indicator}/{query}', 'SearchController@index');
-});
+        Route::get('search/{indicator}/{query}', 'SearchController@index');
+    });

@@ -2,13 +2,10 @@
 
 namespace App;
 
-use App\Dataset;
-use App\University;
-use League\Csv\Reader;
 use App\Helpers\StringHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use League\Csv\Reader;
 
 class DatasetImporter
 {
@@ -16,54 +13,56 @@ class DatasetImporter
 
     /**
      * The dataset object.
-     * 
+     *
      * @var App\Dataset
      */
     protected $dataset;
 
     /**
      * This var contains structured parsed csv data..
-     * 
+     *
      * @var Illuminate\Support\Collection
      */
     protected $data;
 
     /**
      * Stores the group columns.
-     * 
+     *
      * @var App\GroupColumn
      */
     protected $groupColumns;
 
     /**
      * Columns with square brackets.
-     * 
+     *
      * @var [type]
      */
     protected $originalGroupColumns;
 
     /**
      * Columns with square brackets.
-     * 
+     *
      * @var [type]
      */
     protected $originalGroups;
 
     /**
      * Stores the total column name (which will always be the last column).
-     * 
+     *
      * @var [type]
      */
     protected $totalColumn;
 
     /**
      * Stores the total columns
+     *
      * @var App\TotalColumn
      */
     protected $totalColumns;
 
     /**
      * Stores the age group
+     *
      * @var array
      */
     protected $ageGroups = [];
@@ -82,27 +81,27 @@ class DatasetImporter
 
     /**
      * Parses the dataset (csv) and builds a collection with all of the data structured.
-     * 
-     * @param  App\Dataset $dataset
+     *
+     * @param  App\Dataset  $dataset
      * @return Illuminate\Support\Collection
      */
     public function parse($dataset)
     {
-        $filePath = public_path('uploads/' . $dataset->file);
+        $filePath = public_path('uploads/'.$dataset->file);
         // $filePath = $dataset; // for test purposes
         $csv = Reader::createFromPath($filePath)->setDelimiter(';');
 
         // retrieve the header columns
         $header = collect($csv->fetchOne());
         $this->totalColumn = $header->last();
-        // retrieve all columns with start pos 2 and end pos -3 
+        // retrieve all columns with start pos 2 and end pos -3
         // (all columns between university(pos 2) and gender(pos -3) columns are considered groups)
         $groups = (clone $header)->splice(2, -3);
 
         $this->originalGroupColumns = $groups;
 
         // retrieve hierarchical group columns
-        $groupColumns = $groups->map(function($item) {
+        $groupColumns = $groups->map(function ($item) {
             if (preg_match('/\[(\d+)\]$/', $item)) {
                 return preg_replace('/\[(\d+)\]$/', '', $item);
             }
@@ -117,44 +116,45 @@ class DatasetImporter
 
         // start parsing the csv here and build the "data" object
         $data = collect($csv->setOffset(1)->fetchAll())
-                ->map(function ($line) use ($header, $groups) {
+                ->map(function ($line) use ($header) {
                     return $header->combine($line) // combine csv columns with the current line of values
-                            ->map(function($value, $key) {
+                            ->map(function ($value, $key) {
 
                                 // return default Lärosäte 'Riket' if Lärosäte is empty
                                 return ($key == 'Lärosäte' && $value == null) ? self::UNIVERSITY_DEFAULT : $value;
                             });
                 })
-                ->map(function($line) {
+                ->map(function ($line) {
                     // replaces totals with commas with points
                     $line->put(
                         $totalKey = $line->reverse()->keys()->first(), // get key from the last item in the csv line (the total)
                         str_replace(',', '.', $line->get($totalKey)) // replace comma with points
                     );
+
                     return $line;
                 })
                 ->groupBy($header->get(1)) // group by university
-                ->map(function ($university) use ($header, $groups) {
-                    
+                ->map(function ($university) use ($header) {
+
                     // store age group keys with default value of 0 because of some indicators could be missing
                     // one age group so we set the default value here.
                     if (empty($this->ageGroups)) {
-                        $this->ageGroups = $university->groupBy('Åldersgrupp')->mapWithKeys(function($item, $value) {
+                        $this->ageGroups = $university->groupBy('Åldersgrupp')->mapWithKeys(function ($item, $value) {
                             return [$value => 0];
                         });
                     }
 
                     return $university
                         ->groupBy($header->get(0)) // group by year
-                        ->map(function ($year) use ($header, $groups) { // loop through every year
+                        ->map(function ($year) use ($header) { // loop through every year
                             return $year
                                 ->groupBy($header->reverse()->values()->get(2)) // group by gender (always pos -2 from the end of csv headers)
-                                ->map(function ($gender, $key) use ($groups) {
+                                ->map(function ($gender, $key) {
                                     return $this->iterateOverGender($gender);
                                 });
                         });
                 });
-        
+
         // dd(
         //     $data->get('Riket')->first()->get('Total')
         // );
@@ -228,9 +228,9 @@ class DatasetImporter
 
         // Loop over each item in the collection
         return collect([
-            'total'      => $this->iterateOverTotal($total),
+            'total' => $this->iterateOverTotal($total),
             'group_slug' => $slug,
-            'children'   => $collection->map(function ($subdata, $category) use ($groups, $group, $slug) {
+            'children' => $collection->map(function ($subdata, $category) use ($groups, $group, $slug) {
                 // Repeat this whole function for each item
                 $slug = trim($slug.'_'.str_slug($category), '_');
 
@@ -243,7 +243,7 @@ class DatasetImporter
      * Hides group with "" as key. Therse contains the totals of each groups which we iterate through
      * and generate the 'total' + 'children' structure. Once that's done we remove the "" item in the array because
      * we don't need it anymore.
-     * 
+     *
      * @param  [type] $group
      * @return [type]
      */
@@ -260,7 +260,8 @@ class DatasetImporter
             or $group !== $original->first(); // hide if the current group isnt the first
     }
 
-    private function removeStartChar($item, $char) {
+    private function removeStartChar($item, $char)
+    {
         if (strpos($item, $char) === 0) {
             return (string) substr($item, 1, strlen($item));
         }
@@ -270,7 +271,7 @@ class DatasetImporter
 
     /**
      * Store every group column in a property.
-     * 
+     *
      * @param  array  $groupColumns
      * @return void
      */
@@ -281,7 +282,7 @@ class DatasetImporter
 
     /**
      * Store every total column in a property.
-     * 
+     *
      * @param  array  $totalColumns
      * @return void
      */
@@ -292,29 +293,28 @@ class DatasetImporter
 
     /**
      * Executes the import.
-     * 
+     *
      * @return void
      */
     public function make()
     {
-
         $this->createGroupColumns($this->groupColumns);
 
         $this->createGroups($this->dataset);
-        
+
         $this->updateStatus($this->dataset);
     }
 
     private function createGroupColumns(array $groupColumns)
     {
-        foreach($groupColumns as $groupColumn) {
+        foreach ($groupColumns as $groupColumn) {
             GroupColumn::firstOrCreate(['name' => $groupColumn]);
         }
     }
 
     /**
      * Creates groups recursively (if group has any children).
-     * 
+     *
      * @param  [type]  $dataset
      * @param  [type]  $prevData
      * @param  [type]  $data
@@ -322,13 +322,12 @@ class DatasetImporter
      * @param  [type]  $year
      * @param  [type]  $gender
      * @param  [type]  $parent
-     * @param  integer $level
+     * @param  int  $level
      * @return [type]
      */
     private function createGroup($dataset, $prevData, $data, $university, $year, $gender, $topGroupId, $parent = null, $level = -1, $topParentId = null)
     {
-        foreach($data as $groupName => $item) {
-
+        foreach ($data as $groupName => $item) {
             $firstInLevel = $data->keys()->first();
 
             // check to see if groupName is in first level
@@ -345,8 +344,8 @@ class DatasetImporter
             }
 
             $currentGroup = Group::firstOrCreate([
-                'column_id'     => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
-                'name'          => $groupName,
+                'column_id' => GroupColumn::where('name', $this->groupColumns[$level])->get()->first()->id,
+                'name' => $groupName,
             ]);
 
             if (isset($item['children']) && $firstInLevel == $groupName) {
@@ -388,19 +387,16 @@ class DatasetImporter
 
     /**
      * Loops through our structured csv data and inserts it into the db.
-     * 
-     * @param  App\Dataset $dataset
+     *
+     * @param  App\Dataset  $dataset
      * @return [type]
      */
     private function createGroups($dataset)
     {
         // dd($this->data['Riket'][2014]['Kvinnor']);
-        foreach($this->data as $university => $years) {
-
-            foreach($years as $year => $genders) {
-
-                foreach($genders as $gender => $group) {
-
+        foreach ($this->data as $university => $years) {
+            foreach ($years as $year => $genders) {
+                foreach ($genders as $gender => $group) {
                     $createdUniversity = $this->createUniversity($university, StringHelper::slugify($university));
 
                     $this->createTotal($dataset, $createdUniversity, $year, $gender, null, $group->get('total'));
@@ -417,6 +413,7 @@ class DatasetImporter
 
     /**
      * Creates a total entry in the Totals table.
+     *
      * @param  [type] $dataset
      * @param  [type] $group
      * @param  [type] $university
@@ -434,14 +431,14 @@ class DatasetImporter
         $groupParentSlug = $this->removeLastGroup($groupSlug);
 
         $total = Total::firstOrCreate([
-            'dataset_id'    => $dataset->id,
+            'dataset_id' => $dataset->id,
             'university_id' => $university->id,
-            'group_id'      => $group,
+            'group_id' => $group,
             'group_parent_id' => $parentGroup,
-            'top_group_id'  => $topGroupId,
-            'year'          => $year,
-            'gender'        => $gender,
-            'group_slug'    => ! empty($groupSlug) ? sha1($groupSlug) : null,
+            'top_group_id' => $topGroupId,
+            'year' => $year,
+            'gender' => $gender,
+            'group_slug' => ! empty($groupSlug) ? sha1($groupSlug) : null,
             'group_parent_slug' => ! empty($parentGroup) ? sha1($groupParentSlug) : null,
         ]);
 
@@ -463,28 +460,27 @@ class DatasetImporter
 
     /**
      * Inserts the total columns and values into the database.
-     * 
-     * @param  array $totals
+     *
+     * @param  array  $totals
      * @return [type]
      */
     private function createTotalValues($total, $totals)
     {
-        $totals->each(function($value, $column) use($total) {
+        $totals->each(function ($value, $column) use ($total) {
             $column = TotalColumn::firstOrCreate(['name' => $column]);
 
             TotalValue::create([
                 'total_id' => $total->id,
                 'column_id' => $column->id,
-                'value'    => $value,
+                'value' => $value,
             ]);
-
         });
     }
 
     /**
      * Removes the 'processing' status which means it's ready for use.
-     * 
-     * @param  App\Dataset $dataset
+     *
+     * @param  App\Dataset  $dataset
      * @return App\Dataset
      */
     private function updateStatus($dataset)
@@ -494,15 +490,16 @@ class DatasetImporter
 
     /**
      * Create a university if it doesn't already exist
-     * @param  string $name
-     * @param  string $slug
+     *
+     * @param  string  $name
+     * @param  string  $slug
      * @return Illuminate\Support\Collection
      */
     private function createUniversity($name, $slug)
     {
         return University::firstOrCreate([
             'name' => $name,
-            'slug' => $slug
+            'slug' => $slug,
         ]);
     }
 }

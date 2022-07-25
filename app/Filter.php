@@ -2,9 +2,7 @@
 
 namespace App;
 
-use App\DynamicTitle;
 use App\Helpers\UrlHelper;
-use App\Indicator;
 
 class Filter
 {
@@ -20,17 +18,17 @@ class Filter
 
     public function __construct(array $filters, $indicator, $year, $children = [])
     {
-        $this->filters   = collect($filters);
+        $this->filters = collect($filters);
         $this->indicator = $indicator;
-        $this->year      = $year;
-        $this->children  = (array) $children;
+        $this->year = $year;
+        $this->children = (array) $children;
     }
 
     /**
      * Generates a string with the passed query vars from the api.
-     * 
+     *
      * @param  App/Indicator $indicator
-     * @param  integer $year
+     * @param  int  $year
      * @return string
      */
     public function url()
@@ -47,9 +45,9 @@ class Filter
 
     /**
      * Retrieve totals base url.
-     * 
-     * @param  App\Indicator $indicator
-     * @param  integer $year
+     *
+     * @param  App\Indicator  $indicator
+     * @param  int  $year
      * @return string
      */
     public function base($indicator = null)
@@ -72,17 +70,17 @@ class Filter
         parse_str($query, $oldParams);
 
         if (empty($oldParams)) {
-            return rtrim($url, '?') . '?' . http_build_query($params);
+            return rtrim($url, '?').'?'.http_build_query($params);
         }
 
         $params = array_merge($oldParams, $params);
 
-        return preg_replace('#\?.*#', '?' . http_build_query($params), $url);
+        return preg_replace('#\?.*#', '?'.http_build_query($params), $url);
     }
 
     /**
      * Retrieves all of the filters.
-     * 
+     *
      * @return Collection
      */
     public function all()
@@ -92,41 +90,40 @@ class Filter
 
     /**
      * Returns group children.
-     * 
+     *
      * @return
      */
     public function children()
     {
-
-        return collect($this->children)->map(function($item) {
-            
+        return collect($this->children)->map(function ($item) {
             $filterArgs = [
                 $item['_source']['group'] => $item['_source']['id'],
                 'year' => $this->year,
             ];
+
             return new static($filterArgs, $this->indicator, $this->year, $item['children'] || []);
         });
     }
 
     /**
      * Stores every filter that is not null into the filters collection.
-     * 
-     * @param  integer $group
-     * @param  integer $year
-     * @param  string $gender
+     *
+     * @param  int  $group
+     * @param  int  $year
+     * @param  string  $gender
      * @return void
      */
     private function removeEmpty()
     {
         // remove empty filters
-        return $this->filters->filter(function($value) {
+        return $this->filters->filter(function ($value) {
             return ! is_null($value);
         });
     }
 
     /**
      * Retrieve dynamic title based on filter.
-     * 
+     *
      * @return string
      */
     public function title($ignore = [])
@@ -138,5 +135,4 @@ class Filter
     {
         return $this->title($key);
     }
-
 }

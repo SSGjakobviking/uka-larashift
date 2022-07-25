@@ -2,8 +2,6 @@
 
 namespace App;
 
-use App\Group;
-use App\Total;
 use Illuminate\Database\Eloquent\Model;
 
 class University extends Model

@@ -24,7 +24,7 @@ class SearchServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('search', function($app, $arguments) {
+        $this->app->bind('search', function ($app, $arguments) {
             return 'hei';
             //return new Search(ClientBuilder::create()->build(), $indicator, $datasetId);
         });

@@ -11,16 +11,11 @@ use App\Search;
 use App\Status;
 use App\Tag;
 use App\User;
-use Carbon\Carbon;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
 
 class DatasetController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('auth', ['except' => [
@@ -32,8 +27,8 @@ class DatasetController extends Controller
         ]]);
     }
 
-   public function index(Request $request)
-   {
+    public function index(Request $request)
+    {
         $datasets = Dataset::has('statuses', '<', 1)
                             ->orderBy('created_at', 'desc')
                             ->with('user')
@@ -49,20 +44,16 @@ class DatasetController extends Controller
             $filter = auth()->user()->id;
         }
 
-        
-            $tags = User::with(['datasets' => function($query) {
-                    $query->has('statuses', '<', 1);
-                }])
+        $tags = User::with(['datasets' => function ($query) {
+            $query->has('statuses', '<', 1);
+        }])
                 ->has('datasets')
                 ->orderBy('name');
 
-                
-            $tags->where('id', $filter);
-            $tags = $tags->get();
-         
+        $tags->where('id', $filter);
+        $tags = $tags->get();
 
         $allTags = User::all(['id', 'name']);
-            
 
         return view('dataset.index', [
             'datasets' => $datasets,
@@ -70,12 +61,12 @@ class DatasetController extends Controller
             'allTags' => $allTags,
             'filter' => $filter,
         ]);
-   }
+    }
 
-   public function create()
-   {
+    public function create()
+    {
         // $dataset = storage_path('app/uploads/hst-per-amnesomrade[2011-2012]-v1.csv');
-        #$dataset = storage_path('app/hst-studieform-amne_Lasar2014_-v1.csv');
+        //$dataset = storage_path('app/hst-studieform-amne_Lasar2014_-v1.csv');
         // $dataset = storage_path('app/testdata-simple.csv');
         // $dataset = storage_path('app/testdata.csv');
 
@@ -85,12 +76,12 @@ class DatasetController extends Controller
         // $import->make();
         // dd($import);
         return view('dataset.create');
-   }
+    }
 
     /**
      * Store the uploaded file.
      *
-     * @param  Request $request
+     * @param  Request  $request
      * @return [type]
      */
     public function store(Request $request)
@@ -101,19 +92,19 @@ class DatasetController extends Controller
 
         $file = $request->file('file');
 
-        $name = time() . '-' . $file->getClientOriginalName();
+        $name = time().'-'.$file->getClientOriginalName();
         // separate file name by underscore to retrieve the dataset year
         $separateNameFormat = explode('_', $name);
         // year will always be in position 1 in the array, also replace - with / before inserting (2008-09 becomes 2008/09 in the db)
         $year = str_replace('-', '/', $separateNameFormat[1]);
         // move file to uploads folder
-        $file->move(public_path() . '/uploads/', $name);
+        $file->move(public_path().'/uploads/', $name);
         // create the dataset row in db
         $dataset = Dataset::create([
-            'user_id'       => auth()->user()->id,
-            'indicator_id'  => null,
-            'file'          => $name,
-            'year'          => $year,
+            'user_id' => auth()->user()->id,
+            'indicator_id' => null,
+            'file' => $name,
+            'year' => $year,
         ]);
 
         // set status to "processing"
@@ -135,7 +126,7 @@ class DatasetController extends Controller
     {
         $file = Dataset::find($id);
 
-        unlink(public_path('uploads/' . $file->file));
+        unlink(public_path('uploads/'.$file->file));
 
         Dataset::destroy($id);
 
@@ -168,7 +159,7 @@ class DatasetController extends Controller
             }
         }
 
-        return redirect(request()->headers->get('referer') . '#' . $status->name);
+        return redirect(request()->headers->get('referer').'#'.$status->name);
     }
 
     private function removeIndex($indicator, $dataset)

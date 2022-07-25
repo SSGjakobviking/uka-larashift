@@ -6,9 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Indicator extends Model
 {
-
     protected $fillable = ['indicator_group', 'name', 'description', 'slug', 'title_config', 'measurement', 'time_unit'];
-    
+
     /**
      * Retrieve all of the associated dataset models.
      *
@@ -21,7 +20,7 @@ class Indicator extends Model
 
     /**
      * Retrieve the indicator group.
-     * 
+     *
      * @return [type]
      */
     public function indicatorGroup()

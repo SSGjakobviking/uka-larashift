@@ -20,7 +20,7 @@ class Status extends Model
 
     /**
      * Retrieve published datasets.
-     * 
+     *
      * @param  [type] $query
      * @return [type]
      */
@@ -31,7 +31,7 @@ class Status extends Model
 
     /**
      * Retrieve datasets set for preview.
-     * 
+     *
      * @param  [type] $query
      * @return [type]
      */
@@ -45,7 +45,8 @@ class Status extends Model
         return $query->where('name', '<>', 'preview');
     }
 
-    public function scopeOrProcessing($query) {
+    public function scopeOrProcessing($query)
+    {
         return $query->orWhere('name', 'processing');
     }
 

@@ -54,4 +54,3 @@ Route::get('users/{id}/delete', 'UserController@destroy');
 // Misc
 Route::get('/home', 'HomeController@index');
 Route::get('parse', 'DatasetController@parse');
-

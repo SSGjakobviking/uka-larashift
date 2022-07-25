@@ -24,7 +24,7 @@ class Indicator extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:255|unique:indicators,name,' . $this->route('id'),
+            'name' => 'required|max:255|unique:indicators,name,'.$this->route('id'),
             'title_config' => 'required',
         ];
     }

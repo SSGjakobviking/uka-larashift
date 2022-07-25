@@ -2,8 +2,6 @@
 
 namespace App;
 
-use App\Dataset;
-use App\Role;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 

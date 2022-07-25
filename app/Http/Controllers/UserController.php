@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Input;
 
 class UserController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware(['auth', 'admin']);
@@ -47,7 +46,6 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        
     }
 
     /**
@@ -71,6 +69,7 @@ class UserController extends Controller
     {
         $user = User::with('role')->where('id', $id)->get()->first();
         $roles = Role::all();
+
         return view('user.edit', compact('user', 'roles'));
     }
 
@@ -85,12 +84,12 @@ class UserController extends Controller
     {
         // if pass is empty, update everything except the password
         if (trim(Input::get('password')) == '') {
-           $data = Input::except('password');
-           $request->offsetUnset('password');
+            $data = Input::except('password');
+            $request->offsetUnset('password');
         } else {
-           $data = Input::all();
-           // encrypt the password before updating.
-           $data['password'] = bcrypt($data['password']);
+            $data = Input::all();
+            // encrypt the password before updating.
+            $data['password'] = bcrypt($data['password']);
         }
 
         if (isset($data['role'])) {
@@ -98,9 +97,9 @@ class UserController extends Controller
             unset($data['role']);
         }
 
-         $this->validate($request, [
+        $this->validate($request, [
             'name' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users,id,' . $id,
+            'email' => 'required|email|max:255|unique:users,id,'.$id,
             'password' => 'sometimes|min:6',
         ]);
 

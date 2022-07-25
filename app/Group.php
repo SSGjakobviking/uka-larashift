@@ -2,7 +2,6 @@
 
 namespace App;
 
-use App\University;
 use Illuminate\Database\Eloquent\Model;
 
 class Group extends Model
@@ -13,7 +12,7 @@ class Group extends Model
     ];
 
     public $timestamps = false;
-    
+
     /**
      * Retrieve the associated dataset model.
      *

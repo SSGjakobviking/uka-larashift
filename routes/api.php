@@ -21,9 +21,9 @@ Route::group(['middleware' => [
     // 'api',
     // 'cors',
 ]], function () {
-        Route::get('indicators', 'IndicatorController@all');
+    Route::get('indicators', 'IndicatorController@all');
 
-        Route::get('totals/{indicator}', 'TotalsController@index')->name('totals');
+    Route::get('totals/{indicator}', 'TotalsController@index')->name('totals');
 
-        Route::get('search/{indicator}/{query}', 'SearchController@index');
-    });
+    Route::get('search/{indicator}/{query}', 'SearchController@index');
+});

@@ -2,13 +2,10 @@
 
 namespace App;
 
-use App\Tag;
-use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Dataset extends Model
 {
-
     protected $fillable = [
         'user_id',
         'indicator_id',

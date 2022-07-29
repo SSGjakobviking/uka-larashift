@@ -3,22 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Dataset;
-use App\DynamicTitle;
 use App\Filter;
 use App\Group;
-use App\GroupColumn;
 use App\Helpers\DatasetHelper;
 use App\Helpers\StringHelper;
-use App\Helpers\UrlHelper;
 use App\Indicator;
 use App\Total;
 use App\TotalColumn;
-use App\TotalValue;
 use App\TotalsFormatter;
-use App\University;
+use Box\Spout\Common\Type;
 use Box\Spout\Reader\ReaderFactory;
 use Box\Spout\Writer\WriterFactory;
-use Box\Spout\Common\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +21,6 @@ use Illuminate\Support\Facades\Log;
 
 class TotalsController extends Controller
 {
-
     protected $indicatorConfig;
 
     protected $universitiesConfig;
@@ -39,10 +33,10 @@ class TotalsController extends Controller
     public function index(Request $request, Indicator $indicator)
     {
         $data = [];
-        
+
         $this->indicatorConfig = isset(config('indicator')[$indicator->slug]) ? config('indicator')[$indicator->slug] : config('indicator')['default'];
         $universityDefaultId = $this->universitiesConfig['default']['id'];
-        
+
         // Retrieve filter args
         $university = ! empty($request->university) ? $request->university : $universityDefaultId;
         $gender = ! empty($request->gender) ? $request->gender : 'Total';
@@ -55,55 +49,55 @@ class TotalsController extends Controller
 
         try {
             $year = $this->setYear($indicator, $request);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }
-       
+
         // set year to last published year if no year has been specified and indicator contains a dataset
 
         $filters = [
             'university' => $university,
-            'year'       => $year,
+            'year' => $year,
             'group_slug' => $groupSlug,
-            'gender'     => $request->gender,
-            'age_group'  => $request->age_group,
+            'gender' => $request->gender,
+            'age_group' => $request->age_group,
         ];
 
         // dd($filters);
-        if ( ! is_null($groupSlug) && is_null(Total::where('group_slug', $groupSlug)->first()) ) {
+        if (! is_null($groupSlug) && is_null(Total::where('group_slug', $groupSlug)->first())) {
             return response()->json([
-                'error' => 'Invalid group: ' . $groupSlug,
+                'error' => 'Invalid group: '.$groupSlug,
             ]);
         }
 
         $filter = new Filter($filters, $indicator, $year);
-        
+
         //dd($filter->title());
-       
+
         $data['indicator'] = $this->indicatorData($indicator, $filter, $year);
         //dd($data);
-        
+
         // retrieve dataset id for current year
         $dataset = $this->dataset($indicator, $year, $status);
-        
+
         if (is_null($dataset)) {
             return response()->json([
-                'error' => 'No dataset for indicator ID: ' . $indicator->id . ' and year ' . $year,
+                'error' => 'No dataset for indicator ID: '.$indicator->id.' and year '.$year,
             ]);
         }
 
         $universities = $this->universities($dataset, $year, $gender, $groupSlug, $age_group, $filter);
-        
+
         $groups = $this->groups($dataset, $university, $year, $gender, $groupSlug, $age_group, $filter);
-        
+
         $genders = $this->gender($dataset, $university, $year, $groupSlug, $age_group, $filter);
-        
+
         $totalColumns = $this->totalColumns($dataset, $university, $year, $gender, $groupSlug, $filter);
-        
+
         $yearlyTotals = $this->yearlyTotals($indicator, $university, $gender, $groupSlug, $age_group, $status, $filter);
-        
+
         $totals = new TotalsFormatter();
-        
+
         if ($university == $universityDefaultId) {
             $totals->addGroup([
                 'column' => 'Lärosäten',
@@ -136,14 +130,13 @@ class TotalsController extends Controller
         $totals->add('Tid', $yearlyTotals);
 
         $totalsData = $totals->get();
-        
 
         $data = array_merge($data, $totalsData);
-       
+
         // dd($data);
         // check if export was requested.
         if ($export) {
-            
+
             // return csv data for year/term
             if ($export === 'all') {
                 $filePath = null;
@@ -153,7 +146,7 @@ class TotalsController extends Controller
                 }
 
                 if ($exportType === 'csv') {
-                    $filePath = asset('uploads/' . $dataset->file);
+                    $filePath = asset('uploads/'.$dataset->file);
                 }
 
                 return response()
@@ -165,7 +158,7 @@ class TotalsController extends Controller
                 $filePath = $this->jsonToCsv($data, $indicator->slug);
 
                 if ($exportType === 'xlsx') {
-                    $filePath = str_replace(url('downloads') . '/', '', $filePath);
+                    $filePath = str_replace(url('downloads').'/', '', $filePath);
                     $filePath = $this->convertToExcel($filePath, 'downloads');
                 }
 
@@ -178,17 +171,17 @@ class TotalsController extends Controller
 
     /**
      * Convert csv to excel.
-     * 
+     *
      * @param  [type] $csvFile
      * @param  [type] $folder
      * @return [type]
      */
     public function convertToExcel($csvFile, $folder)
     {
-        $excelFile = head(explode('.', $csvFile)) . '.xlsx';
-        $relativePath = public_path('downloads/' . $excelFile);
+        $excelFile = head(explode('.', $csvFile)).'.xlsx';
+        $relativePath = public_path('downloads/'.$excelFile);
         // Log::info('Filepath: ' . $relativePath);
-        $filePath = asset('downloads/' . $excelFile);
+        $filePath = asset('downloads/'.$excelFile);
 
         // return file if already exist
         if (file_exists($relativePath)) {
@@ -199,19 +192,18 @@ class TotalsController extends Controller
         $reader->setEncoding('UTF-8');
         $reader->setFieldDelimiter(';');
         $writer = WriterFactory::create(Type::XLSX); // for XLSX files
-        
+
         $writer->setShouldUseInlineStrings(false);
-        $reader->open(public_path($folder . '/' . $csvFile));
+        $reader->open(public_path($folder.'/'.$csvFile));
         $writer->openToFile($relativePath);
         foreach ($reader->getSheetIterator() as $sheet) {
-            $ageIndex = 1000; // Setting a default value to variable. 
+            $ageIndex = 1000; // Setting a default value to variable.
             foreach ($sheet->getRowIterator() as $row) {
-                
-                $intRow = array();
+                $intRow = [];
                 foreach ($row as $position => $cell) {
 
                     // Check if column is "Åldergrupp" then automatic push as text to array
-                    if ($cell === "Åldersgrupper" || $cell === "Åldersgrupp") {
+                    if ($cell === 'Åldersgrupper' || $cell === 'Åldersgrupp') {
                         $ageIndex = $position;
                     }
                     // Picking out array index where index is age and treating it as text.
@@ -220,9 +212,9 @@ class TotalsController extends Controller
                         array_push($intRow, $cell);
                     } else {
                         // Log::info('Övrig info: ' . $cell);
-                        if ( preg_match("/^[0-9,.]+$/", $cell) ) {
+                        if (preg_match('/^[0-9,.]+$/', $cell)) {
                             $toDot = str_replace(',', '.', $cell);
-                            array_push($intRow, (float)$toDot);
+                            array_push($intRow, (float) $toDot);
                         } else {
                             array_push($intRow, $cell);
                         }
@@ -230,11 +222,11 @@ class TotalsController extends Controller
                     // Log::info('cell: ' . print_r($cell, true));
                     // Log::info('Type: ' . gettype($cell));
                 }
-                // do stuff with the row  
+                // do stuff with the row
                 $writer->addRow($intRow);
             }
         }
-        
+
         $writer->close();
         $reader->close();
 
@@ -243,7 +235,7 @@ class TotalsController extends Controller
 
     /**
      * Create csv file out ouf current api request.
-     * 
+     *
      * @param  [type] $data
      * @param  [type] $fileName
      * @return [type]
@@ -270,7 +262,7 @@ class TotalsController extends Controller
             $groups->push($currentYearData);
         }
 
-        $grouped = $groups->pluck('column')->flatMap(function($item) {
+        $grouped = $groups->pluck('column')->flatMap(function ($item) {
             return [
                 $item,
                 'Värde['.$item.']',
@@ -280,19 +272,19 @@ class TotalsController extends Controller
 
         $rows = collect([]);
 
-        $content = $groups->map(function($item) {
+        $content = $groups->map(function ($item) {
             return $item;
         });
 
-        $content->map(function($column) use (&$rows, $headers, $data) {
-            $res = collect($column['totals'])->map(function($item, $key) use (&$rows, $headers, $column, $data) {
+        $content->map(function ($column) use (&$rows, $headers, $data) {
+            $res = collect($column['totals'])->map(function ($item, $key) use (&$rows, $headers, $column, $data) {
                 $group = $rows->get($key, collect([]));
 
                 if ($group->isEmpty()) {
                     foreach ($headers as $header) {
                         if ($header === 'År') {
                             $group->put($header, $data['indicator']['current_year']);
-                        } else if ($header === 'Indikator') {
+                        } elseif ($header === 'Indikator') {
                             $group->put($header, $data['indicator']['measurement']);
                         } else {
                             $group->put($header, null);
@@ -303,11 +295,11 @@ class TotalsController extends Controller
                 }
 
                 if (isset($item['name'])) {
-                  $nameField = 'name';
+                    $nameField = 'name';
                 } elseif (isset($item['gender'])) {
-                  $nameField = 'gender';
+                    $nameField = 'gender';
                 } elseif (isset($item['year'])) { // this will be set when all groups has been filtrered and yearly totals is used as data.
-                  $nameField = 'year';
+                    $nameField = 'year';
                 }
 
                 $group->put($column['column'], $item[$nameField]);
@@ -315,6 +307,7 @@ class TotalsController extends Controller
                 $convertDecimals = str_replace(',', '.', $item['value']);
                 $group->put('Värde['.$column['column'].']', $convertDecimals);
                 $rows->put($key, $group);
+
                 return [$item[$nameField], $convertDecimals];
             });
 
@@ -338,48 +331,49 @@ class TotalsController extends Controller
             $output = $this->removeColumn($output, 'Tid');
         }
 
-        $fileName = uniqid() . '-' . $fileName . '.csv';
-        $filePath = public_path('downloads/' . $fileName);
+        $fileName = uniqid().'-'.$fileName.'.csv';
+        $filePath = public_path('downloads/'.$fileName);
         $fp = fopen($filePath, 'w');
 
-        $output->each(function($fields) use($fp) {
+        $output->each(function ($fields) use ($fp) {
             $fields = $fields instanceof Collection ? $fields->toArray() : $fields;
             // dump($fields);
             fputcsv($fp, $fields, ';');
         });
 
-        return asset('downloads/' . $fileName);
+        return asset('downloads/'.$fileName);
     }
 
     /**
      * Remove column + value from the output array.
-     * 
-     * @param  Illuminiate\Support\Collection $data
-     * @param  string $column
+     *
+     * @param  Illuminiate\Support\Collection  $data
+     * @param  string  $column
      * @return Illuminiate\Support\Collection
      */
-    private function removeColumn($data, $column) {
+    private function removeColumn($data, $column)
+    {
         $skipIndex = collect($data->first())->search($column);
 
-        return $data->map(function($item) use($skipIndex) {
-                        return collect($item)->filter(function($value, $key) use($skipIndex) {
-                            return $key !== $skipIndex;
-                        })->toArray();
-                    });
+        return $data->map(function ($item) use ($skipIndex) {
+            return collect($item)->filter(function ($value, $key) use ($skipIndex) {
+                return $key !== $skipIndex;
+            })->toArray();
+        });
     }
 
     /**
      * Extracts data by the current year.
-     * 
-     * @param  Illuminate\Support\Collection $data
-     * @param  Illuminate\Http\Request $request
+     *
+     * @param  Illuminate\Support\Collection  $data
+     * @param  Illuminate\Http\Request  $request
      * @return Illuminate\Support\Collection
      */
     private function extractCurrentYearData($data, $request)
     {
         return collect($data->first())
                 ->get('totals')
-                ->filter(function($item) use($request) {
+                ->filter(function ($item) use ($request) {
                     return $item['year'] === $request->year;
                 })->values();
     }
@@ -400,7 +394,7 @@ class TotalsController extends Controller
 
     /**
      * Retrieves current dataset by indicator id and year.
-     * 
+     *
      * @param  [type] $indicator
      * @param  [type] $year
      * @return [type]
@@ -409,7 +403,7 @@ class TotalsController extends Controller
     {
         return $indicator->datasets()
                 ->where('year', $year)
-                ->whereHas('statuses', function($query) use($status) {
+                ->whereHas('statuses', function ($query) use ($status) {
                     $query->where('name', $status);
                 })
                 ->first();
@@ -417,29 +411,31 @@ class TotalsController extends Controller
 
     /**
      * Formats indicator data.
-     * 
-     * @param  Illuminate\Support\Collection $indicator
-     * @param  Object $dynamicTitle
+     *
+     * @param  Illuminate\Support\Collection  $indicator
+     * @param  object  $dynamicTitle
      * @return array
      */
     private function indicatorData($indicator, $filter, $year)
     {
         //dd($filter);
         $name = $filter->title();
-        if(is_null($name)) {
-            $name = "";
+        if (is_null($name)) {
+            $name = '';
         }
+
         return [
-            'id'            => $indicator->id,
-            'name'          => $filter->title(),
-            'description'   => $indicator->description,
-            'measurement'   => $indicator->name,
-            'current_year'  => $year,
+            'id' => $indicator->id,
+            'name' => $filter->title(),
+            'description' => $indicator->description,
+            'measurement' => $indicator->name,
+            'current_year' => $year,
         ];
     }
 
     /**
      * Retrieve universities totals
+     *
      * @param  [type] $dataset
      * @return [type]
      */
@@ -455,24 +451,25 @@ class TotalsController extends Controller
 
         $totals = $totals->get();
 
-        return $totals->filter(function($total) use($ageGroup) {
+        return $totals->filter(function ($total) use ($ageGroup) {
             if (isset($total->values->keyBy('column_id')[$ageGroup])) {
                 return true;
             } else {
                 return false;
             }
-        })->map(function($total) use($ageGroup, $filter) {
+        })->map(function ($total) use ($ageGroup, $filter) {
             return [
-                'id'     => $total->university->slug,
-                'name'   => $total->university->name,
-                'value'  => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
-                'url'   => $filter->updateUrl(['university' => $total->university_id]),
+                'id' => $total->university->slug,
+                'name' => $total->university->name,
+                'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
+                'url' => $filter->updateUrl(['university' => $total->university_id]),
             ];
         })->values();
     }
 
     /**
      * Retrieve all groups including their total value
+     *
      * @param  [type] $dataset
      * @return [type]
      */
@@ -486,7 +483,7 @@ class TotalsController extends Controller
                     ->where('group_parent_slug', $groupSlug)
                     ->whereHas('group')
                     ->with(['group.column', 'values.column'])
-                    ->whereHas('values', function($query) use($ageGroup) {
+                    ->whereHas('values', function ($query) use ($ageGroup) {
                         $query->where('column_id', $ageGroup);
                     })
                     ->get();
@@ -508,10 +505,10 @@ class TotalsController extends Controller
             // the following structure: Studieform | Ämnesområde[0] | Ämnesdelsområde[1] | Ämnesgrupp[2]
             $parentColumn = Total::where('dataset_id', $dataset->id)
                             ->select([
-                                'group_columns.name AS column_name', 
+                                'group_columns.name AS column_name',
                                 'groups.name AS group_name',
-                                'totals.*', 
-                                'total_values.value'
+                                'totals.*',
+                                'total_values.value',
                             ])
                             ->leftJoin('groups', 'totals.top_group_id', '=', 'groups.id')
                             ->leftJoin('group_columns', 'groups.column_id', '=', 'group_columns.id')
@@ -529,17 +526,17 @@ class TotalsController extends Controller
                             ->whereNotNull('group_columns.name')
                             ->get();
 
-            $parentColumnData = $parentColumn->groupBy('column_name')->map(function($items, $column) use($filter) {
+            $parentColumnData = $parentColumn->groupBy('column_name')->map(function ($items, $column) use ($filter) {
                 // if (! is_null($items->first()->top_group_id)) {
                 //     return;
                 // }
 
-                $totals = $items->map(function($item) use($filter) {
+                $totals = $items->map(function ($item) use ($filter) {
                     return [
                         'id' => $item->group_slug,
                         'name' => $item->group_name,
                         'value' => $item->value,
-                        'url'   => $filter->updateUrl([
+                        'url' => $filter->updateUrl([
                             'group_slug' => $item->group_slug,
                         ]),
                     ];
@@ -554,19 +551,19 @@ class TotalsController extends Controller
             // dd($parentColumnData);
         }
 
-        return $totals->map(function($total) {
+        return $totals->map(function ($total) {
             $total->group_column = $total->group->column->name;
             $total->top_parent_id = $total->group->column->top_parent_id;
+
             return $total;
         })->groupBy('group_column')
-        ->map(function($total, $groupColumn) use($filter, $ageGroup) {
-
-            $allTotals = $total->map(function($item) use($filter, $ageGroup) {
+        ->map(function ($total, $groupColumn) use ($filter, $ageGroup) {
+            $allTotals = $total->map(function ($item) use ($filter, $ageGroup) {
                 return [
-                    'id'    => $item->group_slug,
-                    'name'  => $item->group->name,
+                    'id' => $item->group_slug,
+                    'name' => $item->group->name,
                     'value' => isset($item->values->keyBy('column_id')[$ageGroup]) ? $item->values->keyBy('column_id')[$ageGroup]->value : 0,
-                    'url'   => $filter->updateUrl([
+                    'url' => $filter->updateUrl([
                         'group_slug' => $item->group_slug,
                     ]),
                 ];
@@ -577,9 +574,9 @@ class TotalsController extends Controller
                 'top_parent_id' => $total->first()->top_parent_id,
                 'totals' => $allTotals->toArray(),
             ];
-        // this code below will only be used with nested groups where the second level also acts as top level group in the frontend.
-        })->when($parentColumnData, function($collection) use($parentColumnData, $groupSlug, $totals) {
-            // 
+            // this code below will only be used with nested groups where the second level also acts as top level group in the frontend.
+        })->when($parentColumnData, function ($collection) use ($parentColumnData, $groupSlug, $totals) {
+            //
             if (! empty($groupSlug)) {
                 $topGroupId = null;
                 // return empty if reached
@@ -589,7 +586,7 @@ class TotalsController extends Controller
 
                 // dd($collection);
                 // dd($parentColumnData);
-                // this will be true when filtering in the absolute top group. 
+                // this will be true when filtering in the absolute top group.
                 // Studieform | Ämnesområde[0] | Ämnesdelsområde[1] | Ämnesgrupp[2]
                 // When filtering on studieform we will return the 'regular' collection below
                 if (! is_null($topGroupId)) {
@@ -615,6 +612,7 @@ class TotalsController extends Controller
 
     /**
      * Retrieve gender types
+     *
      * @param  [type] $dataset
      * @return [type]
      */
@@ -628,19 +626,19 @@ class TotalsController extends Controller
                     ->groupBy('gender')
                     ->get();
 
-        return $totals->map(function($total) use($ageGroup, $filter) {
+        return $totals->map(function ($total) use ($ageGroup, $filter) {
             return [
-                'id'     => StringHelper::slugify($total->gender),
+                'id' => StringHelper::slugify($total->gender),
                 'gender' => $total->gender,
-                'value'  => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
-                'url'   => $filter->updateUrl(['gender' => $total->gender]),
+                'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
+                'url' => $filter->updateUrl(['gender' => $total->gender]),
             ];
         });
     }
 
     /**
      * Retrieve total columns and their values.
-     * 
+     *
      * @param  [type] $dataset
      * @return \Illuminate\Support\Collection
      */
@@ -659,25 +657,25 @@ class TotalsController extends Controller
             ->groupBy('total_values.column_id')
             ->get();
 
-        return $totals->map(function($total) use($filter) {
+        return $totals->map(function ($total) use ($filter) {
             return [
-                'id'   => $total->id,
+                'id' => $total->id,
                 'name' => $total->name,
                 'value' => $total->value,
-                'url'   => $filter->updateUrl(['age_group' => $total->id]),
+                'url' => $filter->updateUrl(['age_group' => $total->id]),
             ];
         });
     }
 
     private function yearlyTotals(Indicator $indicator, $university, $gender, $groupSlug, $ageGroup, $status, $filter)
     {
-        $totals = Total::whereHas('dataset', function($query) use($indicator, $status, $groupSlug) {
-                        $query->where('indicator_id', $indicator->id);
+        $totals = Total::whereHas('dataset', function ($query) use ($indicator, $status) {
+            $query->where('indicator_id', $indicator->id);
 
-                        $query->whereHas('statuses', function($query) use($status) {
-                            $query->status($status);
-                        });
-                    })
+            $query->whereHas('statuses', function ($query) use ($status) {
+                $query->status($status);
+            });
+        })
                     ->where('group_slug', $groupSlug)
                     ->where('gender', $gender)
                     ->where('university_id', $university)
@@ -685,24 +683,26 @@ class TotalsController extends Controller
                     ->orderBy('year')
                     ->get();
 
-        $yearlyTotals = $totals->map(function($total) use($indicator, $ageGroup, $filter) {
+        $yearlyTotals = $totals->map(function ($total) use ($ageGroup, $filter) {
             return [
                 'year' => trim($total->year),
                 'value' => isset($total->values->keyBy('column_id')[$ageGroup]) ? $total->values->keyBy('column_id')[$ageGroup]->value : 0,
-                'url'   => $filter->updateUrl(['year' => trim($total->year)]),
+                'url' => $filter->updateUrl(['year' => trim($total->year)]),
             ];
         });
 
         // code below sorts vt/ht years in the following order: VT2010, HT2010, VT2011, HT2011
         if (in_array(substr($yearlyTotals->first()['year'], 0, 2), ['HT', 'VT'])) {
-            $yearlyTotals = $yearlyTotals->groupBy(function($item) { // sorts the year by ht/vt if exists in year format
+            $yearlyTotals = $yearlyTotals->groupBy(function ($item) { // sorts the year by ht/vt if exists in year format
                 return substr($item['year'], 2, 4);
-            })->pipe(function($collection) { // order by substr year index key
+            })->pipe(function ($collection) { // order by substr year index key
                 $array = $collection->toArray();
                 ksort($array);
+
                 return collect($array);
-            })->map(function($item) { // sort inside specific year (HT/VT)
+            })->map(function ($item) { // sort inside specific year (HT/VT)
                 $item = collect($item);
+
                 return $item->sortByDesc('year')->values();
             })->collapse();
         }

@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateTotalValuesTable extends Migration
 {
@@ -20,7 +20,7 @@ class CreateTotalValuesTable extends Migration
 
             $table->integer('column_id')->unsigned();
             $table->foreign('column_id')->references('id')->on('total_columns')->onDelete('cascade');
-            
+
             $table->double('value')->nullable();
         });
     }

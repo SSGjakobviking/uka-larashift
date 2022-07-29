@@ -36,7 +36,7 @@ class ImportDataset implements ShouldQueue
     {
         // dd($this->user);
 
-        Log::info('Started importing dataset: ' . $this->dataset->file);
+        Log::info('Started importing dataset: '.$this->dataset->file);
 
         $dataset = new DatasetImporter($this->dataset);
 

@@ -8,16 +8,12 @@ use App\Indicator;
 use App\IndicatorGroup;
 use App\Search;
 use App\Status;
-use App\Total;
 use Elasticsearch\ClientBuilder;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
+use Illuminate\Http\Request;
 
 class IndicatorController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware(['auth', 'admin'], ['except' => 'all']);
@@ -40,7 +36,7 @@ class IndicatorController extends Controller
         $status = $this->isPreview($request);
 
         // loop through all indicators
-        $indicators = $allIndicators->map(function($item) use ($status) {
+        $indicators = $allIndicators->map(function ($item) use ($status) {
             // retrieve last published dataset (which we are showing by default in the GUI)
             $lastPublishedDataset = DatasetHelper::lastPublishedDataset($item, $status);
 
@@ -48,10 +44,10 @@ class IndicatorController extends Controller
                 return false;
             }
 
-            $url = route('totals', $item->id) . '/?year=' . trim($lastPublishedDataset->year);
+            $url = route('totals', $item->id).'/?year='.trim($lastPublishedDataset->year);
 
             if ($status === 'preview') {
-                $url.= '&status=preview';
+                $url .= '&status=preview';
             }
 
             return [
@@ -88,9 +84,9 @@ class IndicatorController extends Controller
 
     public function index()
     {
-        $indicatorGroups = IndicatorGroup::with(['indicators' => function($query) {
-                                $query->orderBy('name');
-                            }])
+        $indicatorGroups = IndicatorGroup::with(['indicators' => function ($query) {
+            $query->orderBy('name');
+        }])
                             ->orderBy('name')
                             ->get();
 
@@ -110,7 +106,7 @@ class IndicatorController extends Controller
 
         // retrieve datasets with no status or where status is not preview
         $previewDropdownData = $indicator->datasets()
-                        ->whereDoesntHave('statuses', function($query) {
+                        ->whereDoesntHave('statuses', function ($query) {
                             $query->preview();
                             $query->orProcessing();
                         })
@@ -119,7 +115,7 @@ class IndicatorController extends Controller
 
         // retrieve datasets with no status or where status is not published
         $publishedDropdownData = $indicator->datasets()
-                        ->whereDoesntHave('statuses', function($query) {
+                        ->whereDoesntHave('statuses', function ($query) {
                             $query->published();
                             $query->orProcessing();
                         })
@@ -127,7 +123,7 @@ class IndicatorController extends Controller
                         ->get();
 
         $previewData = $indicator->datasets()
-                        ->whereHas('statuses', function($query) {
+                        ->whereHas('statuses', function ($query) {
                             $query->preview();
                         })
                         ->with('user')
@@ -135,19 +131,18 @@ class IndicatorController extends Controller
                         ->get();
 
         $publishedData = $indicator->datasets()
-                        ->whereHas('statuses', function($query) {
+                        ->whereHas('statuses', function ($query) {
                             $query->published();
                         })
                         ->with('user')
                         ->orderByDesc('year')
                         ->get();
 
-
         $lastPreviewDataset = DatasetHelper::lastPublishedDataset($indicator, 'preview');
         $previewUrl = '';
 
         if (! is_null($lastPreviewDataset)) {
-            $previewUrl = env('APP_PREVIEW_URL') . '?statq=' . urlencode(route('totals', $indicator) . '?year=' . $lastPreviewDataset->year . '&status=preview');
+            $previewUrl = env('APP_PREVIEW_URL').'?statq='.urlencode(route('totals', $indicator).'?year='.$lastPreviewDataset->year.'&status=preview');
         }
 
         return view('indicator.edit', [
@@ -173,6 +168,7 @@ class IndicatorController extends Controller
         // create slug out of indicator name
         $request->request->add(['slug' => kebab_case($request->input('name'))]);
         Indicator::create($request->all());
+
         return redirect('indicator');
     }
 
@@ -191,18 +187,18 @@ class IndicatorController extends Controller
      * Saves the dataset with the right status depending on the form being used (preview|production).
      *
      * @param  [type]  $id
-     * @param  Request $request
+     * @param  Request  $request
      * @return [type]
      */
     public function saveDataset($id, Request $request)
     {
         $input = $this->detectStatus($request);
         $this->updateStatus($id, $request);
-       
+
         if (isset($input['status']) && $input['status'] === 'published') {
-            return redirect(request()->headers->get('referer') . '#published');
+            return redirect(request()->headers->get('referer').'#published');
         }
-       
+
         return redirect()->back();
     }
 
@@ -233,7 +229,6 @@ class IndicatorController extends Controller
         } else {
             $search->index();
         }
-
     }
 
     /**
@@ -245,7 +240,7 @@ class IndicatorController extends Controller
     {
         $client = new Client();
         $url = $this->cacheConfig['export_app_cache_purge_url'];
-        $client->request('GET', $url . $indicatorId);
+        $client->request('GET', $url.$indicatorId);
     }
 
     /**
@@ -266,7 +261,7 @@ class IndicatorController extends Controller
 
         return [
             'datasets' => $datasets,
-            'status'    => $status,
+            'status' => $status,
         ];
     }
 
@@ -286,7 +281,7 @@ class IndicatorController extends Controller
         if (! empty($input['datasets'])) {
             foreach ($input['datasets'] as $datasetId) {
                 $dataset = Dataset::where('id', $datasetId)->update([
-                    'indicator_id' => $id
+                    'indicator_id' => $id,
                 ]);
 
                 $status = Status::where('name', $input['status'])->first(['id']);

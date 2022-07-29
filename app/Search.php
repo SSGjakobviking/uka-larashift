@@ -2,18 +2,16 @@
 
 namespace App;
 
-use App\Group;
-use App\TotalColumn;
-use App\University;
-use Elasticsearch\ClientBuilder;
-use Illuminate\Support\Facades\DB;
-
-class Search {
-
+class Search
+{
     protected $client;
+
     protected $indicator;
+
     protected $datasetId;
+
     protected $params;
+
     protected $groupChildIds = [];
 
     public function __construct($client, $indicator, $dataset)
@@ -27,8 +25,8 @@ class Search {
     {
         $params = [
             'index' => $this->indicator->slug,
-            'type'  => 'university,group,gender',
-            'body'  => [
+            'type' => 'university,group,gender',
+            'body' => [
                 'size' => 100,
                 'query' => [
                     'match_phrase_prefix' => [
@@ -39,14 +37,14 @@ class Search {
         ];
 
         $results = $this->client->search($params);
-        
+
         // no match
         if ($results['hits']['total'] == 0) {
-            throw new \Exception('Hittade inget som matchade sökordet ' . $query);
+            throw new \Exception('Hittade inget som matchade sökordet '.$query);
         }
 
         $results = collect($results['hits']['hits']);
-        
+
         $ordered = $this->orderResults($results);
 
         $grouped = $ordered->groupBy('_source.parent_id');
@@ -70,7 +68,9 @@ class Search {
             $currentChild = $child['_source']['id'];
 
             // skip duplicates
-            if (in_array($currentChild, $this->groupChildIds)) continue;
+            if (in_array($currentChild, $this->groupChildIds)) {
+                continue;
+            }
 
             $filterArgs = [
                 $child['_source']['group'] => $child['_source']['id'],
@@ -81,7 +81,7 @@ class Search {
 
             $data = [
                 'title' => $filter->title(),
-                'url'   => $filter->url(),
+                'url' => $filter->url(),
             ];
 
             if ($collection->has($currentChild)) {
@@ -91,7 +91,6 @@ class Search {
 
             $result[] = $data;
             $this->groupChildIds[] = $currentChild;
-
         }
 
         return $result;
@@ -101,9 +100,9 @@ class Search {
     {
         $results = collect($results);
 
-        $results = $results->sortBy(function($item) { // sort by order first
+        $results = $results->sortBy(function ($item) { // sort by order first
             return $item['_source']['order'];
-        })->values()->sortBy(function($item) { // sort by id within order groups
+        })->values()->sortBy(function ($item) { // sort by id within order groups
             return isset($item['_source']['group_id']) ? $item['_source']['group_id'] : $item['_source']['id'];
         });
 
@@ -113,15 +112,15 @@ class Search {
     /**
      * Retrieves dataset_id from the current indicator index so we can check if we need to replace the indexed data with
      * a new dataset.
-     * 
+     *
      * @return array
      */
     public function one()
     {
         $params = [
             'index' => $this->indicator->slug,
-            'type'  => 'university,group_slug,gender',
-            'body'  => [
+            'type' => 'university,group_slug,gender',
+            'body' => [
                 'size' => 1,
             ],
         ];
@@ -133,7 +132,7 @@ class Search {
 
     /**
      * Creates an index in elasticsearch and bulk indexes search data.
-     * 
+     *
      * @return void
      */
     public function index()
@@ -144,9 +143,8 @@ class Search {
             $this->client->indices()->create($this->params());
         }
 
-        foreach($this->groups() as $type => $group) {
-
-            foreach($group as $list) {
+        foreach ($this->groups() as $type => $group) {
+            foreach ($group as $list) {
                 $document = collect([]);
                 $document = $document->merge($list)->toArray();
                 $document['dataset_id'] = $this->dataset->id;
@@ -155,7 +153,7 @@ class Search {
                     'index' => [
                         '_index' => $index,
                         '_type' => $type,
-                    ]
+                    ],
                 ];
 
                 $params['body'][] = $document;
@@ -173,14 +171,14 @@ class Search {
         }
 
         // Send the last batch if it exists
-        if (!empty($params['body'])) {
+        if (! empty($params['body'])) {
             $responses = $this->client->bulk($params);
         }
-
     }
 
     /**
-     * Retrieve 
+     * Retrieve
+     *
      * @return [type]
      */
     private function groups()
@@ -192,7 +190,7 @@ class Search {
                         ->with('university')
                         ->groupBy('university_id')
                         ->get()
-                        ->map(function($item) {
+                        ->map(function ($item) {
                             return [
                                 'id' => $item->university->id,
                                 'name' => $item->university->name,
@@ -205,7 +203,7 @@ class Search {
                     ->with('group')
                     ->groupBy('group_slug')
                     ->get()
-                    ->map(function($item) {
+                    ->map(function ($item) {
                         return [
                             'parent_id' => $item->group_parent_slug,
                             'id' => $item->group_slug,
@@ -220,7 +218,7 @@ class Search {
                     ->where('gender', '!=', 'Total')
                     ->groupBy('gender')
                     ->get(['gender'])
-                    ->map(function($item) {
+                    ->map(function ($item) {
                         return [
                             'id' => $item->gender,
                             'name' => $item->gender,
@@ -228,7 +226,7 @@ class Search {
                             'group' => 'gender',
                         ];
                     });
-    
+
         return [
             'university' => $universities,
             'group' => $groups,
@@ -238,9 +236,9 @@ class Search {
 
     /**
      * Check whether index exist or not.
-     * 
-     * @param  string $index
-     * @return boolean
+     *
+     * @param  string  $index
+     * @return bool
      */
     public function indexExist($index)
     {
@@ -249,7 +247,7 @@ class Search {
 
     /**
      * Removes the whole index.
-     * 
+     *
      * @return [type]
      */
     public function remove()
@@ -259,7 +257,7 @@ class Search {
 
     /**
      * Create default mapping structure array.
-     * 
+     *
      * @return [type]
      */
     private function params()
@@ -295,29 +293,29 @@ class Search {
                 'mappings' => [
                     'university' => [
                         '_source' => [
-                            'enabled' => true
+                            'enabled' => true,
                         ],
                         'properties' => [
                             'name' => [
                                 'type' => 'text',
                                 'analyzer' => 'my_analyzer',
                             ],
-                        ]
+                        ],
                     ],
                     'group' => [
                         '_source' => [
-                            'enabled' => true
+                            'enabled' => true,
                         ],
                         'properties' => [
                             'name' => [
                                 'type' => 'text',
                                 'analyzer' => 'my_analyzer',
                             ],
-                        ]
+                        ],
                     ],
                     'gender' => [
                         '_source' => [
-                            'enabled' => true
+                            'enabled' => true,
                         ],
                         'properties' => [
                             'id' => [
@@ -328,11 +326,10 @@ class Search {
                                 'type' => 'text',
                                 'analyzer' => 'my_analyzer',
                             ],
-                        ]
+                        ],
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
     }
-
 }

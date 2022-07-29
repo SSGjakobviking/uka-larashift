@@ -1,11 +1,11 @@
 <?php
 
 namespace App;
+
 use Illuminate\Support\Collection;
 
 class TotalsFormatter
 {
-    
     protected $data;
 
     public function get()
@@ -23,8 +23,8 @@ class TotalsFormatter
 
     /**
      * Adds group of data to the 'groups' item in the total object.
-     * 
-     * @param array $data
+     *
+     * @param  array  $data
      */
     public function addGroup(array $data)
     {
@@ -33,12 +33,12 @@ class TotalsFormatter
 
     /**
      * Adds multiple groups to the 'group' item in the total object.
-     * 
-     * @param Collection $groups
+     *
+     * @param  Collection  $groups
      */
     public function addGroups(Collection $groups)
     {
-        $groups->each(function($group) {
+        $groups->each(function ($group) {
             if (! is_null($group)) {
                 $this->addGroup($group);
             }

@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class TotalValue extends Model
 {
-
     protected $fillable = [
         'total_id',
         'column_id',

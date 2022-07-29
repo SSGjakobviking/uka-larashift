@@ -2,7 +2,6 @@
 
 namespace App;
 
-use App\TotalValue;
 use Illuminate\Database\Eloquent\Model;
 
 class TotalColumn extends Model

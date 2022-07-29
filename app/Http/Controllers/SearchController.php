@@ -2,20 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Dataset;
-use App\Filter;
 use App\Helpers\DatasetHelper;
-use App\Indicator;
 use App\Search;
-use App\Total;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class SearchController extends Controller
 {
-
     public function index(Request $request, $indicator, $query)
     {
         $lastPublishedDataset = DatasetHelper::lastPublishedDataset($indicator);
@@ -27,11 +21,11 @@ class SearchController extends Controller
         if (! empty($query)) {
             try {
                 $results['result'] = $search->search($query, $lastPublishedDataset['year']);
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $results = [
                     'error' => true,
-                    'code'  => 404,
-                    'message' => 'Kunde inte hitta en träff med söktermen ' . $query,
+                    'code' => 404,
+                    'message' => 'Kunde inte hitta en träff med söktermen '.$query,
                 ];
 
                 return Response::json($results, 404);

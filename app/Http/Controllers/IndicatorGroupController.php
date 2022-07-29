@@ -16,13 +16,14 @@ class IndicatorGroupController extends Controller
 
     /**
      * Save the indicator group.
-     * 
-     * @param  Requests\IndicatorGroup $request
+     *
+     * @param  Requests\IndicatorGroup  $request
      * @return [type]
      */
     public function store(Requests\IndicatorGroup $request)
     {
         App\IndicatorGroup::create($request->all());
+
         return redirect('indicator');
     }
 

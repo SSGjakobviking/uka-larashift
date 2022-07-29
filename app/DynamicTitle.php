@@ -4,7 +4,6 @@ namespace App;
 
 use App\Helpers\DatasetHelper;
 use App\Helpers\StringHelper;
-use App\TotalColumn;
 
 class DynamicTitle
 {
@@ -25,14 +24,14 @@ class DynamicTitle
 
     /**
      * Retrieves the dynamic value.
-     * 
+     *
      * @return string
      */
     public function get($ignore)
-    {   
+    {
         // Retrieves nice values from indicator config file for each filter group
         $filters = $this->niceValue($this->filters->all()->forget($ignore));
-        
+
         // Builds the dynamic string by replacing the placeholders for each group with their filter value
         $title = $this->build($this->indicator->title_config, $filters);
 
@@ -41,14 +40,13 @@ class DynamicTitle
 
     /**
      * Retrieves filter group nice values from the indicator config file.
-     * 
-     * @param  Illuminate\Support\Collection $filters
+     *
+     * @param  Illuminate\Support\Collection  $filters
      * @return Illuminate\Support\Collection
      */
     private function niceValue($filters)
     {
-
-        return $filters->map(function($value, $key) {
+        return $filters->map(function ($value, $key) {
 
             // year doesn't need a nice value from the config so we return it directly.
             if ($key === 'year') {
@@ -64,21 +62,21 @@ class DynamicTitle
                     $dataset = DatasetHelper::lastPublishedDataset($this->indicator, 'preview');
                 }
                 $slug = Total::where('dataset_id', $dataset->id)->where('group_slug', $value);
-                
-                if($slug->first() == null) {
+
+                if ($slug->first() == null) {
                     return null;
                 }
-                
+
                 $slug = $slug
                     ->first()
                     ->group()
                     ->first()
                     ->name;
+
                 return mb_strtolower($slug);
             }
 
             if ($key == 'age_group') {
-
                 $ageGroup = TotalColumn::find($value)->name;
 
                 // skipp total
@@ -86,22 +84,21 @@ class DynamicTitle
                     return false;
                 }
 
-                $value = 'i åldersgruppen ' . $ageGroup . ' år';
+                $value = 'i åldersgruppen '.$ageGroup.' år';
 
                 return $value;
             }
 
             if ($key == 'university' && $value != strtolower('riket')) {
-    
                 $university = $this->leftSpacing(University::find($value)->name);
 
                 if (trim(mb_strtolower($university)) == 'riket') {
                     return false;
                 }
 
-                return ' ' . $prefix . $university;
+                return ' '.$prefix.$university;
             }
-           
+
             $value = $prefix[StringHelper::slugify($value)];
 
             return $value;
@@ -111,9 +108,9 @@ class DynamicTitle
     /**
      * Replaces the dynamic title placeholders with the filtering values.
      * Default title is defined in config/indicator.php file.
-     * 
-     * @param  string $title
-     * @param  Illuminate\Support\Collection $filters
+     *
+     * @param  string  $title
+     * @param  Illuminate\Support\Collection  $filters
      * @return string
      */
     private function build($title, $filters)
@@ -123,8 +120,8 @@ class DynamicTitle
             $title = $this->removeGroupPrefix($title);
         }
         // replaces placeholders for all the 'groups' that has been filtered.
-        foreach($filters as $name => $value) {
-            $title = str_replace('{' . $name . '}', $value, $title);
+        foreach ($filters as $name => $value) {
+            $title = str_replace('{'.$name.'}', $value, $title);
         }
 
         // remove placeholders that hasn't been filtered and return the string.
@@ -137,7 +134,7 @@ class DynamicTitle
 
     /**
      * Removes group prefix when no group filter has been done.
-     * 
+     *
      * @param  [type] $title
      * @return [type]
      */
@@ -149,24 +146,26 @@ class DynamicTitle
         if (! $search) {
             return $title;
         }
-        
+
         $prefix = $pieces[$search - 1];
         $title = str_replace($prefix, '', $title);
 
         return $title;
     }
 
-    function removeWhiteSpace($text) {
+    public function removeWhiteSpace($text)
+    {
         $text = preg_replace('/[\t\n\r\0\x0B]/', '', $text);
         $text = preg_replace('/([\s])\1+/', ' ', $text);
         $text = trim($text);
+
         return $text;
     }
 
     /**
      * Adds left spacing for the filter value.
-     * 
-     * @param  string $value
+     *
+     * @param  string  $value
      * @return string
      */
     private function leftSpacing($value = null)

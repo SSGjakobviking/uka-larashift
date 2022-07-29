@@ -2,7 +2,6 @@
 
 namespace App;
 
-use App\Group;
 use Illuminate\Database\Eloquent\Model;
 
 class Total extends Model
@@ -50,5 +49,4 @@ class Total extends Model
     {
         return $this->belongsTo(University::class);
     }
-
 }

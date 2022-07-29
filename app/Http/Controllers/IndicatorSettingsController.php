@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Indicator;
 use App\IndicatorGroup;
-use Illuminate\Http\Request;
 
 class IndicatorSettingsController extends Controller
 {
@@ -20,6 +19,7 @@ class IndicatorSettingsController extends Controller
     {
         $indicator = Indicator::find($id);
         $indicator->update($request->all());
+
         return redirect()->back()->with('success', 'Indikatorn är uppdaterad.');
     }
 }

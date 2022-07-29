@@ -24,7 +24,7 @@ class IndicatorGroup extends FormRequest
     public function rules()
     {
         return [
-            'name'  => 'required|unique:indicator_groups',
+            'name' => 'required|unique:indicator_groups',
         ];
     }
 }

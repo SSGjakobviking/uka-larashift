@@ -166,7 +166,7 @@ return [
         /*
          * Package Service Providers...
          */
-        GrahamCampbell\Exceptions\ExceptionsServiceProvider::class,
+        // GrahamCampbell\Exceptions\ExceptionsServiceProvider::class,
         Barryvdh\Debugbar\ServiceProvider::class,
 
         /*

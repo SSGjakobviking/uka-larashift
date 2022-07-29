@@ -4,8 +4,9 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
-class Handler extends \GrahamCampbell\Exceptions\NewExceptionHandler
+class Handler extends ExceptionHandler
 {
     /**
      * A list of the exception types that should not be reported.

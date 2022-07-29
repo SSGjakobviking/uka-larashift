@@ -13,7 +13,7 @@
         "box/spout": "^2.7",
         "doctrine/dbal": "^2.5",
         "elasticsearch/elasticsearch": "^5.2",
-        "graham-campbell/exceptions": "^9.3",
+        
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "5.5.*",
         "laravel/tinker": "~1.0",
@@ -55,7 +55,10 @@
     "config": {
         "preferred-install": "dist",
         "sort-packages": true,
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
     },
     "extra": {
         "laravel": {

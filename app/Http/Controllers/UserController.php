@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Hash;
 use App\Role;
 use App\User;
 use Illuminate\Http\Request;
@@ -89,7 +90,7 @@ class UserController extends Controller
         } else {
             $data = Input::all();
             // encrypt the password before updating.
-            $data['password'] = bcrypt($data['password']);
+            $data['password'] = Hash::make($data['password']);
         }
 
         if (isset($data['role'])) {
